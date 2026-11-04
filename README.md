@@ -59,3 +59,12 @@ cd web/vue && pnpm exec vitest run tests/hr
 # 独立测试床（子仓-only 检出，批 C 交付）
 testbed/bootstrap.sh
 ```
+
+## CI/CD 发布流水线
+
+`.github/workflows/release.yml`（GitHub Actions，合并至 `main` 触发）：
+
+1. **build-push**（自动）：拉主仓（Gitee token）→ 子仓内容 tar 装配至主仓挂载点（等价 bootstrap.sh rsync 语义，被测代码由子仓 HEAD 锁定）→ `docker build --target production-hr-web` → push 双 tag `vYYYYMMDD.<run_number>` + `latest` 至阿里云 registry。
+2. **deploy-master**（需人工审批）：GitHub Environment `production` 保护规则闸门——批准后于 master 本地执行 publish 编排同步、`.env.node-hr` VERSION bump、`pull` + `up -d hr-api`，健康检查双检（8090 uvicorn / 8091 内嵌 nginx）。
+
+前置配置见 workflow 文件头注释（一次性）：GitHub Environments `production` + Required reviewers、Secrets（`GITEE_TOKEN` / `ALIYUN_REGISTRY_USER` / `ALIYUN_REGISTRY_PASS`）、master 安装 self-hosted runner（需 docker 权限）。回滚：master `deploy/.env.node-hr` 的 `VERSION` 改回旧 tag 后 `up -d hr-api`。

@@ -1,0 +1,119 @@
+# hr 全合一镜像发布流水线（GitHub Actions，self-hosted runner 部署于 master）
+#
+# 前置配置（一次性，GitHub 网页端 + master 侧）：
+# 1. 仓库 Settings → Environments → 新建 production，勾选 Required reviewers：
+#    deploy-master job 须人工在 GitHub 页面点批准后才执行滚动（生产闸门）
+# 2. 仓库 Settings → Secrets and variables → Actions 新增：
+#    GITEE_TOKEN            —— Gitee 私人令牌（projects 读取权限，用于拉主仓）
+#    ALIYUN_REGISTRY_USER   —— 阿里云 RAM 子账号（建议最小权限：仅 kcloudy-images namespace 读写）
+#    ALIYUN_REGISTRY_PASS   —— 对应密码
+# 3. master 安装 runner（github.com/actions/runner）：
+#      mkdir /opt/actions-runner && 解压 runner 包
+#      ./config.sh --url https://github.com/KentTain/kcloudy.hr --token <repo runner token>
+#      ./svc.sh install && ./svc.sh start
+#    服务用户需有 docker 权限与 /mnt/docker-images/kcloudy.publish 写权限；
+#    若 runner 装在其他节点，deploy-master 的本地执行需改为 SSH（本文件未含）
+# 4. master 本机前置：docker（BuildKit，cache mount 需要）、git、tar、
+#    阿里云 registry 登录态、publish 仓库 /mnt/docker-images/kcloudy.publish
+#
+# 产物：ai-platform-backend-hr 双 tag —— vYYYYMMDD.<run_number> + latest
+# 流程：合并 main → 构建推送（自动）→ deploy-master（Environment 审批）→
+#       publish 编排 VERSION bump → pull/up → 健康检查（8090 uvicorn + 8091 内嵌 nginx）
+# 回滚：master deploy/.env.node-hr 的 VERSION 改回旧 tag 后 up -d hr-api
+
+name: 发布 hr 全合一镜像
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: true
+
+env:
+  REGISTRY: registry.cn-zhangjiakou.aliyuncs.com
+  IMAGE: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/ai-platform-backend-hr
+  MAIN_REPO_DIR: main-repo
+  MOUNT_DIR: main-repo/server/python/src/modules/hr
+
+jobs:
+  build-push:
+    runs-on: [self-hosted]
+    outputs:
+      tag: ${{ steps.ver.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 拉主仓（Gitee）
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          git clone --depth 1 "https://oauth2:${GITEE_TOKEN}@gitee.com/kenttian/kcloudy.ai-platform.git" "${MAIN_REPO_DIR}"
+          # 清除 remote URL 中的 token（runner workspace 在 master 上持久落盘）
+          git -C "${MAIN_REPO_DIR}" remote set-url origin https://gitee.com/kenttian/kcloudy.ai-platform.git
+
+      - name: 子仓内容装配至主仓挂载点（等价 bootstrap.sh rsync 语义，被测代码由子仓 HEAD 锁定）
+        run: |
+          rm -rf "${MOUNT_DIR}"
+          mkdir -p "${MOUNT_DIR}"
+          tar -C "$GITHUB_WORKSPACE" --exclude=.git --exclude=testbed/.work --exclude=.github \
+            -cf - . | tar -C "${MOUNT_DIR}" -xf -
+
+      - name: 登录阿里云镜像仓库（基础镜像 FROM 亦在 kcloudy-images）
+        env:
+          ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+          ALIYUN_REGISTRY_PASS: ${{ secrets.ALIYUN_REGISTRY_PASS }}
+        run: echo "${ALIYUN_REGISTRY_PASS}" | docker login "$REGISTRY" -u "$ALIYUN_REGISTRY_USER" --password-stdin
+
+      - name: 构建并推送（production-hr-web，DOCKER_BUILDKIT 必须开启）
+        id: ver
+        env:
+          TAG: v$(date +%Y%m%d).${{ github.run_number }}
+        run: |
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          export DOCKER_BUILDKIT=1
+          docker build \
+            --file server/python/Dockerfile \
+            --target production-hr-web \
+            -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" \
+            "${MAIN_REPO_DIR}"
+          docker push "${IMAGE}:${TAG}"
+          docker push "${IMAGE}:latest"
+
+  deploy-master:
+    needs: build-push
+    runs-on: [self-hosted]
+    environment: production
+    steps:
+      - name: 登录阿里云镜像仓库
+        env:
+          ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+          ALIYUN_REGISTRY_PASS: ${{ secrets.ALIYUN_REGISTRY_PASS }}
+        run: echo "${ALIYUN_REGISTRY_PASS}" | docker login "$REGISTRY" -u "$ALIYUN_REGISTRY_USER" --password-stdin
+
+      - name: master 滚动（publish 编排同步 + VERSION bump + pull/up）
+        run: |
+          set -euo pipefail
+          cd /mnt/docker-images/kcloudy.publish
+          git pull --ff-only
+          sed -i "s/^VERSION=.*/VERSION=${{ needs.build-push.outputs.tag }}/" deploy/.env.node-hr
+          docker compose -f deploy/docker-compose.node-hr.yml --env-file deploy/.env.node-hr pull hr-api
+          docker compose -f deploy/docker-compose.node-hr.yml --env-file deploy/.env.node-hr up -d hr-api
+
+      - name: 健康检查（uvicorn :8090 + 内嵌 nginx :8091）
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in $(seq 1 36); do
+            if curl -sf http://172.23.160.12:8090/health >/dev/null \
+              && curl -sf http://172.23.160.12:8091/ >/dev/null; then
+              ok=1; break
+            fi
+            sleep 5
+          done
+          [ "$ok" = 1 ] || { echo "健康检查超时（3 分钟），检查 docker logs ai-platform-backend-hr"; exit 1; }
+          echo "master hr-api 滚动完成：${{ needs.build-push.outputs.tag }}（8090/8091 双检通过）"
