@@ -89,7 +89,10 @@ docker compose version >/dev/null 2>&1 || { log "错误：docker compose 不可�
 
 # ---------- 1. 隔离基础设施栈 ----------
 log "拉起隔离基础设施栈（tmpfs，无持久化）…"
-docker compose -f "${COMPOSE_FILE}" up -d --wait
+# 不用 --wait：minio-init 为 one-shot 容器，跑完即 exited，部分 compose 版本
+# 将其判为非 running 使 --wait 返回非 0（docker/compose#10596）；就绪由下方
+# pg_isready 轮询与 minio-init 的 depends_on: service_healthy 兜底
+docker compose -f "${COMPOSE_FILE}" up -d
 for i in $(seq 1 10); do
   docker compose -f "${COMPOSE_FILE}" exec -T postgres pg_isready -U postgres -d hr_testbed >/dev/null 2>&1 && break
   sleep 2

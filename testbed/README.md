@@ -52,4 +52,5 @@ cd web/tests/hr && pnpm install && pnpm vitest run       # 前端
 ## 注意
 
 - 主仓克隆走 SSH（`git@gitee.com:kenttian/kcloudy.ai-platform.git`），需先配好本机 SSH key。
+- `.work/` 已存在时重复执行 bootstrap **不会**重新 pull 主仓（浅克隆停留在首次时点）；主仓有新提交需先 `testbed/bootstrap.sh --down` 清理后重跑（或手工 `git -C testbed/.work/kcloudy.ai-platform pull`）。
 - 本环境无 docker 时 `bootstrap.sh` 不可全量运行（C5 子仓-only 演练挂账真机），但 compose/env/流程已静态验证。
