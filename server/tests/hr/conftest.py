@@ -1,9 +1,10 @@
 """hr 子仓独立测试 conftest（薄镜像主仓 server/python/tests/conftest.py 的 hr 消费面）。
 
 不依赖主仓 conftest，两种布局自适应：
-- 主仓工作区（子仓挂载于 server/python/src/hr）：src 目录入 sys.path，
-  APP_CONFIG_DIR 指向 server/config
-- 子仓独立检出（仓根即包根）：仓根入 sys.path，APP_CONFIG_DIR 由 testbed 注入
+- 主仓工作区（子仓挂载于 server/python/src/modules/hr）：向上探测 framework
+  兄弟层定位主仓 src 入 sys.path，APP_CONFIG_DIR 指向 server/config
+- 子仓独立检出（server/web 体例）：按 server/src 约定定位入 sys.path，
+  APP_CONFIG_DIR 由 testbed 注入（批 C）
 
 镜像 fixtures：postgres_engine / redis_client（hr 集成测试消费）+
 ctx 复位 autouse（防用户上下文跨用例泄漏）。
@@ -18,30 +19,30 @@ from pathlib import Path
 import pytest
 import pytest_asyncio
 
-HERE = Path(__file__).resolve().parent  # tests/backend
+HERE = Path(__file__).resolve().parent  # server/tests/hr
 
 
-def _find_package_root():
-    # 主仓布局：tests/backend 的上两级是 src（含 hr/ 与 framework/ 等兄弟模块）
-    for cand in (HERE.parents[2], HERE.parents[1]):
-        if (cand / "hr" / "__init__.py").exists():
+def _find_src_root():
+    # 主仓工作区：向上探测 framework 兄弟层（src 下 hr 与 framework 等模块同层）
+    for cand in HERE.parents:
+        if (cand / "framework" / "__init__.py").exists():
             return cand
-    # 子仓独立检出：仓根即包根（含 __init__.py 与 module.py）
-    for cand in (HERE.parents[2], HERE.parents[1]):
-        if (cand / "__init__.py").exists() and (cand / "module.py").exists():
-            return cand
+    # 子仓独立检出：server/tests/hr → server/src（含 hr 包）
+    for cand in HERE.parents:
+        if (cand / "src" / "hr" / "__init__.py").exists():
+            return cand / "src"
     return None
 
 
-PKG_ROOT = _find_package_root()
-if PKG_ROOT and str(PKG_ROOT) not in sys.path:
-    sys.path.insert(0, str(PKG_ROOT))
+SRC_ROOT = _find_src_root()
+if SRC_ROOT and str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
 os.environ.setdefault("PYTHON_SERVICE_ENV", "local")
 os.environ.setdefault("TZ", "Asia/Shanghai")
 
-if PKG_ROOT is not None and PKG_ROOT.name == "src":
-    _main_config_dir = PKG_ROOT.parents[1] / "config"
+if SRC_ROOT is not None and SRC_ROOT.name == "src":
+    _main_config_dir = SRC_ROOT.parents[1] / "config"
     if _main_config_dir.exists():
         os.environ.setdefault("APP_CONFIG_DIR", str(_main_config_dir))
 
