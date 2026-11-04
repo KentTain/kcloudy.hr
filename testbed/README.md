@@ -33,7 +33,7 @@ HR_TEST_BASE_URL=http://127.0.0.1:18080 python -m pytest server/tests/hr/integra
 
 # e2e（Playwright 金路径：登录 → 花名册 → CRUD → 退出）
 cd .work/kcloudy.ai-platform/web/vue
-HR_TEST_BASE_URL=http://127.0.0.1:15173 pnpm exec playwright test tests/hr/e2e
+E2E_BASE_URL=http://127.0.0.1:15173 pnpm exec playwright test --config tests/hr/e2e/playwright.config.ts
 ```
 
 单测（不依赖 testbed）：

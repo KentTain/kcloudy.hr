@@ -147,6 +147,6 @@ log "  后端 API   http://127.0.0.1:${BACKEND_PORT}  （日志 ${WORK_DIR}/back
 log "  前端 dev   http://127.0.0.1:${FRONTEND_PORT}  （日志 ${WORK_DIR}/frontend.log）"
 log "  集成测试：HR_TEST_BASE_URL=http://127.0.0.1:${BACKEND_PORT} \\"
 log "            python -m pytest ${SUBREPO_ROOT}/server/tests/hr/integration -q"
-log "  e2e：      cd ${MAIN_DIR}/web/vue && HR_TEST_BASE_URL=http://127.0.0.1:${FRONTEND_PORT} \\"
-log "            pnpm exec playwright test --config playwright.config.ts tests/hr/e2e"
+log "  e2e：      cd ${MAIN_DIR}/web/vue && E2E_BASE_URL=http://127.0.0.1:${FRONTEND_PORT} \\"
+log "            pnpm exec playwright test --config tests/hr/e2e/playwright.config.ts"
 log "  清理：     testbed/bootstrap.sh --down"
