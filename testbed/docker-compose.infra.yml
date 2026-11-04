@@ -1,0 +1,90 @@
+# HR 子仓独立测试基础设施栈（批 C）
+#
+# 用法（由 testbed/bootstrap.sh 调起，也可手工）：
+#   docker compose -f testbed/docker-compose.infra.yml up -d --wait
+#
+# 特性：
+# - 独立网络 hr-testbed，端口取高位（15432/16379/19000），不与开发环境冲突
+# - 全部数据落 tmpfs（无持久卷），每轮 up 即全新状态，不涉清理纪律
+# - 镜像与主仓 docker-compose.infrastructure.yml 同源（pgvector 自定义镜像保
+#   证 framework/ai 等扩展依赖可用；bucket 凭证对齐 application-local.yml 默认值）
+
+name: hr-testbed
+
+services:
+  postgres:
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/pgvector:pg17-jieba-age
+    container_name: hr-testbed-postgres
+    environment:
+      POSTGRES_DB: hr_testbed
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${HR_TESTBED_PG_PORT:-15432}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:size=1g
+    networks:
+      - hr-testbed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hr_testbed"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/redis:7-alpine
+    container_name: hr-testbed-redis
+    command: redis-server --save "" --loglevel warning --requirepass redis123
+    ports:
+      - "${HR_TESTBED_REDIS_PORT:-16379}:6379"
+    tmpfs:
+      - /data:size=256m
+    networks:
+      - hr-testbed
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  minio:
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/minio:latest
+    container_name: hr-testbed-minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: XdA9caoq
+    command: server /data --console-address ":9001"
+    ports:
+      - "${HR_TESTBED_MINIO_PORT:-19000}:9000"
+    tmpfs:
+      - /data:size=512m
+    networks:
+      - hr-testbed
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+  # bucket 初始化（应用配置默认消费 ai-platform bucket）
+  minio-init:
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/minio-mc:2024.11.05
+    container_name: hr-testbed-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: XdA9caoq
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      mc mb myminio/ai-platform --ignore-existing;
+      echo 'hr-testbed minio bucket initialized';
+      "
+    networks:
+      - hr-testbed
+
+networks:
+  hr-testbed:
+    name: hr-testbed
