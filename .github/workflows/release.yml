@@ -60,7 +60,9 @@ jobs:
         run: |
           rm -rf "${MOUNT_DIR}"
           mkdir -p "${MOUNT_DIR}"
-          tar -C "$GITHUB_WORKSPACE" --exclude=.git --exclude=bootstrap/.work --exclude=.github \
+          # exclude=main-repo 必须保留：MOUNT_DIR 位于 workspace/main-repo 之内，
+          # 左侧 tar 若遍历到它会把右侧刚写出的内容再归档一层，自嵌套直至磁盘填满
+          tar -C "$GITHUB_WORKSPACE" --exclude=.git --exclude=main-repo --exclude=bootstrap/.work --exclude=.github \
             -cf - . | tar -C "${MOUNT_DIR}" -xf -
 
       - name: 登录阿里云镜像仓库（基础镜像 FROM 亦在 kcloudy-images）
