@@ -6,18 +6,18 @@
 #   后端 venv + 临时库迁移/seed + uvicorn 拉起 → 前端依赖 + vite dev 拉起
 #
 # 用法：
-#   testbed/bootstrap.sh                 # 全量自举并拉起服务（前台驻留日志后退出）
-#   testbed/bootstrap.sh --down          # 停止并清理全部自举产物
+#   bootstrap/bootstrap.sh                 # 全量自举并拉起服务（前台驻留日志后退出）
+#   bootstrap/bootstrap.sh --down          # 停止并清理全部自举产物
 #
-# 自举产物统一落在 testbed/.work/（已 .gitignore），不污染子仓与主仓。
-# 服务起来后按提示运行集成测试与 e2e（见 testbed/README.md）。
+# 自举产物统一落在 bootstrap/.work/（已 .gitignore），不污染子仓与主仓。
+# 服务起来后按提示运行集成测试与 e2e（见 bootstrap/README.md）。
 
 set -euo pipefail
 
 SUBREPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WORK_DIR="${SUBREPO_ROOT}/testbed/.work"
+WORK_DIR="${SUBREPO_ROOT}/bootstrap/.work"
 MAIN_DIR="${WORK_DIR}/kcloudy.ai-platform"
-COMPOSE_FILE="${SUBREPO_ROOT}/testbed/docker-compose.infra.yml"
+COMPOSE_FILE="${SUBREPO_ROOT}/bootstrap/docker-compose.infra.yml"
 
 SUBREPO_REV="$(git -C "${SUBREPO_ROOT}" rev-parse HEAD)"
 BACKEND_PORT="${HR_TESTBED_BACKEND_PORT:-18080}"
@@ -111,7 +111,7 @@ if [ ! -d "${MAIN_DIR}/.git" ]; then
 fi
 log "子仓内容锁版本覆盖装配（${SUBREPO_REV:0:7}）…"
 rsync -a --delete \
-  --exclude '.git' --exclude '.gitignore' --exclude 'testbed/' \
+  --exclude '.git' --exclude '.gitignore' --exclude 'bootstrap/' \
   "${SUBREPO_ROOT}/" "${MAIN_DIR}/server/python/src/modules/hr/"
 mkdir -p "${WORK_DIR}"
 
@@ -152,4 +152,4 @@ log "  集成测试：HR_TEST_BASE_URL=http://127.0.0.1:${BACKEND_PORT} \\"
 log "            python -m pytest ${SUBREPO_ROOT}/server/tests/hr/integration -q"
 log "  e2e：      cd ${MAIN_DIR}/web/vue && E2E_BASE_URL=http://127.0.0.1:${FRONTEND_PORT} \\"
 log "            pnpm exec playwright test --config tests/hr/e2e/playwright.config.ts"
-log "  清理：     testbed/bootstrap.sh --down"
+log "  清理：     bootstrap/bootstrap.sh --down"

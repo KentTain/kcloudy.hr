@@ -6,6 +6,8 @@
 
 按主仓 `server/python/tests/` 体例组织，conftest 薄镜像主仓 hr 消费面，不依赖主仓 conftest——两种布局自适应：
 
+pytest 配置面在 `../pytest.ini`（rootdir=`server/tests/`）：`asyncio_mode=auto`（async 用例免标注，删之静默跳测）、unit/integration 标记注册、`testpaths=hr`（独立检出裸跑默认目标）。
+
 - **主仓工作区**（子仓挂载于 `server/python/src/modules/hr`）：向上探测 framework 兄弟层定位主仓 `src` 入 `sys.path`，`APP_CONFIG_DIR` 指向主仓 `server/config`
 - **子仓独立检出**（server/web 体例）：按 `server/src` 约定定位入 `sys.path`，`APP_CONFIG_DIR` 由独立测试床（bootstrap/）注入
 

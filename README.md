@@ -52,8 +52,7 @@ kcloudy.hr/
 │   └── tests/hr/            # 前端 unit 测试 + e2e（批 C；含测试层 AGENTS.md）
 ├── bootstrap/               # 独立测试自举（批 C：bootstrap.sh + compose 隔离栈）
 ├── AGENTS.md                # 仓根开发导航（纪律/业务概览/文档总览）
-├── README.md
-└── pytest.ini               # 子仓独立检出时的 pytest 配置
+└── README.md
 ```
 
 ## 主仓集成形态

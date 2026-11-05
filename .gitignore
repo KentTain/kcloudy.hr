@@ -1,6 +1,91 @@
-__pycache__/
-*.pyc
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+
+# Test coverage
+coverage
+
+# Playwright E2E test output
+**/test-results/
+**/playwright-report/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Frontend cache
+.vite/
+.eslintcache
+
+# Python
+__pycache__
+**/__pycache__
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
 .pytest_cache/
-node_modules/
-testbed/.work/
-test-results/
+.mypy_cache/
+.coverage
+htmlcov/
+server/.cache/
+
+# obsidian
+docs/.claude
+docs/.claudian
+docs/.obsidian
+docs/Excalidraw
+*.base
+
+# 本地配置（含敏感信息，不提交）
+**/application-local.yml
+**/application-prod.yml
+
+# skill
+.benchmarks
+.codegraph
+.superpowers
+.worktrees
+.cursor
+
+# Claude AI assistant
+.claude/settings.local.json
+.claude/worktrees/
+.ms-playwright/
+.e2e*/
+.zcode/
+
+# Codex AI assistant
+.codex/
+
+# 共享技能安装源（skills CLI / openspec 管理，本地生成）
+.agents/
+
+# OpenSpec 工作流目录（本地生成）
+openspec/
+
+# superpowers 计划文档（本地生成）
+docs/superpowers/

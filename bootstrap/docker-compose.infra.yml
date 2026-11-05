@@ -1,7 +1,7 @@
 # HR 子仓独立测试基础设施栈（批 C）
 #
-# 用法（由 testbed/bootstrap.sh 调起，也可手工）：
-#   docker compose -f testbed/docker-compose.infra.yml up -d --wait
+# 用法（由 bootstrap/bootstrap.sh 调起，也可手工）：
+#   docker compose -f bootstrap/docker-compose.infra.yml up -d --wait
 #
 # 特性：
 # - 独立网络 hr-testbed，端口取高位（15432/16379/19000），不与开发环境冲突
