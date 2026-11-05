@@ -62,18 +62,21 @@ testbed/bootstrap.sh
 
 ## 发布方式（CI/CD）
 
-hr 全合一镜像发布共三种方式：方式一已落地，方式二/三为备选（未实施，启用前需按各自说明补配置）。worker01/worker02 的 platform 滚动均不在三种方式范围内，仍按主仓 `docker/AGENTS.md` 发布指南手动执行。
+hr 全合一镜像发布共四种方式：方式一已落地，方式二/三/四为备选（未实施，启用前需按各自说明补配置）。worker01/worker02 的 platform 滚动均不在四种方式范围内，仍按主仓 `docker/AGENTS.md` 发布指南手动执行。
 
-| | 方式一：GitHub Actions（**现行**） | 方式二：Gitee Go | 方式三：Gitee webhook 自建 |
-|---|---|---|---|
-| 触发入口 | GitHub 侧 main（双推同步到达） | Gitee 侧 main | Gitee 侧 main |
-| 执行环境 | self-hosted runner（master，内网拉推 registry） | Gitee 托管云构建节点（公网拉推） | master 本机触发器脚本 |
-| 审批闸门 | Environment `production` Required reviewers（现成 UI） | 流水线人工审核插件 | 无现成 UI，滚动段退化为人工执行 |
-| 日志/重试 | Actions 页面全现成 | Gitee 流水线页面 | master 本地日志文件，简陋 |
-| 费用 | 私有仓 2000 分钟/月免费 | 每仓 200 分钟永久 + 每月 500 分钟，超出预付费 | 零额度 |
-| 选型定位 | 默认方案 | 想留在 Gitee 生态且月度发布次数少 | 额度焦虑或需完全自主可控 |
+| | 方式一：GitHub Actions self-hosted（**现行**） | 方式二：GitHub Actions 托管 runner | 方式三：Gitee Go | 方式四：Gitee webhook 自建 |
+|---|---|---|---|---|
+| 触发入口 | GitHub 侧 main（双推同步到达） | GitHub 侧 main（同左） | Gitee 侧 main | Gitee 侧 main |
+| 执行环境 | self-hosted runner（master，内网拉推 registry） | GitHub 托管 ubuntu-latest（境外，公网拉推） | Gitee 托管云构建节点（公网拉推） | master 本机触发器脚本 |
+| 滚动执行 | master 本地（runner 与 master 同机，零配置） | 托管 runner 须 SSH 到 master（需密钥 Secret） | Gitee 主机组 SSH | 无现成 UI，滚动段退化为人工执行 |
+| 审批闸门 | Environment `production` Required reviewers（现成 UI） | 同左（机制不变） | 流水线人工审核插件 | 无现成 UI |
+| 日志/重试 | Actions 页面全现成 | Actions 页面全现成 | Gitee 流水线页面 | master 本地日志文件，简陋 |
+| 单次耗时 | 10-20 分钟（内网） | 20-40 分钟（境外拉基础镜像+push 回 ~1-2GB） | 10-20 分钟 | 10-20 分钟（内网） |
+| 费用 | 私有仓 2000 分钟/月免费额度内（self-hosted 0 倍率计费） | 私有仓 2000 分钟/月免费（Linux 1x 倍率），单次 20-40 分钟 ≈ 50-100 次/月 | 每仓 200 分钟永久 + 每月 500 分钟，超出预付费 | 零额度 |
+| 运维面 | master 装 runner 服务（一次） | 零安装零运维 | 零运维（平台托管） | 自维护触发器服务+脚本 |
+| 选型定位 | 默认方案（内网快+滚动零配置） | 不想装 runner、能接受 SSH 密钥入 Secret 与网络劣化 | 想留在 Gitee 生态且月度发布次数少 | 额度焦虑或需完全自主可控 |
 
-### 方式一：GitHub Actions 流水线（现行）
+### 方式一：GitHub Actions 流水线（现行，self-hosted runner 于 master）
 
 `.github/workflows/release.yml`（self-hosted runner 部署于 master）。
 
@@ -152,7 +155,20 @@ registry 旧 tag 永不删除，任意历史版本可回。
 | `git pull --ff-only` 失败 | master publish 仓库有本地改动，先手工处理再 Re-run deploy job |
 | runner 磁盘增长 | 构建层缓存累积：master 上 `docker image prune -a -f`（现役镜像受容器引用保护） |
 
-### 方式二：Gitee Go（备选，未实施）
+### 方式二：GitHub Actions 托管 runner（备选，未实施）
+
+与方式一共用同一份 `release.yml`，仅两处差异，切换成本最低：
+
+1. **runs-on 改托管**：`build-push` 与 `deploy-master` 两 job 的 `runs-on: [self-hosted]` 改为 `runs-on: ubuntu-latest`——托管 runner 预装 docker（BuildKit 默认开）/git/tar，build-push job 其余步骤零改动。
+2. **deploy-master 改 SSH**：托管 runner 在境外，无法本地执行 master 滚动——滚动步骤改经 SSH（appleboy/ssh-action 或原生 ssh），新增 Secrets：`MASTER_SSH_HOST`、`MASTER_SSH_USER`、`MASTER_SSH_KEY`（专用受限账号的私钥，最小权限），健康检查 curl 亦经 SSH 在 master 上执行。
+3. **审批闸门**：Environment `production` 机制不变，现成可用。
+
+代价与收益：
+
+- 收益：零安装零运维（免去 runner 服务维护），workspace 托管即弃无残留，费用同额度（私有仓 Linux 2000 分钟/月，1x 倍率）。
+- 代价：境外网络拉阿里云基础镜像 + push 回 ~1-2GB 镜像，单次 20-40 分钟；master SSH 私钥作为 Secret 存 GitHub，安全面扩大一档（务必用受限专用账号，勿用 root）。
+
+### 方式三：Gitee Go（备选，未实施）
 
 Gitee 原生流水线，托管云构建节点执行（无 self-hosted runner 对等机制，自建执行需接 Jenkins/K8s 或自定义插件，不在本方案考虑内）。
 
@@ -164,7 +180,7 @@ Gitee 原生流水线，托管云构建节点执行（无 self-hosted runner 对
 
 注意：云构建节点在境外或境内机房以 Gitee 实际分配为准，拉推阿里云 registry 走公网，速度劣于方式一的 master 内网。
 
-### 方式三：Gitee webhook + master 自建触发器（备选，未实施）
+### 方式四：Gitee webhook + master 自建触发器（备选，未实施）
 
 不走任何 CI 平台：Gitee 仓库 Push webhook 直接触发 master 本机脚本，零额度、内网拉推、贴合 Gitee 主推流程；代价是无现成审批/日志 UI，可维护性靠脚本质量。
 
