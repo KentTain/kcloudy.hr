@@ -1,6 +1,6 @@
 # HR 前端开发指南
 
-本文件为 Claude Code 在 `src/hr/` 人力资源模块前端中工作时提供指导。后端说明见 `server/python/src/hr/AGENTS.md`。
+本文件为 Claude Code 在 `src/hr/` 人力资源模块前端中工作时提供指导。后端说明见子仓 `server/src/hr/AGENTS.md`，前端测试见 `web/tests/hr/AGENTS.md`。
 
 ## 模块定位
 
@@ -27,6 +27,6 @@
 
 ## 测试
 
-- 契约测试 `tests/hr/unit/module.test.ts`：模块描述符 + 路由/菜单双向一致（后端菜单源 `server/python/src/hr/module.py`）+ meta.permissions 断言。
-- 编译冒烟 `tests/hr/unit/compile-smoke.test.ts`：eager glob 强制编译全树（本环境 vue-tsc/build 不可用，vitest 为唯一编译验证面）。
-- 运行：`npx vitest run tests/hr`（cwd=web/vue）。
+- 契约测试 `tests/hr/module.test.ts`：模块描述符 + 路由/菜单双向一致（后端菜单源 `server/python/src/hr/module.py`）+ meta.permissions 断言。
+- 编译冒烟 `tests/hr/compile-smoke.test.ts`：eager glob 强制编译全树（本环境 vue-tsc/build 不可用，vitest 为唯一编译验证面）。
+- 目录结构与运行命令见 `web/tests/hr/AGENTS.md`；运行：`npx vitest run tests/hr`（cwd=web/vue）。

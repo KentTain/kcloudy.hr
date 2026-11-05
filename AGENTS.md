@@ -20,19 +20,51 @@ HR 业务模块独立子仓，目录体例与主仓（kcloudy.ai-platform）一�
 | 依赖管理 | 不自建 pyproject/依赖清单——后端依赖统一主仓 `server/python/pyproject.toml` 依赖组 + `uv.lock`；前端依赖统一主仓 `web/vue/package.json` |
 | 开发现场 | 日常开发在主仓挂载点内进行（import/HMR/测试全链零跳转）；本仓同级独立检出用于 testbed 与脱离主仓的验证 |
 | 提交信息 | 中文，约定式提交（`类型(范围): 描述`） |
+| 代码查找 | 优先使用 CodeGraph（`codegraph query/callers/impact/context` 等），避免 grep 扫描；本仓与主仓索引相互独立，跨仓查询切换工作目录 |
+| 文档 | Markdown 中文撰写，配图用 Mermaid |
 
-## 分层规范
+## 业务模块概览
 
-后端（`server/src/hr/` = Python 包 `hr`，主仓经 symlink 以 `src/hr` 呈现）：
+人力资源中心模块，PostgreSQL schema `hr`，声明依赖 `tenant`/`iam`（菜单与权限码经 iam 体系下发，租户上下文来自 tenant 体系）。权限资源与专属动作在 `server/src/hr/module.py` 以 PermissionDef 清单声明，权限码 `hr:{资源}:{动作}`；路由按 `admin`（管理端）/`console`（员工自助）/`inner`（内部接口）三分类。
 
-- `controllers/`（路由，不承载复杂逻辑）→ `services/`（业务逻辑）→ `models/`（SQLAlchemy）+ `schemas/`（Pydantic）
-- 权限码在 `module.py` 用 PermissionDef 声明（`hr:资源:动作`），控制器 `require_permission` 消费
-- 迁移独立 alembic：`migrations/versions/`（版本表挂模块 schema 下）
-- 复用 IAM 通用能力（字典/编码规则/站内信/审计），不自建
+| 业务域 | 资源 |
+|--------|------|
+| 员工中心 | 员工（花名册/敏感字段/批量导入）、岗位、异动、合同、材料附件、属性定义（EAV 动态字段） |
+| 考勤假期 | 考勤（含考勤导入）、假勤（请假申请/审批） |
+| 招聘管理 | 招聘需求、候选人（含合并）、面试、Offer、招聘渠道（归集同步） |
+| 薪酬管理 | 薪酬项、职级薪带、定薪、发薪（批次确认/代发文件导出） |
+| 绩效管理 | 考核周期、绩效目标、绩效评估（评级校准） |
+| 报表分析 | 报表（含导出）、离职风险、自然语言查询 |
+| 员工自助 | console 层页面（登录即可见，无权限码） |
+| 智能辅助 | AI 助手、Agent 工具集 |
 
-前端（`web/src/hr/`，主仓经 symlink 以 `web/vue/src/hr` 呈现）：
+## 文档总览
 
-- `api/`（经 `@/framework/api/client` 封装）→ `pages/`（页面）+ `components/` → `router/`（path 与后端 MenuDef 一致）+ `types/`（与后端 Response Schema 对齐）
+全仓 AGENTS.md 按「仓根 → 域层（server/web） → 模块/测试层」组织：上级只做索引与规范入口，具体规则写在最贴近代码的一层。
+
+```mermaid
+graph TD
+    ROOT["仓根 AGENTS.md：定位 / 纪律 / 业务概览"]
+    ROOT --> SERVER["server/AGENTS.md<br/>后端域层：技术栈 / 分层架构 / 命令 / 约束"]
+    SERVER --> SRCH["server/src/hr/AGENTS.md<br/>hr 后端模块指南"]
+    SERVER --> TESTB["server/tests/hr/AGENTS.md<br/>后端测试指南"]
+    ROOT --> WEB["web/AGENTS.md<br/>前端域层：技术栈 / 依赖边界 / 命令"]
+    WEB --> WEBH["web/src/hr/AGENTS.md<br/>hr 前端模块指南"]
+    WEB --> WEBT["web/tests/hr/AGENTS.md<br/>前端测试指南"]
+    ROOT --> TBR["testbed/README.md<br/>独立测试床"]
+```
+
+| 文档 | 说明 |
+|------|------|
+| [server/AGENTS.md](server/AGENTS.md) | 后端域层：技术栈/分层架构/核心命令/开发约束 |
+| [server/src/hr/AGENTS.md](server/src/hr/AGENTS.md) | hr 后端模块指南：目录职责/业务域/范式/初始化链 |
+| [server/tests/hr/AGENTS.md](server/tests/hr/AGENTS.md) | 后端测试指南：conftest 自适应/测试规则 |
+| [web/AGENTS.md](web/AGENTS.md) | 前端域层：技术栈/依赖边界/核心命令 |
+| [web/src/hr/AGENTS.md](web/src/hr/AGENTS.md) | hr 前端模块指南：目录职责/取数范式/契约测试 |
+| [web/tests/hr/AGENTS.md](web/tests/hr/AGENTS.md) | 前端测试指南：目录结构/运行命令/测试规则 |
+| [testbed/README.md](testbed/README.md) | 子仓独立测试床（隔离基础设施栈 + 一键自举 + e2e） |
+
+主仓侧关联文档（跨仓，文本路径）：`server/python/src/AGENTS.md`（Python 源码层规范）、`web/vue/src/AGENTS.md`（Vue 源码层规范）、`docs/designs/HR前后端子模块化与单容器部署的设计与实施计划.md`（设计依据）。
 
 ## 测试
 
@@ -42,6 +74,8 @@ HR 业务模块独立子仓，目录体例与主仓（kcloudy.ai-platform）一�
 | 前端 unit | `web/tests/hr/` | 主仓工作区经 symlink：`cd web/vue && pnpm exec vitest run tests/hr` |
 | e2e | `web/tests/hr/e2e/`（批 C 新建） | testbed 自举环境 |
 | 独立测试床 | `testbed/`（批 C 新建） | `testbed/bootstrap.sh` 一键自举 |
+
+编写规范与目录结构详见 [server/tests/hr/AGENTS.md](server/tests/hr/AGENTS.md) 与 [web/tests/hr/AGENTS.md](web/tests/hr/AGENTS.md)。
 
 ## 打包注意
 
