@@ -15,10 +15,11 @@
 #    SSH_USER                  —— SSH 用户名
 # 3. known_hosts：首跑经 StrictHostKeyChecking=accept-new TOFU 自动落册。
 #
-# 产物：ai-platform-backend-hr 双 tag —— vYYYYMMDD.<run_number> + latest
+# 产物：ai-platform-backend-hr 双 tag —— vYYYYMMDD.<run_number> + latest；
+#       GitHub Release —— vYYYY.MM.DD.<run_number>（变更日志自动汇总）
 # 流程：合并 main → 构建推送（自动）→ deploy-master（Environment 审批）→
 #       SSH master：publish git pull → .env.node-hr VERSION bump → pull/up hr-api →
-#       健康检查（8090 uvicorn + 8091 内嵌 nginx）
+#       健康检查（8090 uvicorn + 8091 内嵌 nginx）→ create-release（Release 发布）
 # 回滚：master deploy/.env.node-hr 的 VERSION 改回旧 tag 后 up -d hr-api
 
 name: 发布 hr 全合一镜像
@@ -126,3 +127,26 @@ jobs:
           rm -f ~/deploy_key
           [ "$ok" = 1 ] || { echo "健康检查超时（3 分钟），SSH 上 master 查 docker logs ai-platform-backend-hr"; exit 1; }
           echo "master hr-api 滚动完成：${{ needs.build-push.outputs.tag }}（8090/8091 双检通过）"
+
+  create-release:
+    needs: [build-push, deploy-master]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 创建 GitHub Release（tag vYYYY.MM.DD.<run_number>，notes 自动汇总）
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ needs.build-push.outputs.tag }}
+        run: |
+          # TAG 在 shell 内求值：env 块不做命令替换（同 build-push 教训）
+          TAG="v$(date +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
+          if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release ${TAG} 已存在（上次运行已创建），跳过"
+          else
+            gh release create "${TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --target "${GITHUB_SHA}" \
+              --title "${TAG}（镜像 ${IMAGE_TAG}）" \
+              --generate-notes
+          fi
