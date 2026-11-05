@@ -39,8 +39,8 @@ cd {主仓}/web/vue && pnpm exec vitest run tests/hr
 # 本仓独立检出（web/tests/hr 自带 package.json）
 cd web/tests/hr && pnpm install && pnpm vitest run
 
-# e2e（testbed 自举环境）
-cd {testbed}/.work/kcloudy.ai-platform/web/vue
+# e2e（独立测试床自举环境）
+cd bootstrap/.work/kcloudy.ai-platform/web/vue
 E2E_BASE_URL=http://127.0.0.1:15173 pnpm exec playwright test --config tests/hr/e2e/playwright.config.ts
 ```
 

@@ -26,8 +26,8 @@ cd {主仓}/web/vue && pnpm exec vitest run tests/hr
 # unit（本仓独立检出）
 cd web/tests/hr && pnpm install && pnpm vitest run
 
-# e2e（testbed 自举环境，前置：testbed/bootstrap.sh 拉起前后端）
-cd {testbed}/.work/kcloudy.ai-platform/web/vue
+# e2e（独立测试床自举环境，前置：bootstrap/bootstrap.sh 拉起前后端）
+cd bootstrap/.work/kcloudy.ai-platform/web/vue
 E2E_BASE_URL=http://127.0.0.1:15173 pnpm exec playwright test --config tests/hr/e2e/playwright.config.ts
 ```
 
@@ -35,4 +35,4 @@ E2E_BASE_URL=http://127.0.0.1:15173 pnpm exec playwright test --config tests/hr/
 
 - 契约测试与编译冒烟为两级兜底：前者守住前后端路由/权限码契约，后者守住全树可编译——新增页面/路由后两者必须通过
 - 组件/页面测试与源码同构对应（`components/XxxModal.test.ts` ↔ `src/hr/components/xxx/XxxModal.vue`），新增组件随批补测试
-- e2e 依赖 testbed 环境（后端 18080/前端 15173，种子账号 `admin/admin123`），端口经 `HR_TESTBED_*` 环境变量覆盖
+- e2e 依赖独立测试床环境（后端 18080/前端 15173，种子账号 `admin/admin123`），端口经 `HR_TESTBED_*` 环境变量覆盖

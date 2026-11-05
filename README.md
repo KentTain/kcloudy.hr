@@ -50,7 +50,7 @@ kcloudy.hr/
 │   ├── AGENTS.md            # 前端域层指南（技术栈/依赖边界/命令）
 │   ├── src/hr/              # 前端源码（index.ts api/ pages/ router/ types/ components/ utils/；含模块层 AGENTS.md）
 │   └── tests/hr/            # 前端 unit 测试 + e2e（批 C；含测试层 AGENTS.md）
-├── testbed/                 # 独立测试自举（批 C：bootstrap.sh + compose 隔离栈）
+├── bootstrap/               # 独立测试自举（批 C：bootstrap.sh + compose 隔离栈）
 ├── AGENTS.md                # 仓根开发导航（纪律/业务概览/文档总览）
 ├── README.md
 └── pytest.ini               # 子仓独立检出时的 pytest 配置
@@ -64,7 +64,7 @@ kcloudy.hr/
 - 前端源码：`web/vue/src/hr -> ../../../server/python/src/modules/hr/web/src/hr`
 - 前端测试：`web/vue/tests/hr -> ../../../server/python/src/modules/hr/web/tests/hr`
 
-**开发现场纪律**：日常开发在主仓挂载点内进行；本仓同级独立检出仅用于 testbed 与脱离主仓的验证。修改本仓后必须先双远端推送、再在主仓 bump gitlink。
+**开发现场纪律**：日常开发在主仓挂载点内进行；本仓同级独立检出仅用于独立测试床（bootstrap/）与脱离主仓的验证。修改本仓后必须先双远端推送、再在主仓 bump gitlink。
 
 ## 快速开始
 
@@ -90,7 +90,7 @@ pnpm dev
 
 访问 <http://localhost:5173>（后端 API 文档 <http://localhost:8000/docs>），登录后侧边栏进入人力资源菜单。
 
-脱离主仓的独立验证（子仓-only 检出、隔离基础设施栈、集成/e2e 测试）见 [testbed/README.md](testbed/README.md)。
+脱离主仓的独立验证（子仓-only 检出、隔离基础设施栈、集成/e2e 测试）见 [bootstrap/README.md](bootstrap/README.md)。
 
 ## 环境要求
 
@@ -109,7 +109,7 @@ python -m pytest server/tests/hr -q
 cd web/vue && pnpm exec vitest run tests/hr
 
 # 独立测试床（子仓-only 检出，批 C 交付）
-testbed/bootstrap.sh
+bootstrap/bootstrap.sh
 ```
 
 ## 文档导航
@@ -125,7 +125,7 @@ testbed/bootstrap.sh
 | [web/AGENTS.md](web/AGENTS.md) | 前端域层：技术栈/依赖边界/核心命令 |
 | [web/src/hr/AGENTS.md](web/src/hr/AGENTS.md) | hr 前端模块指南：目录职责/取数范式/契约测试 |
 | [web/tests/hr/AGENTS.md](web/tests/hr/AGENTS.md) | 前端测试指南：目录结构/运行命令/测试规则 |
-| [testbed/README.md](testbed/README.md) | 独立测试床：一键自举 + 集成/e2e 测试 |
+| [bootstrap/README.md](bootstrap/README.md) | 独立测试床：一键自举 + 集成/e2e 测试 |
 | 主仓 `docs/designs/HR前后端子模块化与单容器部署的设计与实施计划.md` | 子模块化与单容器部署设计依据 |
 
 ## 发布方式（CI/CD）

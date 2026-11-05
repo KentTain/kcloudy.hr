@@ -60,7 +60,7 @@ jobs:
         run: |
           rm -rf "${MOUNT_DIR}"
           mkdir -p "${MOUNT_DIR}"
-          tar -C "$GITHUB_WORKSPACE" --exclude=.git --exclude=testbed/.work --exclude=.github \
+          tar -C "$GITHUB_WORKSPACE" --exclude=.git --exclude=bootstrap/.work --exclude=.github \
             -cf - . | tar -C "${MOUNT_DIR}" -xf -
 
       - name: 登录阿里云镜像仓库（基础镜像 FROM 亦在 kcloudy-images）

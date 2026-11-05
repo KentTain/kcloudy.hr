@@ -7,7 +7,7 @@
 按主仓 `server/python/tests/` 体例组织，conftest 薄镜像主仓 hr 消费面，不依赖主仓 conftest——两种布局自适应：
 
 - **主仓工作区**（子仓挂载于 `server/python/src/modules/hr`）：向上探测 framework 兄弟层定位主仓 `src` 入 `sys.path`，`APP_CONFIG_DIR` 指向主仓 `server/config`
-- **子仓独立检出**（server/web 体例）：按 `server/src` 约定定位入 `sys.path`，`APP_CONFIG_DIR` 由 testbed 注入
+- **子仓独立检出**（server/web 体例）：按 `server/src` 约定定位入 `sys.path`，`APP_CONFIG_DIR` 由独立测试床（bootstrap/）注入
 
 ## 目录结构
 
@@ -38,7 +38,7 @@ python -m pytest server/tests/hr/unit/integration -q
 HR_TEST_BASE_URL=http://127.0.0.1:18080 python -m pytest server/tests/hr/integration -q
 ```
 
-testbed 独立测试床的自举与集成/e2e 跑法见 [testbed/README.md](../../../testbed/README.md)。
+独立测试床（bootstrap/）的自举与集成/e2e 跑法见 [bootstrap/README.md](../../../bootstrap/README.md)。
 
 ## 测试规则
 

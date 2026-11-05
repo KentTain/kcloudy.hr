@@ -18,7 +18,7 @@ HR 业务模块独立子仓，目录体例与主仓（kcloudy.ai-platform）一�
 |------|------|
 | 指针同步 | 改本仓必须「先 push 本仓（origin + github 双远端）、再 bump 主仓 gitlink」，禁止只做其一 |
 | 依赖管理 | 不自建 pyproject/依赖清单——后端依赖统一主仓 `server/python/pyproject.toml` 依赖组 + `uv.lock`；前端依赖统一主仓 `web/vue/package.json` |
-| 开发现场 | 日常开发在主仓挂载点内进行（import/HMR/测试全链零跳转）；本仓同级独立检出用于 testbed 与脱离主仓的验证 |
+| 开发现场 | 日常开发在主仓挂载点内进行（import/HMR/测试全链零跳转）；本仓同级独立检出用于独立测试床（bootstrap/）与脱离主仓的验证 |
 | 提交信息 | 中文，约定式提交（`类型(范围): 描述`） |
 | 代码查找 | 优先使用 CodeGraph（`codegraph query/callers/impact/context` 等），避免 grep 扫描；本仓与主仓索引相互独立，跨仓查询切换工作目录 |
 | 文档 | Markdown 中文撰写，配图用 Mermaid |
@@ -51,7 +51,7 @@ graph TD
     ROOT --> WEB["web/AGENTS.md<br/>前端域层：技术栈 / 依赖边界 / 命令"]
     WEB --> WEBH["web/src/hr/AGENTS.md<br/>hr 前端模块指南"]
     WEB --> WEBT["web/tests/hr/AGENTS.md<br/>前端测试指南"]
-    ROOT --> TBR["testbed/README.md<br/>独立测试床"]
+    ROOT --> TBR["bootstrap/README.md<br/>独立测试床"]
 ```
 
 | 文档 | 说明 |
@@ -62,7 +62,7 @@ graph TD
 | [web/AGENTS.md](web/AGENTS.md) | 前端域层：技术栈/依赖边界/核心命令 |
 | [web/src/hr/AGENTS.md](web/src/hr/AGENTS.md) | hr 前端模块指南：目录职责/取数范式/契约测试 |
 | [web/tests/hr/AGENTS.md](web/tests/hr/AGENTS.md) | 前端测试指南：目录结构/运行命令/测试规则 |
-| [testbed/README.md](testbed/README.md) | 子仓独立测试床（隔离基础设施栈 + 一键自举 + e2e） |
+| [bootstrap/README.md](bootstrap/README.md) | 独立测试床：隔离基础设施栈 + 一键自举 + 集成/e2e |
 
 主仓侧关联文档（跨仓，文本路径）：`server/python/src/AGENTS.md`（Python 源码层规范）、`web/vue/src/AGENTS.md`（Vue 源码层规范）、`docs/designs/HR前后端子模块化与单容器部署的设计与实施计划.md`（设计依据）。
 
@@ -72,8 +72,8 @@ graph TD
 |----|------|------|
 | 后端 unit/integration | `server/tests/hr/`（conftest 布局自适应：主仓工作区或本仓独立检出均可跑） | `python -m pytest server/tests/hr -q`（主仓 venv；integration 触开发库，用例自带清理） |
 | 前端 unit | `web/tests/hr/` | 主仓工作区经 symlink：`cd web/vue && pnpm exec vitest run tests/hr` |
-| e2e | `web/tests/hr/e2e/`（批 C 新建） | testbed 自举环境 |
-| 独立测试床 | `testbed/`（批 C 新建） | `testbed/bootstrap.sh` 一键自举 |
+| e2e | `web/tests/hr/e2e/`（批 C 新建） | 独立测试床自举环境（docker/） |
+| 独立测试床 | `bootstrap/`（批 C 新建） | `bootstrap/bootstrap.sh` 一键自举 |
 
 编写规范与目录结构详见 [server/tests/hr/AGENTS.md](server/tests/hr/AGENTS.md) 与 [web/tests/hr/AGENTS.md](web/tests/hr/AGENTS.md)。
 
