@@ -73,9 +73,9 @@ jobs:
 
       - name: 构建并推送（production-hr-web，DOCKER_BUILDKIT 必须开启）
         id: ver
-        env:
-          TAG: v$(date +%Y%m%d).${{ github.run_number }}
         run: |
+          # TAG 必须在 shell 内求值：env: 块不执行 $(...) 命令替换（仅 ${{ }} 表达式展开）
+          TAG="v$(date +%Y%m%d).${GITHUB_RUN_NUMBER}"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           export DOCKER_BUILDKIT=1
           docker build \
