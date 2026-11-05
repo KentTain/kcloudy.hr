@@ -64,21 +64,21 @@ testbed/bootstrap.sh
 
 hr 全合一镜像发布共四种方式：方式一已落地，方式二/三/四为备选（未实施，启用前需按各自说明补配置）。worker01/worker02 的 platform 滚动均不在四种方式范围内，仍按主仓 `docker/AGENTS.md` 发布指南手动执行。
 
-| | 方式一：GitHub Actions self-hosted（**现行**） | 方式二：GitHub Actions 托管 runner | 方式三：Gitee Go | 方式四：Gitee webhook 自建 |
+| | 方式一：GitHub Actions 托管 runner（**现行**） | 方式二：GitHub Actions self-hosted | 方式三：Gitee Go | 方式四：Gitee webhook 自建 |
 |---|---|---|---|---|
 | 触发入口 | GitHub 侧 main（双推同步到达） | GitHub 侧 main（同左） | Gitee 侧 main | Gitee 侧 main |
-| 执行环境 | self-hosted runner（master，内网拉推 registry） | GitHub 托管 ubuntu-latest（境外，公网拉推） | Gitee 托管云构建节点（公网拉推） | master 本机触发器脚本 |
-| 滚动执行 | master 本地（runner 与 master 同机，零配置） | 托管 runner 须 SSH 到 master（需密钥 Secret） | Gitee 主机组 SSH | 无现成 UI，滚动段退化为人工执行 |
+| 执行环境 | GitHub 托管 ubuntu-latest（境外，公网拉推） | self-hosted runner（master，内网拉推 registry） | Gitee 托管云构建节点（公网拉推） | master 本机触发器脚本 |
+| 滚动执行 | SSH 到 master（密钥 Secret + 受限账号） | master 本地（runner 与 master 同机，零 SSH） | Gitee 主机组 SSH | 无现成 UI，滚动段退化为人工执行 |
 | 审批闸门 | Environment `production` Required reviewers（现成 UI） | 同左（机制不变） | 流水线人工审核插件 | 无现成 UI |
 | 日志/重试 | Actions 页面全现成 | Actions 页面全现成 | Gitee 流水线页面 | master 本地日志文件，简陋 |
-| 单次耗时 | 10-20 分钟（内网） | 20-40 分钟（境外拉基础镜像+push 回 ~1-2GB） | 10-20 分钟 | 10-20 分钟（内网） |
-| 费用 | 私有仓 2000 分钟/月免费额度内（self-hosted 0 倍率计费） | 私有仓 2000 分钟/月免费（Linux 1x 倍率），单次 20-40 分钟 ≈ 50-100 次/月 | 每仓 200 分钟永久 + 每月 500 分钟，超出预付费 | 零额度 |
-| 运维面 | master 装 runner 服务（一次） | 零安装零运维 | 零运维（平台托管） | 自维护触发器服务+脚本 |
-| 选型定位 | 默认方案（内网快+滚动零配置） | 不想装 runner、能接受 SSH 密钥入 Secret 与网络劣化 | 想留在 Gitee 生态且月度发布次数少 | 额度焦虑或需完全自主可控 |
+| 单次耗时 | 20-40 分钟（境外拉基础镜像+push 回 ~1-2GB） | 10-20 分钟（内网） | 10-20 分钟 | 10-20 分钟（内网） |
+| 费用 | 私有仓 2000 分钟/月免费（Linux 1x 倍率），单次 20-40 分钟 ≈ 50-100 次/月 | 私有仓 2000 分钟/月免费额度内（self-hosted 0 倍率计费） | 每仓 200 分钟永久 + 每月 500 分钟，超出预付费 | 零额度 |
+| 运维面 | 零安装零运维 | master 装 runner 服务（一次） | 零运维（平台托管） | 自维护触发器服务+脚本 |
+| 选型定位 | 默认方案（零运维；接受境外网络耗时与 SSH 密钥入 Secret） | 发布高频或对耗时敏感、不愿 SSH 私钥入 Secret | 想留在 Gitee 生态且月度发布次数少 | 额度焦虑或需完全自主可控 |
 
-### 方式一：GitHub Actions 流水线（现行，self-hosted runner 于 master）
+### 方式一：GitHub Actions 托管 runner（现行）
 
-`.github/workflows/release.yml`（self-hosted runner 部署于 master）。
+`.github/workflows/release.yml`（GitHub 托管 ubuntu-latest runner，与主仓 platform 侧流水线同构）。
 
 ### 流程概览
 
@@ -90,12 +90,12 @@ flowchart TD
     B2 --> B3[docker build production-hr-web]
     B3 --> B4[push 双 tag<br/>vYYYYMMDD.run_number + latest]
     B4 --> C[deploy-master<br/>Environment production 审批闸门]
-    C -->|人工批准| D[master 本地滚动<br/>publish git pull + VERSION bump + pull/up -d hr-api]
-    D --> E[健康检查<br/>8090 uvicorn + 8091 内嵌 nginx 双检]
+    C -->|人工批准| D[SSH master<br/>publish git pull + VERSION bump + pull/up -d hr-api]
+    D --> E[SSH 上 master 健康检查<br/>8090 uvicorn + 8091 内嵌 nginx 双检]
 ```
 
 - **build-push**（自动）：构建上下文为主仓布局——拉主仓（Gitee token）后由子仓内容 tar 装配至挂载点（等价 bootstrap.sh rsync 语义，被测代码由子仓 HEAD 锁定），`docker build --target production-hr-web` 后 push 至阿里云 registry。
-- **deploy-master**（人工审批）：批准后于 master 本地执行 publish 编排同步、`.env.node-hr` VERSION bump、`pull` + `up -d hr-api`，健康检查超时（3 分钟）即判失败。
+- **deploy-master**（人工审批）：批准后经 SSH 在 master 上执行 publish 编排同步、`.env.node-hr` VERSION bump、`pull` + `up -d hr-api`，健康检查（SSH 上 master curl 双检）超时（3 分钟）即判失败。
 
 ### 前置配置（一次性）
 
@@ -107,19 +107,10 @@ flowchart TD
 | `GITEE_TOKEN` | Gitee 私人令牌 | 权限仅需 projects 读取；用于拉主仓 |
 | `ALIYUN_REGISTRY_USER` | 阿里云 RAM 子账号 | 建议最小权限：仅 `kcloudy-images` namespace 读写，勿用主账号 |
 | `ALIYUN_REGISTRY_PASS` | 对应密码 | — |
+| `SSH_PRIVATE_KEY` | master 部署私钥 | **专用受限账号，勿 root**；仅放行 publish 目录与 docker 命令 |
+| `SSH_USER` | SSH 用户名 | 与上配套 |
 
-3. **master 安装 runner**（github.com/actions/runner，linux-x64 包）：
-
-```bash
-mkdir -p /opt/actions-runner && cd /opt/actions-runner
-tar xzf actions-runner-linux-x64-<版本>.tar.gz
-./config.sh --url https://github.com/KentTain/kcloudy.hr --token <仓库 runner token>
-./svc.sh install && ./svc.sh start
-```
-
-服务用户要求：docker 命令权限（root 或 docker 组）+ `/mnt/docker-images/kcloudy.publish` 写权限。runner 若装在其他节点，deploy-master 的本地执行需改为 SSH（workflow 未含）。
-
-4. **master 本机前置**：docker（BuildKit，Dockerfile cache mount 依赖）、git、tar、阿里云 registry 登录态、publish 仓库在 `/mnt/docker-images/kcloudy.publish`。
+3. **known_hosts**：首跑经 `StrictHostKeyChecking=accept-new` TOFU 自动落册，无需预配。
 
 ### 首次验证
 
@@ -131,7 +122,7 @@ tar xzf actions-runner-linux-x64-<版本>.tar.gz
 
 - 合并至 `main`（PR 合并或直推）即自动触发；每次提交前先双远端推送（见「远端」节）。
 - 镜像 tag 规则：`vYYYYMMDD.<run_number>` + `latest`，master `.env.node-hr` 的 `VERSION` 由流水线自动 bump。
-- **范围仅 master hr-api 单容器**；worker01/worker02 的 platform 滚动不在流水线内，仍按主仓 `docker/AGENTS.md` 发布指南手动执行。
+- **范围仅 master hr-api 单容器**；worker01/worker02 的 platform 滚动不在流水线内，由主仓流水线独立承载（详见主仓 `docs/README.md`「四、自动化发布」）。
 
 ### 回滚
 
@@ -147,26 +138,34 @@ registry 旧 tag 永不删除，任意历史版本可回。
 
 | 现象 | 排查 |
 |------|------|
-| run 排队不动（No runner matching） | master 上 `./svc.sh status`；服务未启动则 `./svc.sh start` |
 | 拉主仓 401/403 | `GITEE_TOKEN` 过期或无 projects 读取权限，重新生成后更新 Secret |
 | registry push 403 | RAM 子账号权限不足，检查 kcloudy-images namespace 授权 |
 | 构建失败（apt/uv/pnpm 网络抖动） | 直接 Re-run，层缓存可续（与手动构建同口径） |
-| 健康检查超时 | master 上 `docker logs ai-platform-backend-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |
+| SSH 连接失败 | `SSH_PRIVATE_KEY`/`SSH_USER` Secret 核对；master 安全组放行 runner 出口；账号非 root 时确认 docker 命令权限 |
+| 健康检查超时 | SSH 上 master `docker logs ai-platform-backend-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |
 | `git pull --ff-only` 失败 | master publish 仓库有本地改动，先手工处理再 Re-run deploy job |
-| runner 磁盘增长 | 构建层缓存累积：master 上 `docker image prune -a -f`（现役镜像受容器引用保护） |
 
-### 方式二：GitHub Actions 托管 runner（备选，未实施）
+### 方式二：GitHub Actions self-hosted runner（备选，未实施）
 
-与方式一共用同一份 `release.yml`，仅两处差异，切换成本最低：
+与方式一共用同一份 `release.yml` 结构，仅三处差异，切换成本最低：
 
-1. **runs-on 改托管**：`build-push` 与 `deploy-master` 两 job 的 `runs-on: [self-hosted]` 改为 `runs-on: ubuntu-latest`——托管 runner 预装 docker（BuildKit 默认开）/git/tar，build-push job 其余步骤零改动。
-2. **deploy-master 改 SSH**：托管 runner 在境外，无法本地执行 master 滚动——滚动步骤改经 SSH（appleboy/ssh-action 或原生 ssh），新增 Secrets：`MASTER_SSH_HOST`、`MASTER_SSH_USER`、`MASTER_SSH_KEY`（专用受限账号的私钥，最小权限），健康检查 curl 亦经 SSH 在 master 上执行。
-3. **审批闸门**：Environment `production` 机制不变，现成可用。
+1. **runs-on 改自托管**：`build-push` 与 `deploy-master` 两 job 的 `runs-on: ubuntu-latest` 改为 `runs-on: [self-hosted]`。
+2. **deploy-master 改本地执行**：runner 装在 master 上则滚动免 SSH——deploy-master 的滚动与健康检查步骤去掉 ssh 包装直接本地执行，Secrets 仅需三件（`GITEE_TOKEN`、`ALIYUN_REGISTRY_USER/PASS`）。
+3. **master 安装 runner**（github.com/actions/runner，linux-x64 包）：
+
+```bash
+mkdir -p /opt/actions-runner && cd /opt/actions-runner
+tar xzf actions-runner-linux-x64-<版本>.tar.gz
+./config.sh --url https://github.com/KentTain/kcloudy.hr --token <仓库 runner token>
+./svc.sh install && ./svc.sh start
+```
+
+   服务用户要求：docker 命令权限（root 或 docker 组）+ `/mnt/docker-images/kcloudy.publish` 写权限 + BuildKit（Dockerfile cache mount 依赖）。
 
 代价与收益：
 
-- 收益：零安装零运维（免去 runner 服务维护），workspace 托管即弃无残留，费用同额度（私有仓 Linux 2000 分钟/月，1x 倍率）。
-- 代价：境外网络拉阿里云基础镜像 + push 回 ~1-2GB 镜像，单次 20-40 分钟；master SSH 私钥作为 Secret 存 GitHub，安全面扩大一档（务必用受限专用账号，勿用 root）。
+- 收益：内网拉推 registry 快（单次 10-20 分钟）、滚动零 SSH（免 SSH 私钥入 Secret）、self-hosted 0 倍率计费不耗额度。
+- 代价：master 常驻 runner 服务需维护（升级/掉线巡检），构建层缓存占用 master 磁盘（定期 `docker image prune -a -f`）。
 
 ### 方式三：Gitee Go（备选，未实施）
 
@@ -178,7 +177,7 @@ Gitee 原生流水线，托管云构建节点执行（无 self-hosted runner 对
 4. **滚动步骤**：Gitee Go 部署插件（主机组功能）配 master 主机 + SSH 凭据，执行与方式一 deploy-master 相同的 publish 同步 + VERSION bump + pull/up + 健康检查；人工审核插件放在部署步骤前作为闸门。
 5. **计费约束**：每仓 200 分钟永久 + 每月 500 分钟免费，超出按构建时长预付费。10-20 分钟/次 ≈ 每月 15-25 次，低频发布够用。
 
-注意：云构建节点在境外或境内机房以 Gitee 实际分配为准，拉推阿里云 registry 走公网，速度劣于方式一的 master 内网。
+注意：云构建节点在境外或境内机房以 Gitee 实际分配为准，拉推阿里云 registry 走公网，速度与方式一托管 runner 相当，劣于方式二 self-hosted 的 master 内网。
 
 ### 方式四：Gitee webhook + master 自建触发器（备选，未实施）
 
