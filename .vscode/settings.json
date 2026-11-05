@@ -1,0 +1,184 @@
+{
+  "files.eol": "\n",
+  // 解释器（Windows 布局）：指向 bootstrap 自举产物中的主仓 venv——
+  // 先跑 bootstrap/bootstrap.sh 生成，未自举时手动选择可用解释器
+  "python.defaultInterpreterPath": "${workspaceFolder}/bootstrap/.work/kcloudy.ai-platform/server/python/.venv/Scripts/python.exe",
+  // 关闭默认的单元测试-unittest
+  "python.testing.unittestEnabled": false,
+  // 使用单元测试-pytest（配置面 server/tests/pytest.ini，经 cwd+args 的 rootdir 探测命中）
+  "python.testing.pytestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.testing.pytestArgs": [
+    "server/tests/hr",
+    "--no-header",
+    "--no-summary",
+    "-q"
+  ],
+  "python.testing.autoTestDiscoverOnSaveEnabled": false,
+  // Ruff 扩展：本仓无 uv 项目环境，用扩展自带 ruff；
+  // 规则对齐主仓 .ruff.toml（bootstrap 自举后该路径存在）
+  "ruff.enable": true,
+  "ruff.organizeImports": true,
+  "ruff.fixAll": true,
+  "ruff.importStrategy": "useBundled",
+  "ruff.configuration": "${workspaceFolder}/bootstrap/.work/kcloudy.ai-platform/server/python/.ruff.toml",
+  // Tailwind CSS - 类函数
+  "tailwindCSS.classFunctions": [
+    "cva",
+    "cx"
+  ],
+  // 启用保存时的代码操作
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit",
+      "source.fixAll.ruff": "explicit",
+      "source.removeUnusedImports": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": "explicit",
+      "source.fixAll.biome": "explicit"
+    }
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": "explicit",
+      "source.fixAll.biome": "explicit"
+    }
+  },
+  // markdown 表格禁格式化：实际重排表格的是 Prettier（markdownlint 扩展只做 lint 无格式化能力，
+  // Cursor 在配置的格式化器不可用时会回落到 Prettier，产生列宽补齐对齐的无意义差异）
+  "prettier.disableLanguages": ["markdown"],
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.codeActionsOnSave": {
+      "source.format.oxc": "always",
+      "source.fixAll.oxc": "always"
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.biome": "explicit"
+    }
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.biome": "explicit"
+    }
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    ".gitignore": ".*ignore, .gitattributes",
+    "package.json": "pnpm*, .eslint*, eslint*, .prettier*, prettier*, .editorconfig, biome.jsonc, tsconfig*",
+    "playwright.config.*": "vitest.*, .env.*",
+    "README.md": "README*",
+    "AGENTS.md": "CLAUDE*, DESIGN*"
+  },
+  // 类型检查：hr 独立检出的 src 根为 server/src；framework/IAM 等平台能力在主仓，
+  // 经 extraPaths 指向 bootstrap 自举克隆补全解析（未自举时框架导入标红属预期）
+  "cursorpyright.analysis.diagnosticMode": "workspace",
+  "cursorpyright.analysis.typeCheckingMode": "basic",
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.useLibraryCodeForTypes": true,
+  "cursorpyright.analysis.extraPaths": [
+    "server/src",
+    "bootstrap/.work/kcloudy.ai-platform/server/python/src"
+  ],
+  "cursorpyright.analysis.include": [
+    "server/src",
+    "server/tests"
+  ],
+  "cursorpyright.analysis.exclude": [
+    "**/dist",
+    "**/.venv",
+    "**/.git",
+    "**/*.md",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.ruff_cache",
+    "**/bootstrap/.work/**",
+    "**/node_modules",
+    "**/migrations/**",
+    "**/.ipynb_checkpoints"
+  ],
+  // Python 类型检查诊断配置（按类型分类，与主仓同一套口径）
+  "cursorpyright.analysis.diagnosticSeverityOverrides": {
+    // === 错误级别（必须修复） ===
+    "reportUndefinedVariable": "error",
+    "reportMissingImports": "error",
+    // === 未使用代码 ===
+    "reportUnusedFunction": "none",
+    "reportUnusedVariable": "none",
+    "reportUnusedParameter": "none",
+    "reportUnusedCallResult": "none",
+    "reportUnusedCoroutine": "none",
+    "reportUnusedImport": "none",
+    // === 类型推断 ===
+    "reportUnknownVariableType": "none",
+    "reportUnknownParameterType": "none",
+    "reportUnknownArgumentType": "none",
+    "reportUnknownMemberType": "none",
+    "reportMissingTypeArgument": "none",
+    "reportMissingParameterType": "none",
+    "reportExplicitAny": "none",
+    "reportAny": "none",
+    "reportGeneralTypeIssues": "none",
+    "reportMissingTypeStubs": "none",
+    "reportInvalidTypeForm": "none",
+    "reportUnannotatedClassAttribute": "none",
+    // === 可选类型/空值 ===
+    "reportOptionalMemberAccess": "none",
+    "reportOptionalSubscript": "none",
+    "reportOptionalIterable": "none",
+    // === 类型操作 ===
+    "reportAssignmentType": "none",
+    "reportReturnType": "none",
+    "reportArgumentType": "none",
+    "reportIndexIssue": "none",
+    "reportOperatorIssue": "none",
+    "reportCallIssue": "none",
+    "reportAttributeAccessIssue": "none",
+    // === 类型兼容/覆盖 ===
+    "reportIncompatibleMethodOverride": "none",
+    "reportIncompatibleVariableOverride": "none",
+    "reportImplicitOverride": "none",
+    // === 不必要的代码 ===
+    "reportUnnecessaryIsInstance": "none",
+    "reportUnnecessaryComparison": "none",
+    "reportUnnecessaryContains": "none",
+    // === 变量相关 ===
+    "reportPossiblyUnboundVariable": "none",
+    "reportUninitializedInstanceVariable": "none",
+    // === 类/装饰器 ===
+    "reportUntypedClassDecorator": "none",
+    "reportImplicitAbstractClass": "none",
+    "reportOverlappingOverload": "none",
+    // === 导入相关 ===
+    "reportImportCycles": "none",
+    // === 其他 ===
+    "deprecateTypingAliases": "none",
+    "reportImplicitStringConcatenation": "none"
+  },
+  // 调试配套（保留微软Python调试器）
+  "python.debugger.type": "debugpy"
+}
