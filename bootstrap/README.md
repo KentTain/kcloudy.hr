@@ -47,7 +47,7 @@ cd web/tests/hr && pnpm install && pnpm vitest run       # 前端
 
 ## 装配模型要点
 
-- 主仓以 `--depth 1` 浅克隆到 `bootstrap/.work/`，submodule 挂载点 `server/python/src/modules/hr` 随后被子仓内容**按当前 rev 覆盖装配**（rsync `--delete`，排除 `.git`/`bootstrap/`）——被测代码版本由子仓 HEAD 锁定，与主仓 gitlink 记录值解耦，便于「子仓任意提交即时可测」。
+- 主仓以 `--depth 1` 浅克隆到 `bootstrap/.work/`（引用默认 `feature/hr-system`——子模块挂载与 gitlink 现居该分支，可用 `HR_MAIN_REF=main` 覆盖），submodule 挂载点 `server/python/src/modules/hr` 随后被子仓内容**按当前 rev 覆盖装配**（rsync `--delete`，排除 `.git`/`bootstrap/`）——被测代码版本由子仓 HEAD 锁定，与主仓 gitlink 记录值解耦，便于「子仓任意提交即时可测」。
 - 后端迁移与 seed 由启动期 `SQLALCHEMY_AUTO_MIGRATE=true` 完成（建表 + 各模块 seed + 菜单/权限码同步），bootstrap 不单独跑迁移命令。
 - 基础设施栈与本机开发栈完全隔离（独立网络 + 高位端口 + tmpfs），但 bootstrap 亦可在仅有开发库（无 docker）环境变通使用：手工建临时库后按 `bootstrap/.work/testbed.env` 的键值注入后端环境变量即可（详见设计文档 §6.2）。
 
@@ -55,4 +55,4 @@ cd web/tests/hr && pnpm install && pnpm vitest run       # 前端
 
 - 主仓克隆走 SSH（`git@gitee.com:kenttian/kcloudy.ai-platform.git`），需先配好本机 SSH key。
 - `.work/` 已存在时重复执行 bootstrap **不会**重新 pull 主仓（浅克隆停留在首次时点）；主仓有新提交需先 `bootstrap/bootstrap.sh --down` 清理后重跑（或手工 `git -C bootstrap/.work/kcloudy.ai-platform pull`）。
-- 本环境无 docker 时 `bootstrap.sh` 不可全量运行（C5 子仓-only 演练挂账真机），但 compose/env/流程已静态验证。
+- 本环境无 docker 时 `bootstrap.sh` 不可全量运行（手工建临时库变通见上）；Windows 真机全量链路已验证（集成 7 通过 + e2e 金路径 3 通过），脚本内含 Windows 专项加固：rsync 缺席时 robocopy /MIR 兜底、venv 布局自适应（Scripts/bin）、依赖组 `--all-groups`、主仓 clone 内 git symlink 统一换 junction（原生进程不可穿透 git symlink，junction 无需特权）、`web/vue/tests/hr` 以真实文件落位（playwright/vitest 的 realpath 解析逃出 junction 所在 cwd 变换钩子与 node_modules 解析域）。
