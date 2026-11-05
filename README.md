@@ -60,9 +60,22 @@ cd web/vue && pnpm exec vitest run tests/hr
 testbed/bootstrap.sh
 ```
 
-## CI/CD 发布流水线
+## 发布方式（CI/CD）
 
-`.github/workflows/release.yml`（GitHub Actions，self-hosted runner 部署于 master）。
+hr 全合一镜像发布共三种方式：方式一已落地，方式二/三为备选（未实施，启用前需按各自说明补配置）。worker01/worker02 的 platform 滚动均不在三种方式范围内，仍按主仓 `docker/AGENTS.md` 发布指南手动执行。
+
+| | 方式一：GitHub Actions（**现行**） | 方式二：Gitee Go | 方式三：Gitee webhook 自建 |
+|---|---|---|---|
+| 触发入口 | GitHub 侧 main（双推同步到达） | Gitee 侧 main | Gitee 侧 main |
+| 执行环境 | self-hosted runner（master，内网拉推 registry） | Gitee 托管云构建节点（公网拉推） | master 本机触发器脚本 |
+| 审批闸门 | Environment `production` Required reviewers（现成 UI） | 流水线人工审核插件 | 无现成 UI，滚动段退化为人工执行 |
+| 日志/重试 | Actions 页面全现成 | Gitee 流水线页面 | master 本地日志文件，简陋 |
+| 费用 | 私有仓 2000 分钟/月免费 | 每仓 200 分钟永久 + 每月 500 分钟，超出预付费 | 零额度 |
+| 选型定位 | 默认方案 | 想留在 Gitee 生态且月度发布次数少 | 额度焦虑或需完全自主可控 |
+
+### 方式一：GitHub Actions 流水线（现行）
+
+`.github/workflows/release.yml`（self-hosted runner 部署于 master）。
 
 ### 流程概览
 
@@ -138,3 +151,53 @@ registry 旧 tag 永不删除，任意历史版本可回。
 | 健康检查超时 | master 上 `docker logs ai-platform-backend-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |
 | `git pull --ff-only` 失败 | master publish 仓库有本地改动，先手工处理再 Re-run deploy job |
 | runner 磁盘增长 | 构建层缓存累积：master 上 `docker image prune -a -f`（现役镜像受容器引用保护） |
+
+### 方式二：Gitee Go（备选，未实施）
+
+Gitee 原生流水线，托管云构建节点执行（无 self-hosted runner 对等机制，自建执行需接 Jenkins/K8s 或自定义插件，不在本方案考虑内）。
+
+1. **开通**：Gitee 仓库页「流水线」开通 Gitee Go，仓库根新建 `.workflow/release.yml`（Gitee Go 语法，与 GitHub Actions 语法不兼容，需按官方 plugin 体系改写）。
+2. **凭据**：构建环境变量登记 Gitee 令牌（拉主仓）与阿里云 registry 账号密码（流水线配置页环境变量，勾选加密）。
+3. **构建步骤**：与方式一 build-push 逻辑相同——拉主仓 → tar 装配挂载点 → `docker build --target production-hr-web` → push 双 tag。云构建节点自带 docker，构建时长 10-20 分钟/次。
+4. **滚动步骤**：Gitee Go 部署插件（主机组功能）配 master 主机 + SSH 凭据，执行与方式一 deploy-master 相同的 publish 同步 + VERSION bump + pull/up + 健康检查；人工审核插件放在部署步骤前作为闸门。
+5. **计费约束**：每仓 200 分钟永久 + 每月 500 分钟免费，超出按构建时长预付费。10-20 分钟/次 ≈ 每月 15-25 次，低频发布够用。
+
+注意：云构建节点在境外或境内机房以 Gitee 实际分配为准，拉推阿里云 registry 走公网，速度劣于方式一的 master 内网。
+
+### 方式三：Gitee webhook + master 自建触发器（备选，未实施）
+
+不走任何 CI 平台：Gitee 仓库 Push webhook 直接触发 master 本机脚本，零额度、内网拉推、贴合 Gitee 主推流程；代价是无现成审批/日志 UI，可维护性靠脚本质量。
+
+1. **Gitee webhook**：仓库管理 → WebHooks → 新增，URL 指向 master 触发器服务端口，勾选 Push 事件，设 webHook 密码（触发器校验签名防伪造触发）。
+2. **触发器服务**（master，systemd 常驻，Python 标准库即可）：
+
+```python
+#!/usr/bin/env python3
+# /opt/hr-release/listener.py —— Gitee webhook 触发器骨架（仅构建推送，滚动人工）
+import hmac, subprocess
+from hashlib import sha256
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+SECRET = b"<webhook 密码>"
+SCRIPT = "/opt/hr-release/build-push.sh"   # 逻辑=release.yml build-push job 翻译成 shell
+
+class H(HTTPServer, BaseHTTPRequestHandler):
+    def do_post(self):
+        body = self.rfile.read(int(self.headers["Content-Length"]))
+        sig = hmac.new(SECRET, body, sha256).hexdigest()
+        # Gitee 签名头 X-Gitee-Token（sha256 hmac）；校验失败即拒
+        if not hmac.compare_digest(sig, self.headers.get("X-Gitee-Token", "")):
+            self.send_response(403); self.end_headers(); return
+        payload = __import__("json").loads(body)
+        if payload.get("ref") == "refs/heads/main":
+            subprocess.Popen(["bash", SCRIPT])   # 异步执行，立即响应避免 webhook 超时
+        self.send_response(200); self.end_headers()
+
+HTTPServer(("127.0.0.1", 18099), H).serve_forever()
+```
+
+仅监听 127.0.0.1，经 master 宿主 nginx 反代暴露（server_name 专用子域或路径 + 密码校验双保险），不直接暴露公网端口。
+
+3. **systemd unit**：`/etc/systemd/system/hr-release-listener.service`（ExecStart 上述脚本，Restart=always），`systemctl enable --now`。
+4. **build-push.sh**：翻译 release.yml 的 build-push job——checkout/装配（tar 管道）→ `docker build` → `docker push`，输出 tag 落 `/opt/hr-release/last-tag` 供人工滚动参考。
+5. **滚动保持人工**：无审批 UI，滚动不进脚本——构建完成后按主仓发布指南 master 段手动执行（或临时 `sed` VERSION 后 `up -d hr-api`），与「先构建后择机滚动」的节奏天然契合。
