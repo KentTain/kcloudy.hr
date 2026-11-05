@@ -48,11 +48,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 拉主仓（Gitee）
+      - name: 拉主仓（Gitee @feature/hr-system，production-hr-web 目标所在分支）
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
-          git clone --depth 1 "https://oauth2:${GITEE_TOKEN}@gitee.com/kenttian/kcloudy.ai-platform.git" "${MAIN_REPO_DIR}"
+          # 须显式锁定集成分支：Gitee 默认分支 develop 尚无 production-hr-web 目标
+          git clone --depth 1 --branch feature/hr-system "https://oauth2:${GITEE_TOKEN}@gitee.com/kenttian/kcloudy.ai-platform.git" "${MAIN_REPO_DIR}"
           # 清除 remote URL 中的 token（workspace 即弃，防御性清理仍保留）
           git -C "${MAIN_REPO_DIR}" remote set-url origin https://gitee.com/kenttian/kcloudy.ai-platform.git
 
@@ -79,7 +80,7 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           export DOCKER_BUILDKIT=1
           docker build \
-            --file server/python/Dockerfile \
+            --file "${MAIN_REPO_DIR}/server/python/Dockerfile" \
             --target production-hr-web \
             -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" \
             "${MAIN_REPO_DIR}"
