@@ -172,7 +172,7 @@ flowchart TD
 | Secret | 值 | 说明 |
 |--------|-----|------|
 | `GITEE_TOKEN` | Gitee 私人令牌 | 权限仅需 projects 读取；用于拉主仓 |
-| `ALIYUN_REGISTRY_USER` | 阿里云 RAM 子账号 | 建议最小权限：仅 `kcloudy-mirror` namespace 读写，勿用主账号 |
+| `ALIYUN_REGISTRY_USER` | 阿里云 RAM 子账号 | 建议最小权限：`kcloudy-mirror`（基础镜像）与 `kcloudy-project`（项目镜像）两 namespace 读写，勿用主账号 |
 | `ALIYUN_REGISTRY_PASS` | 对应密码 | — |
 | `SSH_PRIVATE_KEY` | master 部署私钥 | **专用受限账号，勿 root**；仅放行 publish 目录与 docker 命令 |
 | `SSH_USER` | SSH 用户名 | 与上配套 |
@@ -206,7 +206,7 @@ registry 旧 tag 永不删除，任意历史版本可回。
 | 现象 | 排查 |
 |------|------|
 | 拉主仓 401/403 | `GITEE_TOKEN` 过期或无 projects 读取权限，重新生成后更新 Secret |
-| registry push 403 | RAM 子账号权限不足，检查 kcloudy-mirror namespace 授权 |
+| registry push 403 | RAM 子账号权限不足，检查 kcloudy-mirror / kcloudy-project 两 namespace 授权 |
 | 构建失败（apt/uv/pnpm 网络抖动） | 直接 Re-run，层缓存可续（与手动构建同口径） |
 | SSH 连接失败 | `SSH_PRIVATE_KEY`/`SSH_USER` Secret 核对；master 安全组放行 runner 出口；账号非 root 时确认 docker 命令权限 |
 | 健康检查超时 | SSH 上 master `docker logs ai-platform-backend-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |

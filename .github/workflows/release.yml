@@ -10,7 +10,8 @@
 #    不配置则合并即上生产，严禁）
 # 2. Secrets：
 #    GITEE_TOKEN               —— Gitee 私人令牌（projects 读；拉主仓）
-#    ALIYUN_REGISTRY_USER/PASS —— RAM 子账号（仅 kcloudy-mirror namespace 读写）
+#    ALIYUN_REGISTRY_USER/PASS —— RAM 子账号（基础镜像 kcloudy-mirror、项目镜像
+    kcloudy-project 两 namespace 读写）
 #    SSH_PRIVATE_KEY           —— master 部署私钥（专用受限账号，勿 root）
 #    SSH_USER                  —— SSH 用户名
 # 3. known_hosts：首跑经 StrictHostKeyChecking=accept-new TOFU 自动落册。
@@ -37,7 +38,7 @@ concurrency:
 
 env:
   REGISTRY: registry.cn-zhangjiakou.aliyuncs.com
-  IMAGE: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-mirror/ai-platform-backend-hr
+  IMAGE: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-platform-backend-hr
   MAIN_REPO_DIR: main-repo
   MOUNT_DIR: main-repo/server/python/src/modules/hr
 
