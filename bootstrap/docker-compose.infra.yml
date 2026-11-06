@@ -13,7 +13,7 @@ name: hr-testbed
 
 services:
   postgres:
-    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/pgvector:pg17-jieba-age
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-mirror/pgvector:pg17-jieba-age
     container_name: hr-testbed-postgres
     environment:
       POSTGRES_DB: hr_testbed
@@ -32,7 +32,7 @@ services:
       retries: 12
 
   redis:
-    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/redis:7-alpine
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-mirror/redis:7-alpine
     container_name: hr-testbed-redis
     command: redis-server --save "" --loglevel warning --requirepass redis123
     ports:
@@ -48,7 +48,7 @@ services:
       retries: 12
 
   minio:
-    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/minio:latest
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-mirror/minio:latest
     container_name: hr-testbed-minio
     environment:
       MINIO_ROOT_USER: admin
@@ -68,7 +68,7 @@ services:
 
   # bucket 初始化（应用配置默认消费 ai-platform bucket）
   minio-init:
-    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-images/minio-mc:2024.11.05
+    image: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-mirror/minio-mc:2024.11.05
     container_name: hr-testbed-minio-init
     depends_on:
       minio:
