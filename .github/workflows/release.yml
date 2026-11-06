@@ -17,7 +17,7 @@
 # 3. known_hosts：首跑经 StrictHostKeyChecking=accept-new TOFU 自动落册。
 #
 # 产物：ai-platform-backend-hr 双 tag —— vYYYYMMDD.<run_number> + latest；
-#       GitHub Release —— vYYYY.MM.DD.<run_number>（变更日志自动汇总）
+#       GitHub Release —— vYYYYMMDD.<run_number>（tag 同镜像 tag，中文说明）
 # 流程：合并 main → 构建推送（自动）→ deploy-master（Environment 审批）→
 #       SSH master：publish git pull → .env.node-hr VERSION bump → pull/up hr-api →
 #       健康检查（8090 uvicorn + 8091 内嵌 nginx）→ create-release（Release 发布）
@@ -137,13 +137,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 创建 GitHub Release（tag vYYYY.MM.DD.<run_number>，中文说明）
+      - name: 创建 GitHub Release（tag 同镜像 tag vYYYYMMDD.<run_number>，中文说明）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ needs.build-push.outputs.tag }}
         run: |
-          # TAG 在 shell 内求值：env 块不做命令替换（同 build-push 教训）
-          TAG="v$(date +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
+          # Release tag 与镜像 tag 统一同名（vYYYYMMDD.运行号）
+          TAG="${IMAGE_TAG}"
           if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             echo "Release ${TAG} 已存在（上次运行已创建），跳过"
             exit 0
@@ -166,5 +166,5 @@ jobs:
           gh release create "${TAG}" \
             --repo "${GITHUB_REPOSITORY}" \
             --target "${GITHUB_SHA}" \
-            --title "${TAG}（镜像 ${IMAGE_TAG}）" \
+            --title "${TAG}" \
             --notes-file body.md
