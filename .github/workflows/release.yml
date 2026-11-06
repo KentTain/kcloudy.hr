@@ -154,7 +154,8 @@ jobs:
             echo ""
             echo "## 提交清单"
             if [ -n "${PREV}" ]; then
-              gh api "repos/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}" \
+              # compare 用 GITHUB_SHA：Release tag 在 body 构建时尚未创建，用 tag 名会 404
+              gh api "repos/${GITHUB_REPOSITORY}/compare/${PREV}...${GITHUB_SHA}" \
                 --jq '.commits[] | "- " + (.sha[0:8] + " " + (.commit.message | split("\n")[0]))' || true
               echo ""
               echo "**完整对比**: [${PREV}...${TAG}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG})"
