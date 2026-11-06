@@ -11,7 +11,7 @@
 # 2. Secrets：
 #    GITEE_TOKEN               —— Gitee 私人令牌（projects 读；拉主仓）
 #    ALIYUN_REGISTRY_USER/PASS —— RAM 子账号（基础镜像 kcloudy-mirror、项目镜像
-    kcloudy-project 两 namespace 读写）
+#    kcloudy-project 两 namespace 读写）
 #    SSH_PRIVATE_KEY           —— master 部署私钥（专用受限账号，勿 root）
 #    SSH_USER                  —— SSH 用户名
 # 3. known_hosts：首跑经 StrictHostKeyChecking=accept-new TOFU 自动落册。
@@ -135,7 +135,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 创建 GitHub Release（tag vYYYY.MM.DD.<run_number>，notes 自动汇总）
+      - name: 创建 GitHub Release（tag vYYYY.MM.DD.<run_number>，中文说明）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ needs.build-push.outputs.tag }}
@@ -144,10 +144,24 @@ jobs:
           TAG="v$(date +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
           if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             echo "Release ${TAG} 已存在（上次运行已创建），跳过"
-          else
-            gh release create "${TAG}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --target "${GITHUB_SHA}" \
-              --title "${TAG}（镜像 ${IMAGE_TAG}）" \
-              --generate-notes
+            exit 0
           fi
+          # 上一 Release → 本 tag 的提交清单（无上一 Release 时省略清单与对比链接）
+          PREV=$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName' || true)
+          {
+            echo "## 本版本镜像"
+            echo "- \`registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-platform-backend-hr:${IMAGE_TAG}\`"
+            echo ""
+            echo "## 提交清单"
+            if [ -n "${PREV}" ]; then
+              gh api "repos/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}" \
+                --jq '.commits[] | "- " + (.sha[0:8] + " " + (.commit.message | split("\n")[0]))' || true
+              echo ""
+              echo "**完整对比**: [${PREV}...${TAG}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG})"
+            fi
+          } > body.md
+          gh release create "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${GITHUB_SHA}" \
+            --title "${TAG}（镜像 ${IMAGE_TAG}）" \
+            --notes-file body.md
