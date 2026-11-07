@@ -470,7 +470,7 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                             ops=[{"op": "add", "path": "/terms", "value": terms_ref}],
                         )
                     continue
-                body: dict = {
+                body = {
                     "name": table,
                     "parent": schema_fqn,
                     "description": descriptions[table],
@@ -510,7 +510,7 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                     if await client.entity_get_by_fqn(
                         session, tenant_id=tenant_id, spec_key="domain", fqn=domain_fqn,
                     ) is None:
-                        body: dict = {
+                        body = {
                             "name": name,
                             "displayName": display,
                             "description": description,
