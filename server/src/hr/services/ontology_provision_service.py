@@ -590,11 +590,12 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                     created["metrics"] += 1
 
             # 步骤7：56 实体挂治理分类（29 表 + 主域 + 6 子域 + 术语表 + 3 术语 + 16 指标；
-            # tags 属 HEAVY_FIELDS 读面不可见，已挂载 409 按幂等吞不视为失败）
+            # tags 属 HEAVY_FIELDS 读面不可见，已挂载 409 按幂等吞不视为失败；
+            # 软删表不在读面，与域挂载同口径排除，否则 tag_apply 报实体不存在整体回滚）
             tag_targets: list[tuple[str, str]] = [
                 ("domains", _ROOT_DOMAIN_NAME),
                 *[("domains", fqn) for fqn in domain_fqns_actual],
-                *[("tables", fqn) for fqn in table_fqns],
+                *[("tables", fqn) for fqn in table_fqns if fqn not in soft_deleted_tables],
                 ("glossaries", _GLOSSARY_NAME),
                 *[("glossaryTerms", f"{_GLOSSARY_NAME}.{name}") for name, _, _ in _TERMS],
                 *[("metrics", name) for name in _METRICS],
