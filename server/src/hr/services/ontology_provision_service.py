@@ -481,10 +481,21 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                     session, tenant_id=tenant_id, asset_type="table", body=body
                 )
                 created["tables"] += 1
+            # 域-资产挂载排除软删表：预检对软删行「跳过不复活」，行不存在于读面
+            # （_resolve_asset_refs 按非软删解析），带上会 EntityNotFoundError
+            # 整体回滚注册事务
+            soft_deleted_tables = {
+                fqn
+                for fqn, entity in existing_tables.items()
+                if entity.get("deleted")
+            }
             domain_tables: dict[str, list[dict]] = {}
             for table, domain, _ in _TABLE_DOMAINS:
+                table_fqn = f"{schema_fqn}.{table}"
+                if table_fqn in soft_deleted_tables:
+                    continue
                 domain_tables.setdefault(domain, []).append(
-                    {"type": "table", "fullyQualifiedName": f"{schema_fqn}.{table}"}
+                    {"type": "table", "fullyQualifiedName": table_fqn}
                 )
 
             # 步骤3：子域化 + 步骤8：域-资产挂载（domain_name 按实体实际 FQN）
