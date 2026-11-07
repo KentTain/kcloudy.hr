@@ -442,10 +442,13 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                 f"{schema_fqn}.{table}": (table, domain)
                 for table, domain, _ in _TABLE_DOMAINS
             }
+            # include_deleted=True：软删实体仍占 FQN（create 唯一性检查含软删），
+            # 预检漏看会导致每次补偿重试必报 EntityConflictError 并整体回滚
             existing_tables = {
                 entity["fullyQualifiedName"]: entity
                 for entity in await client.entity_get_by_fqns(
-                    session, tenant_id=tenant_id, spec_key="table", fqns=list(table_fqns)
+                    session, tenant_id=tenant_id, spec_key="table",
+                    fqns=list(table_fqns), include_deleted=True,
                 )
             }
             descriptions = {table: desc for table, _, desc in _TABLE_DOMAINS}
@@ -453,6 +456,10 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                 term_name = _DOMAIN_TERMS.get(domain)
                 terms_ref = _terms_reference(term_ids, term_name) if term_name else None
                 if fqn in existing_tables:
+                    if existing_tables[fqn].get("deleted"):
+                        # 软删保留的 FQN：尊重删除意图，跳过重建与 terms 补写
+                        _logger.info(f"存量表 {fqn} 已软删，跳过注册（幂等补偿不复活）")
+                        continue
                     # 存量表 terms 先查跳过（terms 非 HEAVY_FIELDS，读面可见）
                     if terms_ref and "terms" not in existing_tables[fqn]:
                         await client.entity_patch(
