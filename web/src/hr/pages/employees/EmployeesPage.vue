@@ -167,7 +167,8 @@ const columns = computed<ColumnDef<Employee>[]>(() => [
           type: "button",
           onClick: () => openDetail(row.original),
         },
-        () => row.original.name,
+        // 原生元素不接受函数 children（会被当作插槽忽略导致整列空白，F-017）
+        row.original.name ?? "--",
       ),
   },
   {

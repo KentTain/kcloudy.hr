@@ -139,7 +139,8 @@ async function handleSubmit() {
     emit("saved");
     open.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "异动提交失败"));
+    // notifyError 首参必须是消息字符串：此前误传 error 对象致 toast 静默失败（F-018）
+    notifyError(getErrorMessage(error, "异动提交失败"));
   } finally {
     submitting.value = false;
   }

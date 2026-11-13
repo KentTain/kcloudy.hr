@@ -33,6 +33,7 @@ import {
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import { post } from "@/framework/api/client";
 
 import { listChangeRecords, transferChangeRecord } from "@/hr/api/change";
 import { listEmployees } from "@/hr/api/employee";
@@ -60,7 +61,8 @@ const positionOptions = ref<{ id: string; name: string }[]>([]);
 
 async function loadReferences() {
   try {
-    const res = await listEmployees({ page: 1, page_size: 200 });
+    // 后端校验 page_size ≤ 100（page_size>100 会 422 导致映射全空显示 UUID，F-019）
+    const res = await listEmployees({ page: 1, page_size: 100 });
     const rows = res.data ?? [];
     employeeMap.value = new Map(rows.map((employee) => [employee.id, employee]));
   } catch {
@@ -92,6 +94,33 @@ function findOrgNode(nodes: OrgTreeNode[], id: string): OrgTreeNode | null {
 function employeeLabelOf(employeeId: string): string {
   const employee = employeeMap.value.get(employeeId);
   return employee ? `${employee.employee_no} ${employee.name}` : employeeId;
+}
+
+// 操作人（IAM 用户）id → 显示名映射，避免列表直出 UUID（F-019）
+const operatorMap = ref<Map<string, string>>(new Map());
+
+function operatorLabelOf(operatorId: string | null | undefined): string {
+  if (!operatorId) return "--";
+  return operatorMap.value.get(operatorId) ?? operatorId;
+}
+
+async function loadOperatorNames(operatorIds: string[]) {
+  const missing = [...new Set(operatorIds.filter((id) => id && !operatorMap.value.has(id)))];
+  if (missing.length === 0) return;
+  try {
+    const res = await post<ApiResponse<{ items: { id: string; username?: string; display_name?: string }[] }>>(
+      "/iam/console/v1/users/batch",
+      { user_ids: missing },
+    );
+    const items = res.data?.items ?? [];
+    const next = new Map(operatorMap.value);
+    for (const user of items) {
+      next.set(user.id, user.display_name || user.username || user.id);
+    }
+    operatorMap.value = next;
+  } catch {
+    // 查询失败时保留原 id 展示，不阻断列表
+  }
 }
 
 function resolveSnapshotName(key: string, value: unknown): string {
@@ -166,7 +195,7 @@ const columns = computed<ColumnDef<ChangeRecord>[]>(
         accessorKey: "operator_id",
         header: "操作人",
         size: 120,
-        cell: ({ row }) => row.original.operator_id ?? "--",
+        cell: ({ row }) => operatorLabelOf(row.original.operator_id),
       },
       {
         id: "actions",
@@ -182,7 +211,8 @@ const columns = computed<ColumnDef<ChangeRecord>[]>(
                 type: "button",
                 onClick: () => openDetail(row.original),
               },
-              () => "详情"
+              // 原生元素不接受函数 children（F-017 同款）
+              "详情"
             ),
             ...(canTransfer.value
               ? [
@@ -194,7 +224,7 @@ const columns = computed<ColumnDef<ChangeRecord>[]>(
                       type: "button",
                       onClick: () => openTransfer(row.original),
                     },
-                    () => "移交"
+                    "移交"
                   ),
                 ]
               : []),
@@ -216,6 +246,10 @@ const dataTable = useDataTable<ChangeRecord>({
       end_date: endDate.value || undefined,
       keyword: keyword.value || undefined,
     });
+    const rows = res.data ?? [];
+    if (rows.length) {
+      void loadOperatorNames(rows.map((record) => record.operator_id).filter(Boolean) as string[]);
+    }
     return {
       code: res.code,
       data: res.data ?? [],
@@ -238,7 +272,7 @@ const detailDescriptionItems = computed(() => {
     { label: "员工", value: employeeLabelOf(record.employee_id) },
     { label: "异动类型", value: CHANGE_TYPE_LABELS[record.change_type] ?? record.change_type },
     { label: "生效日期", value: record.effective_date },
-    { label: "操作人", value: record.operator_id ?? "--" },
+    { label: "操作人", value: operatorLabelOf(record.operator_id) },
   ];
 });
 
