@@ -68,6 +68,9 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        # OpenAPI servers：相对 /api 前缀（单容器内嵌 nginx 剥除后转发 uvicorn），
+        # 接口库 URL 导入时经 urljoin(schema_url) 解析为导入域名 + /api
+        servers=[{"url": "/api", "description": "hr 单容器 /api 前缀"}],
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
