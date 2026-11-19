@@ -24,13 +24,15 @@ _logger = logger.bind(name=__name__)
 
 @dataclass
 class MetricDef:
-    """白名单指标定义（口径说明与取数通道）"""
+    """白名单指标定义（口径说明、取数通道与治理资产挂接）"""
 
     domain: str
     metric: str
     name: str
     keywords: tuple[str, ...]
     metric_ref: str
+    # 指标背后数据资产的 ontology 表 FQN（appliedTo 指标资产路由上下文）
+    assets: tuple[str, ...] = ()
 
 
 @dataclass
@@ -46,17 +48,24 @@ class ResolvedMetric:
         return self.definition.name
 
 
-# ── 白名单指标（与 ontology 治理目录同源口径，metric_ref 供回答附注）──
+# ── 白名单指标（与 ontology 治理目录同源口径，metric_ref 供回答附注；
+#    assets 为治理目录登记表 FQN，供资产→指标反查路由）──
+
+_HR_TABLE_FQN = "hr-pg.ai_platform.hr.{table}"
 
 _METRICS: dict[tuple[str, str], MetricDef] = {
-    (d, m): MetricDef(domain=d, metric=m, name=name, keywords=kw, metric_ref=ref)
-    for d, m, name, kw, ref in [
+    (d, m): MetricDef(
+        domain=d, metric=m, name=name, keywords=kw, metric_ref=ref,
+        assets=tuple(_HR_TABLE_FQN.format(table=t) for t in tables),
+    )
+    for d, m, name, kw, ref, tables in [
         (
             "personnel",
             "headcount",
             "在编人数",
             ("在编", "在职", "多少人", "人数", "headcount"),
             "在编 = status ∈ {probation, regular}，含组织子树口径",
+            ("employees",),
         ),
         (
             "personnel",
@@ -64,6 +73,7 @@ _METRICS: dict[tuple[str, str], MetricDef] = {
             "离职率",
             ("离职率", "流失率", "离职人数", "走了多少", "turnover"),
             "离职率 = 当月离职人数 / 当月平均在编（月初+月末均值），百分数",
+            ("employees", "employee_changes"),
         ),
         (
             "personnel",
@@ -71,6 +81,7 @@ _METRICS: dict[tuple[str, str], MetricDef] = {
             "在编趋势",
             ("趋势", "增长", "规模变化"),
             "在编趋势由员工主档生命周期（hire_date/offboard_date）按月月末回算",
+            ("employees",),
         ),
         (
             "recruiting",
@@ -78,6 +89,7 @@ _METRICS: dict[tuple[str, str], MetricDef] = {
             "招聘漏斗",
             ("漏斗", "招聘进展", "招聘情况", "投递", "funnel"),
             "漏斗按投递申请计，十阶段口径与候选人页统计卡同源",
+            ("candidate_applications",),
         ),
         (
             "compensation",
@@ -85,6 +97,7 @@ _METRICS: dict[tuple[str, str], MetricDef] = {
             "薪酬分布",
             ("薪酬分布", "薪资分布", "薪酬水平", "薪资水平", "工资分布"),
             "薪酬分布 = 当期生效定薪按员工月度总额聚合，仅 min/mid/max 脱敏口径",
+            ("employee_salary_packages",),
         ),
         (
             "performance",
@@ -92,6 +105,7 @@ _METRICS: dict[tuple[str, str], MetricDef] = {
             "绩效分布",
             ("绩效", "评级", "考核", "performance"),
             "绩效分布 = closed 周期评级分布（calibrated_rating 优先回退 rating）",
+            ("perf_reviews",),
         ),
     ]
 }
@@ -135,15 +149,54 @@ class NlQueryService:
             _logger.warning(f"NL 问数取数失败 metric={resolved.label}: {exc}")
             raise BadRequestError("指标取数失败，请稍后重试") from exc
 
-        narrative = await self._narrate(question, resolved, data)
+        asset_metrics = await self._asset_metric_context(session, resolved)
+        narrative = await self._narrate(question, resolved, data, asset_metrics)
         return {
             "metric": resolved.label,
             "domain": resolved.definition.domain,
             "metric_ref": resolved.definition.metric_ref,
             "source": resolved.source,
             "data": data,
+            "asset_metrics": asset_metrics,
             "answer": narrative,
         }
+
+    async def _asset_metric_context(
+        self, session: AsyncSession, resolved: ResolvedMetric
+    ) -> list[str]:
+        """资产→指标路由（appliedTo 反查）：挂接治理指标附作答上下文。
+
+        ontology 缺席/不可用/资产未挂接一律返回空列表，不阻断问数主链
+        （hr 零依赖 ontology 纪律）。
+        """
+        if not resolved.definition.assets:
+            return []
+        try:
+            from framework.clients.ontology_client import (
+                OntologyNotFoundError,
+                OntologyUnavailableError,
+                get_ontology_client,
+            )
+
+            tenant_id = self._tenant_id()
+        except Exception:  # noqa: BLE001 — 无租户上下文不路由
+            return []
+        client = get_ontology_client()
+        metrics: dict[str, str] = {}
+        for table_fqn in resolved.definition.assets:
+            try:
+                result = await client.get_asset_metrics(
+                    session, tenant_id=tenant_id, collection="tables", ref=table_fqn
+                )
+            except (OntologyUnavailableError, OntologyNotFoundError):
+                return []
+            except Exception as exc:  # noqa: BLE001 — 单资产反查失败跳过
+                _logger.warning(f"NL 问数资产指标反查失败 asset={table_fqn}: {exc}")
+                continue
+            for metric in result.get("metrics") or []:
+                display = metric.get("displayName") or metric.get("name")
+                metrics.setdefault(metric.get("fullyQualifiedName") or display, display)
+        return list(metrics.values())
 
     # ── 指标映射 ──
 
@@ -260,13 +313,22 @@ class NlQueryService:
     # ── 回答生成 ──
 
     async def _narrate(
-        self, question: str, resolved: ResolvedMetric, data: dict
+        self,
+        question: str,
+        resolved: ResolvedMetric,
+        data: dict,
+        asset_metrics: list[str],
     ) -> str:
         """llm_chat 生成自然语言回答；失败降级固定模板文案。"""
         try:
             tenant_id = self._tenant_id()
         except Exception:  # noqa: BLE001 — 无租户上下文走降级
             return self._template_answer(resolved, data)
+        asset_context = (
+            "\n".join(f"- {name}" for name in asset_metrics)
+            if asset_metrics
+            else ""
+        )
         try:
             content = await llm_chat(
                 tenant_id,
@@ -284,7 +346,12 @@ class NlQueryService:
                         "content": (
                             f"问题：{question}\n指标：{resolved.label}\n"
                             f"口径：{resolved.definition.metric_ref}\n"
-                            f"数据：{json.dumps(data, ensure_ascii=False, default=str)}"
+                            + (
+                                f"该指标数据资产挂接的治理指标：\n{asset_context}\n"
+                                if asset_metrics
+                                else ""
+                            )
+                            + f"数据：{json.dumps(data, ensure_ascii=False, default=str)}"
                         ),
                     },
                 ],

@@ -5,11 +5,13 @@
 """
 
 from datetime import date
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from framework.clients.ontology_client import OntologyUnavailableError
 from framework.common.exceptions import BadRequestError
 from framework.schemas import BaseModel
 from framework.tenant.context import TenantContext
@@ -165,3 +167,157 @@ class TestAskFetch:
             result = await nl_query_service.ask(_mock_session(), "离职率")
         assert "离职率" in result["answer"]
         assert result["data"] == {"points": []}
+
+
+class TestAssetMetricRouting:
+    """appliedTo 资产→指标路由：问数附挂接治理指标上下文"""
+
+    @staticmethod
+    def _client_stub(metrics_by_table):
+        async def fake_get_asset_metrics(session, *, tenant_id, collection, ref):
+            metrics = metrics_by_table.get(ref)
+            if metrics is None:
+                return {"asset": {}, "metricCount": 0, "metrics": []}
+            return {"asset": {}, "metricCount": len(metrics), "metrics": metrics}
+
+        return SimpleNamespace(get_asset_metrics=AsyncMock(side_effect=fake_get_asset_metrics))
+
+    @pytest.mark.asyncio
+    async def test_answer_carries_attached_governance_metrics(self):
+        TenantContext.set_tenant_id("t-1")
+        session = _mock_session()
+        turnover = TurnoverResponse(
+            points=[TurnoverPoint(month="2026-09", offboarded=1, avg_headcount=100, rate=1.0)]
+        )
+        metrics = {
+            "hr-pg.ai_platform.hr.employees": [
+                {"id": "m1", "type": "metric", "name": "workforce_headcount",
+                 "fullyQualifiedName": "workforce_headcount", "displayName": "在编人数"}
+            ],
+            "hr-pg.ai_platform.hr.employee_changes": [
+                {"id": "m2", "type": "metric", "name": "attrition_rate",
+                 "fullyQualifiedName": "attrition_rate", "displayName": "离职率"}
+            ],
+        }
+        client_stub = self._client_stub(metrics)
+        with (
+            patch(
+                "hr.services.report_service.report_service.get_turnover",
+                new=AsyncMock(return_value=turnover),
+            ),
+            patch(
+                "framework.clients.ontology_client.get_ontology_client",
+                return_value=client_stub,
+            ),
+            patch(
+                "hr.services.nl_query_service.llm_chat",
+                new=AsyncMock(return_value="近月离职率 1.0%。"),
+            ) as mock_llm,
+        ):
+            result = await nl_query_service.ask(session, "近 3 月离职率")
+        assert result["asset_metrics"] == ["在编人数", "离职率"]
+        # 两表各反查一次
+        assert client_stub.get_asset_metrics.await_count == 2
+        user_content = mock_llm.call_args.args[1][1]["content"]
+        assert "治理指标" in user_content and "在编人数" in user_content
+
+    @pytest.mark.asyncio
+    async def test_duplicate_metrics_deduped(self):
+        TenantContext.set_tenant_id("t-1")
+        session = _mock_session()
+        turnover = TurnoverResponse(points=[])
+        same_metric = [
+            {"id": "m1", "type": "metric", "name": "workforce_headcount",
+             "fullyQualifiedName": "workforce_headcount", "displayName": "在编人数"}
+        ]
+        client_stub = self._client_stub(
+            {
+                "hr-pg.ai_platform.hr.employees": same_metric,
+                "hr-pg.ai_platform.hr.employee_changes": same_metric,
+            }
+        )
+        with (
+            patch(
+                "hr.services.report_service.report_service.get_turnover",
+                new=AsyncMock(return_value=turnover),
+            ),
+            patch(
+                "framework.clients.ontology_client.get_ontology_client",
+                return_value=client_stub,
+            ),
+            patch(
+                "hr.services.nl_query_service.llm_chat",
+                new=AsyncMock(side_effect=RuntimeError("llm down")),
+            ),
+        ):
+            result = await nl_query_service.ask(session, "离职率")
+        assert result["asset_metrics"] == ["在编人数"]
+
+    @pytest.mark.asyncio
+    async def test_ontology_unavailable_keeps_answer(self):
+        """ontology 缺席/不可用 → 空上下文，问数主链不受影响"""
+        TenantContext.set_tenant_id("t-1")
+        session = _mock_session()
+        turnover = TurnoverResponse(
+            points=[TurnoverPoint(month="2026-09", offboarded=1, avg_headcount=100, rate=1.0)]
+        )
+        client_stub = SimpleNamespace(
+            get_asset_metrics=AsyncMock(
+                side_effect=OntologyUnavailableError("ontology down")
+            )
+        )
+        with (
+            patch(
+                "hr.services.report_service.report_service.get_turnover",
+                new=AsyncMock(return_value=turnover),
+            ),
+            patch(
+                "framework.clients.ontology_client.get_ontology_client",
+                return_value=client_stub,
+            ),
+            patch(
+                "hr.services.nl_query_service.llm_chat",
+                new=AsyncMock(return_value="近月离职率 1.0%。"),
+            ),
+        ):
+            result = await nl_query_service.ask(session, "近 3 月离职率")
+        assert result["asset_metrics"] == []
+        assert "1.0%" in result["answer"]
+
+    @pytest.mark.asyncio
+    async def test_reverse_lookup_failure_skips_table(self):
+        """单表反查抛未知异常 → 跳过该表，不影响其余资产上下文"""
+        TenantContext.set_tenant_id("t-1")
+        session = _mock_session()
+        turnover = TurnoverResponse(points=[])
+        metrics = {
+            "hr-pg.ai_platform.hr.employees": [
+                {"id": "m1", "type": "metric", "name": "workforce_headcount",
+                 "fullyQualifiedName": "workforce_headcount", "displayName": "在编人数"}
+            ],
+        }
+        client_stub = self._client_stub(metrics)
+        original = client_stub.get_asset_metrics.side_effect
+
+        async def flaky(session, *, tenant_id, collection, ref):
+            if ref == "hr-pg.ai_platform.hr.employee_changes":
+                raise RuntimeError("db glitch")
+            return await original(session, tenant_id=tenant_id, collection=collection, ref=ref)
+
+        client_stub.get_asset_metrics.side_effect = flaky
+        with (
+            patch(
+                "hr.services.report_service.report_service.get_turnover",
+                new=AsyncMock(return_value=turnover),
+            ),
+            patch(
+                "framework.clients.ontology_client.get_ontology_client",
+                return_value=client_stub,
+            ),
+            patch(
+                "hr.services.nl_query_service.llm_chat",
+                new=AsyncMock(side_effect=RuntimeError("llm down")),
+            ),
+        ):
+            result = await nl_query_service.ask(session, "离职率")
+        assert result["asset_metrics"] == ["在编人数"]
