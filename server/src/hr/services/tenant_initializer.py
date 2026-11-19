@@ -29,9 +29,12 @@ class HrTenantInitializer:
         )
 
     async def _provision_ontology(self, session, tenant_id: str) -> None:
-        """ontology 资产注册（缺席/失败不阻塞租户创建，快照任务会幂等补偿）"""
+        """ontology 资产注册 + 本体应用预置（缺席/失败不阻塞租户创建，快照任务会幂等补偿）"""
         from framework.tenant.context import TenantContext
-        from hr.services.ontology_provision_service import provision_hr_assets
+        from hr.services.ontology_provision_service import (
+            provision_hr_assets,
+            provision_hr_ontology_application,
+        )
 
         # ontology 仓储写入校验租户上下文（快照任务同款范式）；seed 等场景无请求上下文，此处显式设置
         previous_tenant_id = TenantContext.get_tenant_id()
@@ -40,6 +43,10 @@ class HrTenantInitializer:
             await provision_hr_assets(session)
         except Exception:  # noqa: BLE001
             _logger.exception(f"HR 资产 ontology 注册失败（留待快照补偿）: tenant={tenant_id}")
+        try:
+            await provision_hr_ontology_application(session)
+        except Exception:  # noqa: BLE001
+            _logger.exception(f"HR 本体应用预置失败（留待快照补偿）: tenant={tenant_id}")
         finally:
             TenantContext.set_tenant_id(previous_tenant_id)
 

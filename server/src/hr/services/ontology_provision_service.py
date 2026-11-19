@@ -14,6 +14,10 @@ hr schema / 29 张业务表，六业务域全覆盖挂载），hr-domain 术语�
 依赖方向 hr ──▶ framework 双模式客户端（framework/clients/ontology_client.py，
 直调=进程内 provision 门面 / HTTP=inner 原语面），零 ontology 直接依赖；
 租户身份取调用方压栈的 TenantContext（初始化器与快照任务均已显式设置）。
+
+provision_hr_ontology_application 在资产注册后幂等预置 hr_system 本体应用
+（本体中心工作区全量：16 类 TBox / 38 属性 / SKOS 六域概念 / 36 源表映射 /
+六类实例 / 3 条 CONSTRUCT 推理规则），建模两段式回填 UUID4 类资源 URI。
 """
 
 from loguru import logger
@@ -617,3 +621,425 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
 
     _logger.info(f"hr 资产注册完成（新建 {created}，既有项幂等跳过）")
     return created
+
+
+# ── 本体应用全量预置（应用/TBox/SKOS/映射/实例/规则） ──────────────────
+
+_APPLICATION_NAME = "hr_system"
+_APPLICATION_DISPLAY = "HR 业务本体"
+_APPLICATION_DESC = "HR 系统本体应用：业务概念模型 + 术语概念 + 源表映射 + 实例数据 + 推理规则"
+_INSTANCE_SOURCE = "hr-pg"
+
+# TBox 类：name → (label, description)；类资源 URI 为 UUID4 生成（建模后经
+# classUris 映射回填引用），派生类（规则产物）以 description 标注派生语义
+_APP_CLASSES: tuple[tuple[str, str, str], ...] = (
+    ("Employee", "员工", "员工主档个体（工号/在职状态/职级/入岗日期）"),
+    ("Position", "岗位", "岗位个体（编码/编制数）"),
+    ("EmployeeChange", "异动流水", "员工异动事件（入职/转正/调动/级变/调薪/离职）"),
+    ("Contract", "合同", "员工劳动合同（编号/类型/截止日）"),
+    ("JobRequisition", "招聘需求", "招聘需求单（需求编号/职位/编制/状态）"),
+    ("Candidate", "候选人", "候选人个体（姓名/联系方式/来源渠道）"),
+    ("CandidateApplication", "投递申请", "候选人投递申请（漏斗阶段/人岗匹配分）"),
+    ("Offer", "Offer单", "Offer 发放记录（状态/有效期）"),
+    ("SalaryPackage", "定薪", "员工薪酬定薪项（金额）"),
+    ("PerfReview", "绩效评估", "绩效评估记录（评级/校准评级）"),
+    ("LeaveRequest", "请假单", "请假申请单（状态/起止/时长）"),
+    ("PayrollRun", "发薪批次", "发薪批次（期间/状态）"),
+    ("PayrollEntry", "发薪明细", "发薪明细行（薪酬项金额）"),
+    ("ActiveEmployee", "在编员工", "规则派生：在职状态 ∈ (probation, regular) 的员工"),
+    ("HighPerformer", "高绩效员工", "规则派生：评级 ∈ (S, A) 的被评估员工"),
+    ("OpenLeave", "未结请假单", "规则派生：已批准且结束时间不早于当日的请假单"),
+)
+
+# TBox 属性：name → (label, propertyType, domainClass, rangeClass, description)
+_APP_PROPERTIES: tuple[tuple[str, str, str, str, str | None, str], ...] = (
+    ("employeeNo", "工号", "DATATYPE", "Employee", None, "员工工号（业务键）"),
+    ("employmentStatus", "在职状态", "DATATYPE", "Employee", None, "probation/regular/offboard"),
+    ("jobLevel", "职级", "DATATYPE", "Employee", None, "职级（P5/M2 等）"),
+    ("hireDate", "入职日期", "DATATYPE", "Employee", None, "入职日期（ISO 日期）"),
+    ("positionCode", "岗位编码", "DATATYPE", "Position", None, "岗位编码（业务键）"),
+    ("positionHeadcount", "编制数", "DATATYPE", "Position", None, "岗位编制人数"),
+    ("changeType", "异动类型", "DATATYPE", "EmployeeChange", None, "hire/transfer/regular/promotion/salary_adjust/offboard"),
+    ("effectiveDate", "生效日期", "DATATYPE", "EmployeeChange", None, "异动生效日期"),
+    ("contractNo", "合同编号", "DATATYPE", "Contract", None, "合同编号"),
+    ("contractType", "合同类型", "DATATYPE", "Contract", None, "合同类型"),
+    ("contractEndDate", "合同截止日", "DATATYPE", "Contract", None, "空=无固定期限"),
+    ("reqNo", "需求编号", "DATATYPE", "JobRequisition", None, "招聘需求编号（业务键）"),
+    ("reqTitle", "需求职位", "DATATYPE", "JobRequisition", None, "招聘职位名称"),
+    ("reqHeadcount", "需求人数", "DATATYPE", "JobRequisition", None, "招聘编制人数"),
+    ("reqStatus", "需求状态", "DATATYPE", "JobRequisition", None, "需求状态机"),
+    ("candidateName", "候选人姓名", "DATATYPE", "Candidate", None, "候选人姓名"),
+    ("candidatePhone", "联系电话", "DATATYPE", "Candidate", None, "候选人手机号"),
+    ("sourceChannel", "来源渠道", "DATATYPE", "Candidate", None, "内推/渠道归集等来源"),
+    ("applicationStage", "漏斗阶段", "DATATYPE", "CandidateApplication", None, "十阶段漏斗当前态"),
+    ("matchScore", "人岗匹配分", "DATATYPE", "CandidateApplication", None, "AI 人岗匹配分"),
+    ("offerStatus", "Offer状态", "DATATYPE", "Offer", None, "sent/accepted/rejected 等状态机"),
+    ("validUntil", "有效期至", "DATATYPE", "Offer", None, "Offer 有效截止时间"),
+    ("salaryAmount", "定薪金额", "DATATYPE", "SalaryPackage", None, "定薪项金额（元/月）"),
+    ("perfRating", "绩效评级", "DATATYPE", "PerfReview", None, "初评/校准评级 S/A/B/C/D"),
+    ("calibratedRating", "校准评级", "DATATYPE", "PerfReview", None, "校准后评级"),
+    ("leaveStatus", "请假状态", "DATATYPE", "LeaveRequest", None, "draft/pending/approved/rejected/cancelled"),
+    ("leaveStartTime", "开始时间", "DATATYPE", "LeaveRequest", None, "请假起始时间"),
+    ("leaveEndTime", "结束时间", "DATATYPE", "LeaveRequest", None, "请假结束时间"),
+    ("leaveDuration", "请假时长", "DATATYPE", "LeaveRequest", None, "时长（单位随假期类型）"),
+    ("payrollPeriod", "发薪期间", "DATATYPE", "PayrollRun", None, "期间（YYYY-MM）"),
+    ("payrollStatus", "批次状态", "DATATYPE", "PayrollRun", None, "draft/confirmed/paid"),
+    ("entryAmount", "明细金额", "DATATYPE", "PayrollEntry", None, "薪酬项金额（元）"),
+    ("worksOnPosition", "任职岗位", "OBJECT", "Employee", "Position", "员工任职岗位"),
+    ("appliedTo", "应聘需求", "OBJECT", "CandidateApplication", "JobRequisition", "投递申请指向招聘需求"),
+    ("submittedBy", "投递候选人", "OBJECT", "CandidateApplication", "Candidate", "投递申请归属候选人"),
+    ("packageOf", "定薪归属", "OBJECT", "SalaryPackage", "Employee", "定薪项归属员工"),
+    ("reviewedEmployee", "被评估员工", "OBJECT", "PerfReview", "Employee", "评估记录指向被评估员工"),
+    ("inPayrollRun", "所属批次", "OBJECT", "PayrollEntry", "PayrollRun", "发薪明细归属发薪批次"),
+)
+
+# SKOS 六域概念：key → (displayName, description)；key 与元数据中心六域 name 一致
+_APP_SKOS_TERMS: tuple[tuple[str, str, str], ...] = _DOMAINS
+
+# 源表字段 → 本体属性映射（sourceField 表限定串天然唯一，规避同源异标冲突）
+_APP_MAPPINGS: tuple[tuple[str, str], ...] = (
+    ("hr.employees.employee_no", "employeeNo"),
+    ("hr.employees.status", "employmentStatus"),
+    ("hr.employees.job_level", "jobLevel"),
+    ("hr.employees.hire_date", "hireDate"),
+    ("hr.employees.position_id", "worksOnPosition"),
+    ("hr.positions.code", "positionCode"),
+    ("hr.positions.headcount", "positionHeadcount"),
+    ("hr.employee_changes.change_type", "changeType"),
+    ("hr.employee_changes.effective_date", "effectiveDate"),
+    ("hr.employee_contracts.contract_no", "contractNo"),
+    ("hr.employee_contracts.contract_type", "contractType"),
+    ("hr.employee_contracts.end_date", "contractEndDate"),
+    ("hr.job_requisitions.req_no", "reqNo"),
+    ("hr.job_requisitions.title", "reqTitle"),
+    ("hr.job_requisitions.headcount", "reqHeadcount"),
+    ("hr.job_requisitions.status", "reqStatus"),
+    ("hr.candidates.name", "candidateName"),
+    ("hr.candidates.phone", "candidatePhone"),
+    ("hr.candidates.source_channel", "sourceChannel"),
+    ("hr.candidate_applications.candidate_id", "submittedBy"),
+    ("hr.candidate_applications.requisition_id", "appliedTo"),
+    ("hr.candidate_applications.stage", "applicationStage"),
+    ("hr.candidate_applications.match_score", "matchScore"),
+    ("hr.offers.status", "offerStatus"),
+    ("hr.offers.valid_until", "validUntil"),
+    ("hr.employee_salary_packages.employee_id", "packageOf"),
+    ("hr.employee_salary_packages.amount", "salaryAmount"),
+    ("hr.perf_reviews.employee_id", "reviewedEmployee"),
+    ("hr.perf_reviews.rating", "perfRating"),
+    ("hr.perf_reviews.calibrated_rating", "calibratedRating"),
+    ("hr.leave_requests.status", "leaveStatus"),
+    ("hr.leave_requests.end_time", "leaveEndTime"),
+    ("hr.payroll_runs.period", "payrollPeriod"),
+    ("hr.payroll_runs.status", "payrollStatus"),
+    ("hr.payroll_entries.run_id", "inPayrollRun"),
+    ("hr.payroll_entries.amount", "entryAmount"),
+)
+
+# 实例抽取：类名 → (业务键字段, 行属性名序列, SQL)；行属性名与 TBox 属性 om:name
+# 对齐、SQL 列序一致；SQL 显式 tenant_id 过滤（text() 不经租户守卫），对象属性值
+# 取目标个体业务键字符串（hr 零 ontology 依赖不复算个体 URI，经 om:businessKey 回链）
+_INSTANCE_EXTRACTS: dict[str, tuple[str, tuple[str, ...], str]] = {
+    "Employee": (
+        "employeeNo",
+        ("employeeNo", "employmentStatus", "jobLevel", "hireDate", "worksOnPosition"),
+        "SELECT e.employee_no, e.status, e.job_level, e.hire_date, p.code "
+        "FROM hr.employees e LEFT JOIN hr.positions p "
+        "ON p.id = e.position_id AND p.tenant_id = e.tenant_id "
+        "WHERE e.tenant_id = :tenant_id",
+    ),
+    "Position": (
+        "positionCode",
+        ("positionCode", "positionHeadcount"),
+        "SELECT code, headcount FROM hr.positions "
+        "WHERE tenant_id = :tenant_id LIMIT 200",
+    ),
+    "Candidate": (
+        "candidateNo",
+        ("candidateNo", "candidateName", "candidatePhone", "sourceChannel"),
+        "SELECT id, name, phone, source_channel FROM hr.candidates "
+        "WHERE tenant_id = :tenant_id LIMIT 200",
+    ),
+    "JobRequisition": (
+        "reqNo",
+        ("reqNo", "reqTitle", "reqHeadcount", "reqStatus"),
+        "SELECT req_no, title, headcount, status FROM hr.job_requisitions "
+        "WHERE tenant_id = :tenant_id LIMIT 200",
+    ),
+    "PerfReview": (
+        "perfReviewNo",
+        ("perfReviewNo", "perfRating", "calibratedRating", "reviewedEmployee"),
+        "SELECT pr.id, pr.rating, pr.calibrated_rating, e.employee_no "
+        "FROM hr.perf_reviews pr JOIN hr.employees e "
+        "ON e.id = pr.employee_id AND e.tenant_id = pr.tenant_id "
+        "WHERE pr.tenant_id = :tenant_id LIMIT 200",
+    ),
+    "LeaveRequest": (
+        "leaveRequestNo",
+        ("leaveRequestNo", "leaveStatus", "leaveStartTime", "leaveEndTime", "leaveDuration"),
+        "SELECT id, status, start_time, end_time, duration "
+        "FROM hr.leave_requests WHERE tenant_id = :tenant_id LIMIT 200",
+    ),
+}
+
+
+async def _instance_rows(
+    session: AsyncSession, class_name: str, business_key_field: str,
+    row_keys: tuple[str, ...],
+) -> list[dict]:
+    """业务表 → 实例行：None 值剔除（映射通道不滤空，落图会成 "None" 字面量）、
+    date/datetime→isoformat、Decimal→float、UUID→str"""
+    import uuid as _uuid
+    from datetime import date as _date, datetime as _datetime
+    from decimal import Decimal as _Decimal
+
+    from sqlalchemy import text
+
+    from framework.tenant.context import TenantContext
+
+    _, _, sql = _INSTANCE_EXTRACTS[class_name]
+    result = await session.execute(text(sql), {"tenant_id": TenantContext.get_tenant_id()})
+    rows: list[dict] = []
+    for raw in result.mappings():
+        row: dict = {}
+        for key, value in zip(row_keys, tuple(raw.values()), strict=True):
+            if value is None:
+                continue
+            if isinstance(value, (_datetime, _date)):
+                row[key] = value.isoformat()
+            elif isinstance(value, _Decimal):
+                row[key] = float(value)
+            elif isinstance(value, _uuid.UUID):
+                row[key] = str(value)
+            else:
+                row[key] = value
+        if row.get(business_key_field):
+            rows.append(row)
+    return rows
+
+
+def _rule_content(body: str) -> str:
+    """全 CONSTRUCT 规则体（禁 FROM：数据集由执行链注入工作区图）"""
+    return (
+        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+        "PREFIX om: <https://kcloudy.ai/ontology/>\n" + body
+    )
+
+
+async def provision_hr_ontology_application(session: AsyncSession) -> dict | None:
+    """幂等预置 hr_system 本体应用（应用/TBox/SKOS/映射/实例/规则全量）。
+
+    应用行（纯 PG）独立 savepoint：ontology 缺席记 info 跳过；工作区段（建模/
+    SKOS/映射/实例/规则，依赖 Fuseki）独立 savepoint：图存储不可用
+    （OntologyWorkspaceUnavailableError）或模块缺席记 info 跳过、兜底 Exception
+    记 warning——不阻塞元数据基线与调用方（租户创建/快照任务），下轮补偿重试。
+
+    建模两段式：类资源 URI 为 UUID4 生成，先建类拿 classUris，再以真实 URI 回填
+    属性 domain/range 建属性；映射 targetProperty、实例 class、规则 SPARQL 类指针
+    同源取自响应映射。
+    """
+    from framework.clients.ontology_client import (
+        OntologyUnavailableError,
+        OntologyWorkspaceUnavailableError,
+        get_ontology_client,
+    )
+    from framework.tenant.context import TenantContext
+
+    tenant_id = TenantContext.get_tenant_id()
+    client = get_ontology_client()
+
+    try:
+        async with session.begin_nested():
+            await client.application_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "name": _APPLICATION_NAME,
+                    "displayName": _APPLICATION_DISPLAY,
+                    "description": _APPLICATION_DESC,
+                    "config": {
+                        "productDomains": [name for name, _, _ in _DOMAINS],
+                        "metadataSources": [_ONTOLOGY_SERVICE],
+                        "linkedGlossaries": [_GLOSSARY_NAME],
+                    },
+                },
+            )
+    except OntologyUnavailableError:
+        _logger.info("ontology 模块缺席，跳过 hr 本体应用预置")
+        return None
+
+    try:
+        async with session.begin_nested():
+            # 1) TBox 类（幂等跳过既有，响应含 name→URI 映射）
+            model = await client.model_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "application": _APPLICATION_NAME,
+                    "classes": [
+                        {"name": name, "label": label, "description": desc}
+                        for name, label, desc in _APP_CLASSES
+                    ],
+                    "properties": [],
+                },
+            )
+            class_uris: dict[str, str] = model["classUris"]
+
+            # 2) TBox 属性（domain/range 回填真实类 URI）
+            property_specs = []
+            for name, label, prop_type, domain, rng, desc in _APP_PROPERTIES:
+                spec: dict = {
+                    "name": name,
+                    "label": label,
+                    "propertyType": prop_type,
+                    "domain": [class_uris[domain]],
+                    "description": desc,
+                }
+                if rng:
+                    spec["range"] = [class_uris[rng]]
+                property_specs.append(spec)
+            model = await client.model_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "application": _APPLICATION_NAME,
+                    "classes": [],
+                    "properties": property_specs,
+                },
+            )
+            prop_uris: dict[str, str] = model["propertyUris"]
+
+            # 3) SKOS 六域概念（确定性 id 删旧插新幂等）
+            await client.skos_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "application": _APPLICATION_NAME,
+                    "glossary": _GLOSSARY_NAME,
+                    "glossaryFqn": _GLOSSARY_NAME,
+                    "glossaryName": _GLOSSARY_DISPLAY,
+                    "terms": [
+                        {"name": key, "displayName": display, "description": desc}
+                        for key, display, desc in _APP_SKOS_TERMS
+                    ],
+                },
+            )
+
+            # 4) 源表映射（targetProperty 用真实属性 URI）
+            await client.mapping_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "application": _APPLICATION_NAME,
+                    "mappings": [
+                        {
+                            "sourceField": source,
+                            "targetProperty": prop_uris[prop],
+                            "status": "ACCEPTED",
+                            "sourceType": "provision",
+                            "description": f"hr 源表字段 {source} → 本体属性 {prop}",
+                        }
+                        for source, prop in _APP_MAPPINGS
+                    ],
+                },
+            )
+
+            # 5) 实例生成（业务键幂等）
+            for class_name, (bk_field, row_keys, _) in _INSTANCE_EXTRACTS.items():
+                rows = await _instance_rows(session, class_name, bk_field, row_keys)
+                if not rows:
+                    continue
+                await client.individual_generate(
+                    session,
+                    tenant_id=tenant_id,
+                    body={
+                        "application": _APPLICATION_NAME,
+                        "class": class_uris[class_name],
+                        "businessKeyField": bk_field,
+                        "sourceSystem": _INSTANCE_SOURCE,
+                        "rows": rows,
+                        "mappings": [
+                            {"sourceField": key, "targetProperty": key} for key in row_keys
+                        ],
+                    },
+                )
+
+            # 6) 推理规则（全 CONSTRUCT；类指针真实 URI，实例谓词 om:prop.{name}，
+            #    对象属性值经 IRI() 与业务键字面量回链目标个体）
+            employee_uri = class_uris["Employee"]
+            active_uri = class_uris["ActiveEmployee"]
+            high_uri = class_uris["HighPerformer"]
+            perf_uri = class_uris["PerfReview"]
+            leave_uri = class_uris["LeaveRequest"]
+            open_uri = class_uris["OpenLeave"]
+            await client.rule_ensure(
+                session,
+                tenant_id=tenant_id,
+                body={
+                    "application": _APPLICATION_NAME,
+                    "rules": [
+                        {
+                            "name": "ActiveEmployeeRule",
+                            "language": "SPARQL",
+                            "status": "ACTIVE",
+                            "description": "在编员工识别：在职状态 ∈ (probation, regular) → ActiveEmployee",
+                            "content": _rule_content(
+                                "CONSTRUCT {\n"
+                                f"  ?e rdf:type <{active_uri}>\n"
+                                "}\n"
+                                "WHERE {\n"
+                                f"  ?e rdf:type <{employee_uri}> ;\n"
+                                "     om:prop.employmentStatus ?status .\n"
+                                '  FILTER(?status IN ("probation", "regular"))\n'
+                                "}"
+                            ),
+                        },
+                        {
+                            "name": "HighPerformerRule",
+                            "language": "SPARQL",
+                            "status": "ACTIVE",
+                            "description": "高绩效员工识别：评级 ∈ (S, A) 的评估 → 被评估员工 HighPerformer",
+                            "content": _rule_content(
+                                "CONSTRUCT {\n"
+                                f"  ?e rdf:type <{high_uri}>\n"
+                                "}\n"
+                                "WHERE {\n"
+                                f"  ?rev rdf:type <{perf_uri}> ;\n"
+                                "     om:prop.perfRating ?rating ;\n"
+                                "     om:prop.reviewedEmployee ?ref .\n"
+                                '  FILTER(?rating IN ("S", "A"))\n'
+                                "  BIND(IRI(?ref) AS ?e)\n"
+                                "}"
+                            ),
+                        },
+                        {
+                            "name": "OpenLeaveRule",
+                            "language": "SPARQL",
+                            "status": "ACTIVE",
+                            "description": "未结请假单识别：已批准且结束时间不早于当日 → OpenLeave",
+                            "content": _rule_content(
+                                "CONSTRUCT {\n"
+                                f"  ?l rdf:type <{open_uri}>\n"
+                                "}\n"
+                                "WHERE {\n"
+                                f"  ?l rdf:type <{leave_uri}> ;\n"
+                                "     om:prop.leaveStatus ?status ;\n"
+                                "     om:prop.leaveEndTime ?end .\n"
+                                '  FILTER(?status = "approved")\n'
+                                "  FILTER(?end >= SUBSTR(STR(NOW()), 1, 10))\n"
+                                "}"
+                            ),
+                        },
+                    ],
+                },
+            )
+    except (OntologyUnavailableError, OntologyWorkspaceUnavailableError) as exc:
+        _logger.info(f"ontology 工作区段跳过（图存储不可用或模块缺席）: {exc}")
+        return None
+    except Exception as exc:
+        _logger.warning(f"hr 本体应用工作区段预置失败（不阻塞调用方，下轮快照补偿重试）: {exc}")
+        return None
+
+    _logger.info("hr_system 本体应用预置完成（既有项幂等跳过）")
+    return {"application": _APPLICATION_NAME}
+

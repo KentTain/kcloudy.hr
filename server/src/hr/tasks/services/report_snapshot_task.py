@@ -84,13 +84,20 @@ async def run_report_snapshot_task() -> None:
 
 
 async def _compensate_ontology_provision(session, tenant_id: str) -> None:
-    """快照后幂等补偿 ontology 资产注册（既有租户补注册；失败仅告警）"""
-    from hr.services.ontology_provision_service import provision_hr_assets
+    """快照后幂等补偿 ontology 资产注册 + 本体应用预置（既有租户补注册；失败仅告警）"""
+    from hr.services.ontology_provision_service import (
+        provision_hr_assets,
+        provision_hr_ontology_application,
+    )
 
     try:
         await provision_hr_assets(session)
     except Exception:  # noqa: BLE001 补偿失败不影响快照结果
         _logger.exception(f"ontology 资产注册补偿失败: tenant={tenant_id}")
+    try:
+        await provision_hr_ontology_application(session)
+    except Exception:  # noqa: BLE001 补偿失败不影响快照结果
+        _logger.exception(f"本体应用预置补偿失败: tenant={tenant_id}")
 
 
 async def _compute_domain_payloads(session) -> dict[str, dict]:
