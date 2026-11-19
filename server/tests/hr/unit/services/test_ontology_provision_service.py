@@ -134,7 +134,7 @@ class _FakeClient:
     async def entity_get_by_fqn(self, session, *, tenant_id, spec_key, fqn):
         return self.existing.get((spec_key, fqn))
 
-    async def entity_get_by_fqns(self, session, *, tenant_id, spec_key, fqns):
+    async def entity_get_by_fqns(self, session, *, tenant_id, spec_key, fqns, include_deleted=False):
         return [
             self.existing[(spec_key, fqn)]
             for fqn in fqns
