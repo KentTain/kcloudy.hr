@@ -4,28 +4,29 @@
  * 驳回时审批意见必填；通过时回调后端 handler 应用业务变更（失败整体回滚）。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, Label, Textarea } from "@/components";
 import {
+  Button,
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Label,
+  Textarea,
 } from "@/components";
-import { DescriptionList } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
 import { approveApprovalRequest, rejectApprovalRequest } from "@/hr/api/approval";
+import { listFieldDefinitions } from "@/hr/api/field";
 import {
   APPROVAL_BIZ_TYPE_LABELS,
   type ApprovalRequestItem,
   type ProfileChangeEntry,
 } from "@/hr/types/approval";
 import type { FieldDefinition } from "@/hr/types/employee";
-import { listFieldDefinitions } from "@/hr/api/field";
 
 const open = defineModel<boolean>("open", { required: true });
 

@@ -4,24 +4,25 @@
  * 生效日后当期发薪按新旧区间分段折算；生效日期早于当日被拒绝。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, DateInput, Input, Select } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
-import { adjustSalaryPackage } from "@/hr/api/salary";
 import { listSalaryItemOptions } from "@/hr/api/reference";
-import { SALARY_PACKAGE_REASON_LABELS, type SalaryPackageItemInput } from "@/hr/types/salary";
+import { adjustSalaryPackage } from "@/hr/api/salary";
 import type { SalaryItemOption, SalaryPackageRecord } from "@/hr/types/employee";
+import { SALARY_PACKAGE_REASON_LABELS, type SalaryPackageItemInput } from "@/hr/types/salary";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -49,7 +50,7 @@ const itemSelectOptions = computed(() =>
   itemOptions.value.map((option) => ({
     value: option.id,
     label: `${option.name}（${option.code}）`,
-  })),
+  }))
 );
 
 /** 新旧对比：同 item 的旧金额（无旧行 = 新增项） */
@@ -57,20 +58,24 @@ function oldAmountOf(itemId: string): number | null {
   return props.currentPackages.find((row) => row.item_id === itemId)?.amount ?? null;
 }
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  reason.value = "adjust";
-  const today = new Date();
-  effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  rows.value = props.currentPackages.map((row) => ({ item_id: row.item_id, amount: row.amount }));
-  try {
-    const res = await listSalaryItemOptions();
-    itemOptions.value = res.data ?? [];
-  } catch {
-    itemOptions.value = [];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    reason.value = "adjust";
+    const today = new Date();
+    effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    rows.value = props.currentPackages.map((row) => ({ item_id: row.item_id, amount: row.amount }));
+    try {
+      const res = await listSalaryItemOptions();
+      itemOptions.value = res.data ?? [];
+    } catch {
+      itemOptions.value = [];
+    }
+  },
+  { immediate: true }
+);
 
 function addRow() {
   rows.value = [...rows.value, { item_id: "", amount: 0 }];

@@ -83,7 +83,10 @@ export const POSTING_STATUS_LABELS: Record<string, string> = {
   failed: "发布失败",
 };
 
-export const POSTING_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+export const POSTING_STATUS_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   publishing: "secondary",
   published: "default",
   offline: "outline",
@@ -223,7 +226,12 @@ export interface Application {
   requisition_id: string;
   requisition_title: string | null;
   stage: ApplicationStage;
-  stage_history: { stage: string; operator_id: string | null; operated_at: string; remark: string | null }[];
+  stage_history: {
+    stage: string;
+    operator_id: string | null;
+    operated_at: string;
+    remark: string | null;
+  }[];
   match_score: number | null;
   apply_time: string;
   employee_id: string | null;
@@ -238,7 +246,7 @@ export const CANDIDATE_CHANNEL_LABELS: Record<string, string> = {
 };
 
 export const CANDIDATE_CHANNEL_OPTIONS = Object.entries(CANDIDATE_CHANNEL_LABELS).map(
-  ([value, label]) => ({ value, label }),
+  ([value, label]) => ({ value, label })
 );
 
 export interface Candidate {
@@ -286,7 +294,7 @@ export const INTERVIEW_FORM_LABELS: Record<InterviewForm, string> = {
 };
 
 export const INTERVIEW_FORM_OPTIONS = Object.entries(INTERVIEW_FORM_LABELS).map(
-  ([value, label]) => ({ value, label }),
+  ([value, label]) => ({ value, label })
 );
 
 export interface InterviewCreatePayload {
@@ -334,7 +342,10 @@ export const INTERVIEW_RESULT_LABELS: Record<string, string> = {
   fail: "未通过",
 };
 
-export const INTERVIEW_RESULT_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+export const INTERVIEW_RESULT_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   pending: "secondary",
   pass: "default",
   fail: "destructive",
@@ -376,4 +387,3 @@ export interface MergeSuggestion {
   email: string | null;
   matched_by: "phone" | "email";
 }
-

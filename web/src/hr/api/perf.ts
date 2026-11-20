@@ -13,14 +13,11 @@ import type {
   PerfGoalDraftRow,
   PerfGoalItem,
   PerfGoalQuery,
-  PerfReviewDraftRow,
   PerfReviewItem,
   PerfReviewQuery,
 } from "@/hr/types/perf";
 
-export function listPerfCycles(
-  query: PerfCycleQuery,
-): Promise<ApiResponse<PerfCycleItem[]>> {
+export function listPerfCycles(query: PerfCycleQuery): Promise<ApiResponse<PerfCycleItem[]>> {
   return get<ApiResponse<PerfCycleItem[]>>("/hr/admin/v1/perf-cycles", {
     params: query,
   });
@@ -40,7 +37,7 @@ export function createPerfCycle(data: {
 
 export function updatePerfCycle(
   id: string,
-  data: { name?: string; start_date?: string; end_date?: string },
+  data: { name?: string; start_date?: string; end_date?: string }
 ): Promise<ApiResponse<PerfCycleItem>> {
   return put<ApiResponse<PerfCycleItem>>(`/hr/admin/v1/perf-cycles/${id}`, data);
 }
@@ -51,7 +48,7 @@ export function deletePerfCycle(id: string): Promise<ApiResponse<null>> {
 
 export function transitionPerfCycle(
   id: string,
-  action: "activate" | "scoring" | "calibrating" | "close",
+  action: "activate" | "scoring" | "calibrating" | "close"
 ): Promise<ApiResponse<PerfCycleItem>> {
   return post<ApiResponse<PerfCycleItem>>(`/hr/admin/v1/perf-cycles/${id}/${action}`, {});
 }
@@ -60,9 +57,7 @@ export function getPerfDistribution(id: string): Promise<ApiResponse<PerfDistrib
   return get<ApiResponse<PerfDistribution>>(`/hr/admin/v1/perf-cycles/${id}/distribution`);
 }
 
-export function listPerfGoals(
-  query: PerfGoalQuery,
-): Promise<ApiResponse<PerfGoalItem[]>> {
+export function listPerfGoals(query: PerfGoalQuery): Promise<ApiResponse<PerfGoalItem[]>> {
   return get<ApiResponse<PerfGoalItem[]>>("/hr/admin/v1/perf-goals", {
     params: query,
   });
@@ -78,14 +73,14 @@ export function submitPerfGoals(data: {
 
 export function updatePerfGoal(
   id: string,
-  data: { name?: string; weight?: number; target_value?: string },
+  data: { name?: string; weight?: number; target_value?: string }
 ): Promise<ApiResponse<PerfGoalItem>> {
   return put<ApiResponse<PerfGoalItem>>(`/hr/admin/v1/perf-goals/${id}`, data);
 }
 
 export function updatePerfGoalProgress(
   id: string,
-  data: { progress: number; actual_value?: string },
+  data: { progress: number; actual_value?: string }
 ): Promise<ApiResponse<PerfGoalItem>> {
   return put<ApiResponse<PerfGoalItem>>(`/hr/admin/v1/perf-goals/${id}/progress`, data);
 }
@@ -94,9 +89,7 @@ export function deletePerfGoal(id: string): Promise<ApiResponse<null>> {
   return del<ApiResponse<null>>(`/hr/admin/v1/perf-goals/${id}`);
 }
 
-export function listPerfReviews(
-  query: PerfReviewQuery,
-): Promise<ApiResponse<PerfReviewItem[]>> {
+export function listPerfReviews(query: PerfReviewQuery): Promise<ApiResponse<PerfReviewItem[]>> {
   return get<ApiResponse<PerfReviewItem[]>>("/hr/admin/v1/perf-reviews", {
     params: query,
   });
@@ -111,17 +104,14 @@ export function createPerfReviews(data: {
 
 export function scorePerfReview(
   id: string,
-  data: { score: number; rating: string; self_score?: number },
+  data: { score: number; rating: string; self_score?: number }
 ): Promise<ApiResponse<PerfReviewItem>> {
   return put<ApiResponse<PerfReviewItem>>(`/hr/admin/v1/perf-reviews/${id}/score`, data);
 }
 
 export function calibratePerfReview(
   id: string,
-  data: { rating: string; comment: string },
+  data: { rating: string; comment: string }
 ): Promise<ApiResponse<PerfReviewItem>> {
-  return put<ApiResponse<PerfReviewItem>>(
-    `/hr/admin/v1/perf-reviews/${id}/calibrate`,
-    data,
-  );
+  return put<ApiResponse<PerfReviewItem>>(`/hr/admin/v1/perf-reviews/${id}/calibrate`, data);
 }

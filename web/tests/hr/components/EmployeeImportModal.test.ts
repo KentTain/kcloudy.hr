@@ -90,7 +90,9 @@ describe("EmployeeImportModal", () => {
         expect.objectContaining({ name: "李四", hire_date: "2026-06-01" }),
       ],
     });
-    expect(document.querySelector('[data-testid="import-result-summary"]')?.textContent).toContain("成功 1");
+    expect(document.querySelector('[data-testid="import-result-summary"]')?.textContent).toContain(
+      "成功 1"
+    );
 
     clickButton("import-confirm");
     await flushPromises();

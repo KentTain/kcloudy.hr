@@ -4,15 +4,18 @@
  * 时长系统按类型单位计算（只读回显），事由必填。提交后进入待审批并冻结额度。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, Input, Label, Select, Textarea } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Textarea,
 } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -36,10 +39,15 @@ const endTime = ref("");
 const reason = ref("");
 
 const typeOptions = computed(() =>
-  props.leaveTypes.map((t) => ({ value: t.id, label: `${t.name}（${t.unit === "day" ? "按天" : "按小时"}）` })),
+  props.leaveTypes.map((t) => ({
+    value: t.id,
+    label: `${t.name}（${t.unit === "day" ? "按天" : "按小时"}）`,
+  }))
 );
 
-const selectedType = computed(() => props.leaveTypes.find((t) => t.id === leaveTypeId.value) ?? null);
+const selectedType = computed(
+  () => props.leaveTypes.find((t) => t.id === leaveTypeId.value) ?? null
+);
 
 const duration = computed(() => {
   const t = selectedType.value;

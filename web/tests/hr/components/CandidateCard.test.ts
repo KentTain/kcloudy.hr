@@ -24,7 +24,10 @@ function makeApplication(overrides: Partial<Application> = {}): Application {
   };
 }
 
-function mountCard(application: Application, permissions: Partial<Record<"write" | "interview" | "offer", boolean>> = {}) {
+function mountCard(
+  application: Application,
+  permissions: Partial<Record<"write" | "interview" | "offer", boolean>> = {}
+) {
   return mount(CandidateCard, {
     props: {
       application,
@@ -120,9 +123,14 @@ describe("CandidateCard", () => {
       makeApplication({
         stage: "interviewing" as ApplicationStage,
         stage_history: [
-          { stage: "screening_passed", operator_id: null, operated_at: "2026-10-11T09:00:00", remark: null },
+          {
+            stage: "screening_passed",
+            operator_id: null,
+            operated_at: "2026-10-11T09:00:00",
+            remark: null,
+          },
         ],
-      }),
+      })
     );
     expect(wrapper.text()).toContain("初筛通过");
   });

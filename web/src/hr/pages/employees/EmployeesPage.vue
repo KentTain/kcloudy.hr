@@ -6,35 +6,31 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-
 import {
   Badge,
   Button,
   DataTable,
-  Input,
-  Select,
-  useDataTable,
-} from "@/components";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  useDataTable,
 } from "@/components";
-import { Label } from "@/components";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
 import {
-  deleteEmployee,
-  getEmployeeStats,
-  listEmployees,
-  openAccount,
-} from "@/hr/api/employee";
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
+
+import { deleteEmployee, getEmployeeStats, listEmployees, openAccount } from "@/hr/api/employee";
 import { getOrgTree, getPositionOptions } from "@/hr/api/reference";
 import EmployeeChangeModal from "@/hr/components/employee/EmployeeChangeModal.vue";
 import EmployeeDetailDrawer from "@/hr/components/employee/EmployeeDetailDrawer.vue";
@@ -44,9 +40,9 @@ import EmployeeRowActions from "@/hr/components/employee/EmployeeRowActions.vue"
 import FieldDefinitionManager from "@/hr/components/employee/FieldDefinitionManager.vue";
 import OrgNavTree from "@/hr/components/OrgNavTree.vue";
 import {
+  type AccountOpenResult,
   EMPLOYEE_STATUS_LABELS,
   EMPLOYEE_STATUS_VARIANTS,
-  type AccountOpenResult,
   type Employee,
   type EmployeeDetail,
   type EmployeeStats,
@@ -54,9 +50,9 @@ import {
   type PositionOption,
 } from "@/hr/types/employee";
 
-const EMPLOYEE_STATUS_OPTIONS = (
-  Object.entries(EMPLOYEE_STATUS_LABELS) as [string, string][]
-).map(([value, label]) => ({ value, label }));
+const EMPLOYEE_STATUS_OPTIONS = (Object.entries(EMPLOYEE_STATUS_LABELS) as [string, string][]).map(
+  ([value, label]) => ({ value, label })
+);
 
 const route = useRoute();
 
@@ -128,7 +124,10 @@ async function loadPositionOptions() {
   }
 }
 
-const statusSelectOptions = computed(() => [{ value: "all", label: "全部状态" }, ...EMPLOYEE_STATUS_OPTIONS]);
+const statusSelectOptions = computed(() => [
+  { value: "all", label: "全部状态" },
+  ...EMPLOYEE_STATUS_OPTIONS,
+]);
 const positionSelectOptions = computed(() => [
   { value: "all", label: "全部岗位" },
   ...positionOptions.value.map((p) => ({ value: p.id, label: p.name })),
@@ -152,64 +151,69 @@ function openDetail(row: Employee) {
 /** 当前页数据快照（详情抽屉切换条数据源） */
 const listRows = ref<Employee[]>([]);
 
-const columns = computed<ColumnDef<Employee>[]>(() => [
-  { accessorKey: "employee_no", header: "工号", size: 110 },
-  {
-    accessorKey: "name",
-    header: "姓名",
-    size: 130,
-    cell: ({ row }) =>
-      h(
-        "button",
-        {
-          class: "text-primary hover:text-primary/80 hover:underline",
-          "data-testid": "employee-name-link",
-          type: "button",
-          onClick: () => openDetail(row.original),
-        },
-        // 原生元素不接受函数 children（会被当作插槽忽略导致整列空白，F-017）
-        row.original.name ?? "--",
-      ),
-  },
-  {
-    accessorKey: "org_id",
-    header: "组织",
-    size: 140,
-    cell: ({ row }) => h("span", {}, orgNameOf(row.original.org_id)),
-  },
-  {
-    accessorKey: "position_id",
-    header: "岗位",
-    size: 120,
-    cell: ({ row }) => h("span", {}, positionNameOf(row.original.position_id)),
-  },
-  { accessorKey: "job_level", header: "职级", size: 80 },
-  {
-    accessorKey: "status",
-    header: "状态",
-    size: 90,
-    cell: ({ row }) =>
-      h(Badge, { variant: EMPLOYEE_STATUS_VARIANTS[row.original.status] }, () =>
-        EMPLOYEE_STATUS_LABELS[row.original.status] ?? row.original.status,
-      ),
-  },
-  { accessorKey: "hire_date", header: "入职日期", size: 110 },
-  {
-    id: "actions",
-    header: "操作",
-    size: 100,
-    cell: ({ row }) =>
-      h(EmployeeRowActions, {
-        employee: row.original,
-        canWrite: canWrite.value,
-        canDelete: canDelete.value,
-        onEdit: (employee: Employee) => openFormModal("edit", employee),
-        onOpenAccount: (employee: Employee) => openAccountFor(employee),
-        onOffboard: (employee: Employee) => openChangeModal(employee, "offboard"),
-        onRemove: (employee: Employee) => removeEmployee(employee),
-      } as Record<string, unknown>),
-  },
-] as ColumnDef<Employee>[]);
+const columns = computed<ColumnDef<Employee>[]>(
+  () =>
+    [
+      { accessorKey: "employee_no", header: "工号", size: 110 },
+      {
+        accessorKey: "name",
+        header: "姓名",
+        size: 130,
+        cell: ({ row }) =>
+          h(
+            "button",
+            {
+              class: "text-primary hover:text-primary/80 hover:underline",
+              "data-testid": "employee-name-link",
+              type: "button",
+              onClick: () => openDetail(row.original),
+            },
+            // 原生元素不接受函数 children（会被当作插槽忽略导致整列空白，F-017）
+            row.original.name ?? "--"
+          ),
+      },
+      {
+        accessorKey: "org_id",
+        header: "组织",
+        size: 140,
+        cell: ({ row }) => h("span", {}, orgNameOf(row.original.org_id)),
+      },
+      {
+        accessorKey: "position_id",
+        header: "岗位",
+        size: 120,
+        cell: ({ row }) => h("span", {}, positionNameOf(row.original.position_id)),
+      },
+      { accessorKey: "job_level", header: "职级", size: 80 },
+      {
+        accessorKey: "status",
+        header: "状态",
+        size: 90,
+        cell: ({ row }) =>
+          h(
+            Badge,
+            { variant: EMPLOYEE_STATUS_VARIANTS[row.original.status] },
+            () => EMPLOYEE_STATUS_LABELS[row.original.status] ?? row.original.status
+          ),
+      },
+      { accessorKey: "hire_date", header: "入职日期", size: 110 },
+      {
+        id: "actions",
+        header: "操作",
+        size: 100,
+        cell: ({ row }) =>
+          h(EmployeeRowActions, {
+            employee: row.original,
+            canWrite: canWrite.value,
+            canDelete: canDelete.value,
+            onEdit: (employee: Employee) => openFormModal("edit", employee),
+            onOpenAccount: (employee: Employee) => openAccountFor(employee),
+            onOffboard: (employee: Employee) => openChangeModal(employee, "offboard"),
+            onRemove: (employee: Employee) => removeEmployee(employee),
+          } as Record<string, unknown>),
+      },
+    ] as ColumnDef<Employee>[]
+);
 
 const dataTable = useDataTable<Employee>({
   columns: columns.value,
@@ -312,7 +316,7 @@ async function copyAccountResult() {
   if (!accountResult.value) return;
   try {
     await navigator.clipboard.writeText(
-      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`,
+      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`
     );
     notifySuccess("已复制账号与初始密码");
   } catch {

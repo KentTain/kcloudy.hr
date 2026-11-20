@@ -6,28 +6,27 @@
  */
 import { MoreHorizontalIcon } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-
 import {
   Badge,
-  buildSettingFormSpec,
   Button,
-  DescriptionList,
+  buildSettingFormSpec,
   type DescriptionItem,
-  FileDropzone,
-  type DynamicFormField,
-  type DynamicFormDataType,
-} from "@/components";
-import {
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  type DynamicFormDataType,
+  type DynamicFormField,
+  FileDropzone,
+  Label,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@/components";
-import { Label } from "@/components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { JsonRender } from "@/components/json-render";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,20 +34,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
 import {
-  deleteEmployee,
-  getEmployeeAttributes,
-  getEmployeeDetail,
-  getSensitiveView,
-  listEmployeeChanges,
-  openAccount,
-  saveEmployeeAttributes,
-} from "@/hr/api/employee";
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 import {
   deleteAttachment,
   deleteContract,
@@ -58,41 +52,58 @@ import {
   terminateContract,
   uploadEmployeeAttachment,
 } from "@/hr/api/contract";
+import {
+  deleteEmployee,
+  getEmployeeAttributes,
+  getEmployeeDetail,
+  getSensitiveView,
+  listEmployeeChanges,
+  openAccount,
+  saveEmployeeAttributes,
+} from "@/hr/api/employee";
 import { listFieldGroups } from "@/hr/api/field";
-import { getOrgTree, getPositionOptions, getBandComparison, listEmployeeSalaryPackages } from "@/hr/api/reference";
+import {
+  getBandComparison,
+  getOrgTree,
+  getPositionOptions,
+  listEmployeeSalaryPackages,
+} from "@/hr/api/reference";
 import EmployeeChangeModal from "@/hr/components/employee/EmployeeChangeModal.vue";
 import EmployeeContractModal from "@/hr/components/employee/EmployeeContractModal.vue";
 import EmployeeFormModal from "@/hr/components/employee/EmployeeFormModal.vue";
 import EmployeeSwitchBar from "@/hr/components/employee/EmployeeSwitchBar.vue";
 import FieldDefinitionManager from "@/hr/components/employee/FieldDefinitionManager.vue";
 import {
+  type AccountOpenResult,
   ATTACHMENT_DOC_TYPES,
   ATTRIBUTE_DATA_TYPE_LABELS,
-  CHANGE_TYPE_LABELS,
-  CONTRACT_STATUS_LABELS,
-  EMPLOYEE_STATUS_LABELS,
-  EMPLOYEE_STATUS_VARIANTS,
-  SALARY_REASON_LABELS,
-  contractTypeLabel,
-  isActiveEmployee,
-  type AccountOpenResult,
   type Attachment,
   type AttributeValueItem,
   type BandComparison,
+  CHANGE_TYPE_LABELS,
   type ChangeRecord,
   type ChangeType,
+  CONTRACT_STATUS_LABELS,
   type Contract,
+  contractTypeLabel,
+  EMPLOYEE_STATUS_LABELS,
+  EMPLOYEE_STATUS_VARIANTS,
   type Employee,
   type EmployeeDetail,
   type FieldGroup,
-  type SensitiveView,
+  isActiveEmployee,
+  SALARY_REASON_LABELS,
   type SalaryPackageRecord,
+  type SensitiveView,
 } from "@/hr/types/employee";
 
 /** 后端预置属性组（TenantInitializer seed 同源；custom/自建组进「扩展属性」Tab） */
 const PRESET_GROUP_CODES = ["basic", "education", "contacts", "work", "custom"];
 
-const BAND_POSITION_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const BAND_POSITION_META: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
   below: { label: "低于带宽", variant: "secondary" },
   within: { label: "带宽内", variant: "default" },
   above: { label: "高于带宽", variant: "destructive" },
@@ -170,9 +181,11 @@ const tabs = computed(() => [
   { value: "custom", label: "扩展属性" },
 ]);
 
-const orgLabel = computed(() => (detail.value?.org_id ? orgNameMap.value[detail.value.org_id] ?? "--" : "--"));
+const orgLabel = computed(() =>
+  detail.value?.org_id ? (orgNameMap.value[detail.value.org_id] ?? "--") : "--"
+);
 const positionLabel = computed(() =>
-  detail.value?.position_id ? positionNameMap.value[detail.value.position_id] ?? "--" : "--",
+  detail.value?.position_id ? (positionNameMap.value[detail.value.position_id] ?? "--") : "--"
 );
 
 function groupCodeOf(groupId: string): string {
@@ -186,7 +199,7 @@ watch(
   ([openVal]) => {
     if (openVal && props.employeeId) void initLoad();
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 watch(activeTab, (tab) => {
@@ -389,7 +402,10 @@ function displayValue(item: AttributeValueItem): string {
 
 function jsonRecords(item: AttributeValueItem): Record<string, unknown>[] | null {
   if (item.data_type !== "json" || item.value == null || !Array.isArray(item.value)) return null;
-  return item.value.filter((entry) => entry && typeof entry === "object") as Record<string, unknown>[];
+  return item.value.filter((entry) => entry && typeof entry === "object") as Record<
+    string,
+    unknown
+  >[];
 }
 
 function jsonScalar(item: AttributeValueItem): string | null {
@@ -444,7 +460,7 @@ async function copyAccountResult() {
   if (!accountResult.value) return;
   try {
     await navigator.clipboard.writeText(
-      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`,
+      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`
     );
     notifySuccess("已复制账号与初始密码");
   } catch {

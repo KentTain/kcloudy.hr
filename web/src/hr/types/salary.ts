@@ -155,7 +155,10 @@ export const PAYROLL_STATUS_LABELS: Record<PayrollRunStatus, string> = {
   cancelled: "已取消",
 };
 
-export const PAYROLL_STATUS_VARIANTS: Record<PayrollRunStatus, "default" | "secondary" | "outline" | "destructive"> = {
+export const PAYROLL_STATUS_VARIANTS: Record<
+  PayrollRunStatus,
+  "default" | "secondary" | "outline" | "destructive"
+> = {
   draft: "secondary",
   confirmed: "default",
   paid: "outline",
@@ -195,4 +198,3 @@ export interface PayrollEntryUpdatePayload {
   amount: number;
   note?: string;
 }
-

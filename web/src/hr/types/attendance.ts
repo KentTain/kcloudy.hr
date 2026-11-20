@@ -29,7 +29,10 @@ export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
   trip: "出差",
 };
 
-export const ATTENDANCE_STATUS_VARIANTS: Record<AttendanceStatus, "success" | "warning" | "destructive" | "secondary"> = {
+export const ATTENDANCE_STATUS_VARIANTS: Record<
+  AttendanceStatus,
+  "success" | "warning" | "destructive" | "secondary"
+> = {
   normal: "success",
   late: "warning",
   early_leave: "warning",
@@ -166,7 +169,7 @@ function formatYmd(date: Date): string {
 /** 时间档位映射为起止日期（date_to=当日，date_from=当日回溯 days-1 天） */
 export function timeRangeToDates(
   value: TimeRangeValue,
-  today = new Date(),
+  today = new Date()
 ): { date_from: string; date_to: string } {
   const days = TIME_RANGE_OPTIONS.find((option) => option.value === value)?.days ?? 30;
   const from = new Date(today);

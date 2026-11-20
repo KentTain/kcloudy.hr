@@ -3,22 +3,22 @@
  * 办理入职弹窗：已接受 Offer 的入职转化建档（入职日期缺省今日，岗位可选覆盖需求配置）。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Select } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
-import { getPositionOptions } from "@/hr/api/reference";
 import { getApplicationOffer, onboardOffer } from "@/hr/api/offer";
+import { getPositionOptions } from "@/hr/api/reference";
 import type { Application } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -38,23 +38,27 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  hireDate.value = today();
-  positionId.value = "";
-  if (!positionOptions.value.length) {
-    try {
-      const res = await getPositionOptions();
-      positionOptions.value = (res.data ?? []).map((item) => ({
-        label: item.name,
-        value: item.id,
-      }));
-    } catch {
-      positionOptions.value = [];
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    hireDate.value = today();
+    positionId.value = "";
+    if (!positionOptions.value.length) {
+      try {
+        const res = await getPositionOptions();
+        positionOptions.value = (res.data ?? []).map((item) => ({
+          label: item.name,
+          value: item.id,
+        }));
+      } catch {
+        positionOptions.value = [];
+      }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   const application = props.application;
@@ -71,9 +75,7 @@ async function handleSubmit() {
       hire_date: hireDate.value || undefined,
       position_id: positionId.value || undefined,
     });
-    notifySuccess(
-      `入职建档完成，工号 ${result.data?.employee_no ?? "--"}；申请流转至已入职`,
-    );
+    notifySuccess(`入职建档完成，工号 ${result.data?.employee_no ?? "--"}；申请流转至已入职`);
     open.value = false;
     emit("saved");
   } catch (error) {

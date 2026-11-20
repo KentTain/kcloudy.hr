@@ -4,9 +4,8 @@
  * （同员工同日覆盖更新）→ 批次反馈。预检失败行不落库，修正后重传。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -40,7 +39,7 @@ watch(
   () => props.open,
   (open) => {
     if (open) resetState();
-  },
+  }
 );
 
 function resetState() {
@@ -110,7 +109,9 @@ async function confirmImport() {
     const res = await importAttendance(selectedFile.value, false);
     commitResult.value = res.data ?? null;
     step.value = "result";
-    notifySuccess(`导入完成：新增 ${commitResult.value?.new_count ?? 0} 条，覆盖 ${commitResult.value?.overwrite_count ?? 0} 条`);
+    notifySuccess(
+      `导入完成：新增 ${commitResult.value?.new_count ?? 0} 条，覆盖 ${commitResult.value?.overwrite_count ?? 0} 条`
+    );
     emit("saved");
   } catch (error) {
     notifyError(error, getErrorMessage(error, "导入失败"));

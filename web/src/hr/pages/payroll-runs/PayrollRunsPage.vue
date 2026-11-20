@@ -5,23 +5,26 @@
  * 导出按状态与权限出项。明细页不占路由叶（菜单 16 叶契约约束）。
  */
 import { computed, onMounted, ref } from "vue";
-
-import { Badge, Button, Input, Select } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Select,
 } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
-import { downloadBase64File } from "@/hr/utils/download";
-
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 import {
   cancelPayrollRun,
   confirmPayrollRun,
@@ -40,6 +43,7 @@ import {
   type PayrollRun,
   type PayrollRunStatus,
 } from "@/hr/types/salary";
+import { downloadBase64File } from "@/hr/utils/download";
 
 const userStore = useUserStore();
 const canWrite = computed(() => userStore.hasPermission("hr:payroll:write"));
@@ -57,10 +61,12 @@ const statusFilter = ref("all");
 
 const statusSelectOptions = computed(() => [
   { value: "all", label: "全部状态" },
-  ...(Object.entries(PAYROLL_STATUS_LABELS) as [PayrollRunStatus, string][]).map(([value, label]) => ({
-    value,
-    label,
-  })),
+  ...(Object.entries(PAYROLL_STATUS_LABELS) as [PayrollRunStatus, string][]).map(
+    ([value, label]) => ({
+      value,
+      label,
+    })
+  ),
 ]);
 
 async function loadRuns() {
@@ -134,7 +140,8 @@ interface ItemColumn {
 const itemColumns = computed<ItemColumn[]>(() => {
   const seen = new Map<string, ItemColumn>();
   for (const entry of entries.value) {
-    if (!seen.has(entry.item_id)) seen.set(entry.item_id, { item_id: entry.item_id, item_code: entry.item_code });
+    if (!seen.has(entry.item_id))
+      seen.set(entry.item_id, { item_id: entry.item_id, item_code: entry.item_code });
   }
   return [...seen.values()];
 });
@@ -195,7 +202,8 @@ function backToList() {
 
 async function handleConfirm() {
   if (!detailRun.value) return;
-  if (!(await confirmAction(`确定确认 ${detailRun.value.period} 批次？确认后明细锁定不可修正。`))) return;
+  if (!(await confirmAction(`确定确认 ${detailRun.value.period} 批次？确认后明细锁定不可修正。`)))
+    return;
   try {
     const res = await confirmPayrollRun(detailRun.value.id);
     detailRun.value = res.data ?? detailRun.value;
@@ -209,7 +217,7 @@ async function handlePay() {
   if (!detailRun.value) return;
   if (
     !(await confirmAction(
-      `确定标记 ${detailRun.value.period} 批次已发放？发放后生成个人薪酬单（员工自助可查）。`,
+      `确定标记 ${detailRun.value.period} 批次已发放？发放后生成个人薪酬单（员工自助可查）。`
     ))
   ) {
     return;

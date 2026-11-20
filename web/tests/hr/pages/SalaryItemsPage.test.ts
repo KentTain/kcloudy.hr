@@ -9,7 +9,11 @@ import SalaryItemsPage from "@/hr/pages/salary-items/SalaryItemsPage.vue";
 import type { SalaryItem } from "@/hr/types/salary";
 
 const permState = vi.hoisted(() => ({
-  granted: new Set<string>(["hr:salary_item:read", "hr:salary_item:write", "hr:salary_item:delete"]),
+  granted: new Set<string>([
+    "hr:salary_item:read",
+    "hr:salary_item:write",
+    "hr:salary_item:delete",
+  ]),
 }));
 
 const apiMocks = vi.hoisted(() => ({
@@ -92,10 +96,26 @@ function setInputValue(selector: string, value: string) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  permState.granted = new Set(["hr:salary_item:read", "hr:salary_item:write", "hr:salary_item:delete"]);
-  apiMocks.listSalaryItems.mockResolvedValue({ code: 200, data: ITEMS, total: 2, page: 1, page_size: 20 });
-  apiMocks.getSalaryCategories.mockResolvedValue({ code: 200, data: { categories: ["base", "bonus", "subsidy"] } });
-  apiMocks.updateSalaryItem.mockResolvedValue({ code: 200, data: { ...ITEMS[0], name: "月度基本工资（改）" } });
+  permState.granted = new Set([
+    "hr:salary_item:read",
+    "hr:salary_item:write",
+    "hr:salary_item:delete",
+  ]);
+  apiMocks.listSalaryItems.mockResolvedValue({
+    code: 200,
+    data: ITEMS,
+    total: 2,
+    page: 1,
+    page_size: 20,
+  });
+  apiMocks.getSalaryCategories.mockResolvedValue({
+    code: 200,
+    data: { categories: ["base", "bonus", "subsidy"] },
+  });
+  apiMocks.updateSalaryItem.mockResolvedValue({
+    code: 200,
+    data: { ...ITEMS[0], name: "月度基本工资（改）" },
+  });
   apiMocks.createSalaryItem.mockResolvedValue({ code: 200, data: ITEMS[0] });
   apiMocks.deleteSalaryItem.mockResolvedValue({ code: 200, data: null });
 });
@@ -171,7 +191,10 @@ describe("SalaryItemsPage", () => {
 
     expect(apiMocks.deleteSalaryItem).toHaveBeenCalledWith("it-1");
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(expect.anything(), expect.stringContaining("仅可停用"));
+    expect(notifyError).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining("仅可停用")
+    );
   });
 
   it("新增与维护按钮随写权限显隐", async () => {

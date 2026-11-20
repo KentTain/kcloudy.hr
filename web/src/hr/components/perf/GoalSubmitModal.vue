@@ -6,7 +6,19 @@
  */
 import { computed, ref, watch } from "vue";
 
-import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@/components";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -35,11 +47,11 @@ const goals = ref<DraftGoal[]>([]);
 const submitting = ref(false);
 
 const selectedCycle = computed(
-  () => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null,
+  () => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null
 );
 
 const totalWeight = computed(() =>
-  goals.value.reduce((sum, goal) => sum + (Number(goal.weight) || 0), 0),
+  goals.value.reduce((sum, goal) => sum + (Number(goal.weight) || 0), 0)
 );
 const weightGap = computed(() => {
   const gap = Math.round((100 - totalWeight.value) * 100) / 100;

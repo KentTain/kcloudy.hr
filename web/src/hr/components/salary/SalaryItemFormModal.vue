@@ -4,17 +4,19 @@
  * 编码创建后不可修改（发薪明细按 code 关联历史数据），编辑态置灰。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Select, Switch } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -68,7 +70,7 @@ watch(
       sort.value = 0;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 function buildExtData(): SalaryItemExtData {

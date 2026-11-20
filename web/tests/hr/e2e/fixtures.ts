@@ -6,12 +6,7 @@
  * API 登录 → addInitScript 注入 localStorage（token/tenant_id/refresh_token/
  * token_expires_at，键名对齐 iam auth store）。
  */
-import { type APIRequestContext, type Page } from "@playwright/test";
-
-const TOKEN_KEY = "token";
-const TENANT_ID_KEY = "tenant_id";
-const REFRESH_TOKEN_KEY = "refresh_token";
-const TOKEN_EXPIRES_AT_KEY = "token_expires_at";
+import type { APIRequestContext, Page } from "@playwright/test";
 
 export async function userLoginViaAPI(
   page: Page,
@@ -42,12 +37,7 @@ export async function userLoginViaAPI(
   const expires_at = Date.now() + expires_in * 1000;
   await page.addInitScript(
     // 键名以字面量内联（addInitScript 仅序列化函数体，模块级常量在浏览器内不可达）
-    ({
-      access_token,
-      refresh_token,
-      tenant_id,
-      expires_at,
-    }) => {
+    ({ access_token, refresh_token, tenant_id, expires_at }) => {
       localStorage.setItem("token", access_token);
       if (refresh_token) {
         localStorage.setItem("refresh_token", refresh_token);

@@ -3,9 +3,9 @@
  * HR 组织导航树（数据源 iam 组织接口，与 iam 组织管理页同源；
  * hr 侧仅用于筛选，组织维护在 iam）。扁平化递归渲染，支持折叠与选中高亮。
  */
-import { computed, ref, watch } from "vue";
 
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
 
 import type { OrgTreeNode } from "@/hr/types/employee";
 
@@ -38,7 +38,7 @@ watch(
     walk(tree);
     expanded.value = new Set(ids);
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 const flatNodes = computed<FlatNode[]>(() => {

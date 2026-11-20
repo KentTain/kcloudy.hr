@@ -4,20 +4,27 @@
  * 左组右表布局：组列表可增删改；选中组内定义表支持新增/编辑/删除。
  */
 import { computed, ref, watch } from "vue";
-
-import { Badge } from "@/components";
-import { Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
+  Textarea,
 } from "@/components";
-import { Input, Select, Switch, Textarea } from "@/components";
-import { Label } from "@/components";
 
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import {
   createFieldDefinition,
@@ -37,7 +44,10 @@ import {
 
 const open = defineModel<boolean>("open", { required: true });
 
-const DATA_TYPE_OPTIONS = Object.entries(ATTRIBUTE_DATA_TYPE_LABELS).map(([value, label]) => ({ value, label }));
+const DATA_TYPE_OPTIONS = Object.entries(ATTRIBUTE_DATA_TYPE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const groups = ref<FieldGroup[]>([]);
 const definitions = ref<FieldDefinition[]>([]);
@@ -62,11 +72,17 @@ const defSort = ref<number>(0);
 const defExtData = ref("");
 const extDataError = ref("");
 
-const activeGroup = computed(() => groups.value.find((group) => group.id === activeGroupId.value) ?? null);
+const activeGroup = computed(
+  () => groups.value.find((group) => group.id === activeGroupId.value) ?? null
+);
 
-watch(open, async (value) => {
-  if (value) await loadAll();
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (value) await loadAll();
+  },
+  { immediate: true }
+);
 
 async function loadAll() {
   loading.value = true;
@@ -122,7 +138,11 @@ async function submitGroup() {
       });
       notifySuccess("属性组已更新");
     } else {
-      await createFieldGroup({ code: groupCode.value, name: groupName.value, sort: groupSort.value });
+      await createFieldGroup({
+        code: groupCode.value,
+        name: groupName.value,
+        sort: groupSort.value,
+      });
       notifySuccess("属性组已创建");
     }
     groupEditorOpen.value = false;

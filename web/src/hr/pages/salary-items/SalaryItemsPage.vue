@@ -6,20 +6,22 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 
-import {
-  Badge,
-  Button,
-  DataTable,
-  Input,
-  Select,
-  useDataTable,
-} from "@/components";
+import { Badge, Button, DataTable, Input, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
-import { deleteSalaryItem, getSalaryCategories, listSalaryItems, updateSalaryItem } from "@/hr/api/salary";
+import {
+  deleteSalaryItem,
+  getSalaryCategories,
+  listSalaryItems,
+  updateSalaryItem,
+} from "@/hr/api/salary";
 import CategoryManageModal from "@/hr/components/salary/CategoryManageModal.vue";
 import SalaryItemFormModal from "@/hr/components/salary/SalaryItemFormModal.vue";
 import { SALARY_ITEM_RULE_LABELS, type SalaryItem } from "@/hr/types/salary";
@@ -61,76 +63,80 @@ function handleResetFilters() {
 /* ── 列表 ── */
 
 function ruleTextOf(item: SalaryItem): string {
-  const rules = SALARY_ITEM_RULE_LABELS.filter(({ key }) => item.ext_data?.[key]).map(({ label }) => label);
+  const rules = SALARY_ITEM_RULE_LABELS.filter(({ key }) => item.ext_data?.[key]).map(
+    ({ label }) => label
+  );
   return rules.length ? rules.join(" · ") : "--";
 }
 
-const columns = computed<ColumnDef<SalaryItem>[]>(() => [
-  { accessorKey: "code", header: "编码", size: 140 },
-  { accessorKey: "name", header: "名称", size: 160 },
-  {
-    accessorKey: "category",
-    header: "类别",
-    size: 100,
-    cell: ({ row }) =>
-      h(Badge, { variant: "secondary" }, () => row.original.category),
-  },
-  {
-    id: "rules",
-    header: "规则标识",
-    size: 190,
-    cell: ({ row }) => h("span", { class: "text-muted-foreground" }, ruleTextOf(row.original)),
-  },
-  {
-    accessorKey: "can_edit",
-    header: "状态",
-    size: 90,
-    cell: ({ row }) =>
-      row.original.can_edit
-        ? h(Badge, { variant: "default" }, () => "启用")
-        : h(Badge, { variant: "outline" }, () => "已停用"),
-  },
-  { accessorKey: "sort", header: "排序", size: 70 },
-  {
-    id: "actions",
-    header: "操作",
-    size: 160,
-    cell: ({ row }) => {
-      const item = row.original;
-      const buttons = [];
-      if (canWrite.value) {
-        buttons.push(
-          h(
-            Button,
-            { variant: "ghost", size: "sm", onClick: () => openFormModal(item) },
-            () => "编辑",
-          ),
-        );
-        buttons.push(
-          h(
-            Button,
-            {
-              variant: "ghost",
-              size: "sm",
-              onClick: () => toggleEnabled(item),
-            },
-            () => (item.can_edit ? "停用" : "启用"),
-          ),
-        );
-      }
-      if (canDelete.value && item.can_edit) {
-        buttons.push(
-          h(
-            Button,
-            { variant: "ghost", size: "sm", onClick: () => removeItem(item) },
-            () => "删除",
-          ),
-        );
-      }
-      return h("div", { class: "flex items-center gap-1" }, buttons);
-    },
-  },
-] as ColumnDef<SalaryItem>[]);
+const columns = computed<ColumnDef<SalaryItem>[]>(
+  () =>
+    [
+      { accessorKey: "code", header: "编码", size: 140 },
+      { accessorKey: "name", header: "名称", size: 160 },
+      {
+        accessorKey: "category",
+        header: "类别",
+        size: 100,
+        cell: ({ row }) => h(Badge, { variant: "secondary" }, () => row.original.category),
+      },
+      {
+        id: "rules",
+        header: "规则标识",
+        size: 190,
+        cell: ({ row }) => h("span", { class: "text-muted-foreground" }, ruleTextOf(row.original)),
+      },
+      {
+        accessorKey: "can_edit",
+        header: "状态",
+        size: 90,
+        cell: ({ row }) =>
+          row.original.can_edit
+            ? h(Badge, { variant: "default" }, () => "启用")
+            : h(Badge, { variant: "outline" }, () => "已停用"),
+      },
+      { accessorKey: "sort", header: "排序", size: 70 },
+      {
+        id: "actions",
+        header: "操作",
+        size: 160,
+        cell: ({ row }) => {
+          const item = row.original;
+          const buttons = [];
+          if (canWrite.value) {
+            buttons.push(
+              h(
+                Button,
+                { variant: "ghost", size: "sm", onClick: () => openFormModal(item) },
+                () => "编辑"
+              )
+            );
+            buttons.push(
+              h(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "sm",
+                  onClick: () => toggleEnabled(item),
+                },
+                () => (item.can_edit ? "停用" : "启用")
+              )
+            );
+          }
+          if (canDelete.value && item.can_edit) {
+            buttons.push(
+              h(
+                Button,
+                { variant: "ghost", size: "sm", onClick: () => removeItem(item) },
+                () => "删除"
+              )
+            );
+          }
+          return h("div", { class: "flex items-center gap-1" }, buttons);
+        },
+      },
+    ] as ColumnDef<SalaryItem>[]
+);
 
 const dataTable = useDataTable<SalaryItem>({
   columns: columns.value,
@@ -179,13 +185,13 @@ async function toggleEnabled(item: SalaryItem) {
     !(await confirmAction(
       item.can_edit
         ? `确定停用薪酬项「${item.name}」？停用后不出现在新建定薪与试算默认带出中。`
-        : `确定启用薪酬项「${item.name}」？`,
+        : `确定启用薪酬项「${item.name}」？`
     ))
   ) {
     return;
   }
   try {
-    await updateSalaryItem(item.id, { can_edit: item.can_edit ? false : true });
+    await updateSalaryItem(item.id, { can_edit: !item.can_edit });
     notifySuccess(`薪酬项已${verb}`);
     dataTable.refresh();
   } catch (error) {

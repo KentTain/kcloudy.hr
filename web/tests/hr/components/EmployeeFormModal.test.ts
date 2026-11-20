@@ -37,7 +37,9 @@ vi.mock("@/framework/utils/feedback", () => ({
 }));
 
 function setInputValue(testid: string, value: string) {
-  const el = document.querySelector(`[data-testid="${testid}"] input`) ?? document.querySelector(`[data-testid="${testid}"]`);
+  const el =
+    document.querySelector(`[data-testid="${testid}"] input`) ??
+    document.querySelector(`[data-testid="${testid}"]`);
   expect(el, `missing ${testid}`).toBeTruthy();
   const input = el as HTMLInputElement;
   input.value = value;

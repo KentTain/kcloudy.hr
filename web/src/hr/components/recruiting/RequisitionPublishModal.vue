@@ -3,10 +3,9 @@
  * 渠道发布弹窗：勾选渠道发布需求；内部渠道恒可选，外部按渠道管理凭证状态出项。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button } from "@/components";
-import { Checkbox } from "@/components";
 import {
+  Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,10 +19,10 @@ import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/f
 import { listChannels, publishRequisition } from "@/hr/api/recruiting";
 import {
   CHANNEL_LABELS,
-  INTERNAL_CHANNEL,
   type ChannelCard,
-  type Requisition,
+  INTERNAL_CHANNEL,
   type RecruitingChannel,
+  type Requisition,
 } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -38,7 +37,9 @@ const submitting = ref(false);
 const selectedChannels = ref<RecruitingChannel[]>([]);
 const channelCards = ref<ChannelCard[]>([]);
 
-const alreadyPosted = computed(() => new Set((props.requisition?.postings ?? []).map((p) => p.channel)));
+const alreadyPosted = computed(
+  () => new Set((props.requisition?.postings ?? []).map((p) => p.channel))
+);
 
 const channelOptions = computed(() => {
   const cards = new Map(channelCards.value.map((card) => [card.channel, card]));
@@ -53,17 +54,21 @@ const channelOptions = computed(() => {
   });
 });
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  selectedChannels.value = [INTERNAL_CHANNEL];
-  try {
-    const res = await listChannels();
-    channelCards.value = res.data ?? [];
-  } catch {
-    channelCards.value = [];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    selectedChannels.value = [INTERNAL_CHANNEL];
+    try {
+      const res = await listChannels();
+      channelCards.value = res.data ?? [];
+    } catch {
+      channelCards.value = [];
+    }
+  },
+  { immediate: true }
+);
 
 function toggleChannel(channel: RecruitingChannel, checked: boolean) {
   if (checked) {
@@ -85,7 +90,7 @@ async function handlePublish() {
     notifySuccess(
       selectedChannels.value.some((channel) => channel !== INTERNAL_CHANNEL)
         ? "已提交发布，外部渠道发布中"
-        : "已发布到站内",
+        : "已发布到站内"
     );
     open.value = false;
     emit("published");

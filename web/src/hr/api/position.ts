@@ -2,7 +2,7 @@
  * 岗位域 api（admin 层 /hr/admin/v1：岗位 CRUD + 在岗人数实时统计）
  */
 
-import { get, post, put, del } from "@/framework/api/client";
+import { del, get, post, put } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
 
@@ -31,7 +31,7 @@ export function createPosition(payload: PositionCreatePayload): Promise<ApiRespo
 /** 更新岗位（停用后不可被员工建档与招聘需求选中） */
 export function updatePosition(
   positionId: string,
-  payload: PositionUpdatePayload,
+  payload: PositionUpdatePayload
 ): Promise<ApiResponse<Position>> {
   return put<ApiResponse<Position>>(`/hr/admin/v1/positions/${positionId}`, payload);
 }

@@ -28,10 +28,10 @@ export function getPositionOptions(orgId?: string): Promise<ApiResponse<Position
 
 /** 员工定薪历史（区间行，item 级） */
 export function listEmployeeSalaryPackages(
-  employeeId: string,
+  employeeId: string
 ): Promise<ApiResponse<SalaryPackageRecord[]>> {
   return get<ApiResponse<SalaryPackageRecord[]>>(
-    `/hr/admin/v1/employees/${employeeId}/salary-packages`,
+    `/hr/admin/v1/employees/${employeeId}/salary-packages`
   );
 }
 

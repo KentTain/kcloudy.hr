@@ -4,15 +4,18 @@
  * 额度规则 manual（仅手工调整）时默认额度不可填。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Label, Select, Switch } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
 } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -46,9 +49,10 @@ const unitOptions = (Object.keys(LEAVE_UNIT_LABELS) as LeaveUnit[]).map((value) 
   value,
   label: LEAVE_UNIT_LABELS[value],
 }));
-const quotaRuleOptions = (
-  ["annual_fixed", "manual"] as const
-).map((value) => ({ value, label: LEAVE_QUOTA_RULE_LABELS[value] }));
+const quotaRuleOptions = (["annual_fixed", "manual"] as const).map((value) => ({
+  value,
+  label: LEAVE_QUOTA_RULE_LABELS[value],
+}));
 
 watch(
   open,
@@ -72,7 +76,7 @@ watch(
       status.value = true;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 async function handleSubmit() {

@@ -91,7 +91,13 @@ function mountPage() {
 beforeEach(() => {
   vi.resetAllMocks();
   permState.granted = new Set(["hr:position:read", "hr:position:write", "hr:position:delete"]);
-  apiMocks.listPositions.mockResolvedValue({ code: 200, data: POSITIONS, total: 2, page: 1, page_size: 20 });
+  apiMocks.listPositions.mockResolvedValue({
+    code: 200,
+    data: POSITIONS,
+    total: 2,
+    page: 1,
+    page_size: 20,
+  });
   apiMocks.getOrgTree.mockResolvedValue({ code: 200, data: ORG_TREE });
 });
 

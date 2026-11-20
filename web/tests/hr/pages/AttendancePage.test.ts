@@ -150,7 +150,9 @@ describe("AttendancePage", () => {
     expect(body).toContain("张三");
     expect(body).toContain("迟到");
     expect(body).toContain("缺勤");
-    expect(document.querySelector('[data-testid="stat-card-rate"]')?.textContent).toContain("50.00%");
+    expect(document.querySelector('[data-testid="stat-card-rate"]')?.textContent).toContain(
+      "50.00%"
+    );
   });
 
   it("搜索按钮联动总览与列表刷新（参数带部门/关键词）", async () => {
@@ -160,7 +162,8 @@ describe("AttendancePage", () => {
 
     // Input testid 落根 div，v-model 监听在内层原生 input 上
     const keywordHost = document.querySelector('[data-testid="attendance-keyword-input"]');
-    const keywordInput = (keywordHost?.querySelector("input") ?? keywordHost) as HTMLInputElement | null;
+    const keywordInput = (keywordHost?.querySelector("input") ??
+      keywordHost) as HTMLInputElement | null;
     if (keywordInput) {
       keywordInput.value = "张三";
       keywordInput.dispatchEvent(new Event("input"));
@@ -172,10 +175,14 @@ describe("AttendancePage", () => {
 
     expect(apiMocks.getAttendanceStats).toHaveBeenCalledTimes(2);
     expect(apiMocks.getAttendanceStats).toHaveBeenLastCalledWith(
-      expect.objectContaining({ keyword: "张三" }),
+      expect.objectContaining({ keyword: "张三" })
     );
     expect(apiMocks.listAttendanceRecords).toHaveBeenLastCalledWith(
-      expect.objectContaining({ keyword: "张三", date_from: expect.any(String), date_to: expect.any(String) }),
+      expect.objectContaining({
+        keyword: "张三",
+        date_from: expect.any(String),
+        date_to: expect.any(String),
+      })
     );
     wrapper.unmount();
   });
@@ -206,10 +213,10 @@ describe("AttendancePage", () => {
     await flushPromises();
 
     expect(apiMocks.getAttendanceStats).toHaveBeenLastCalledWith(
-      expect.objectContaining({ keyword: undefined, org_id: undefined }),
+      expect.objectContaining({ keyword: undefined, org_id: undefined })
     );
     expect(apiMocks.listAttendanceRecords).toHaveBeenLastCalledWith(
-      expect.objectContaining({ keyword: undefined, org_id: undefined }),
+      expect.objectContaining({ keyword: undefined, org_id: undefined })
     );
     wrapper.unmount();
   });

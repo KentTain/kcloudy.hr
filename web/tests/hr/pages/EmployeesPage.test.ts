@@ -139,7 +139,9 @@ const ORG_TREE: OrgTreeNode[] = [
   { id: "org-1", name: "总公司", children: [{ id: "org-2", name: "研发部", children: [] }] },
 ];
 
-const POSITIONS: PositionOption[] = [{ id: "pos-1", name: "后端工程师", code: "BE", job_level: "P5", status: "active" }];
+const POSITIONS: PositionOption[] = [
+  { id: "pos-1", name: "后端工程师", code: "BE", job_level: "P5", status: "active" },
+];
 
 function mountPage() {
   const router = createRouter({
@@ -162,7 +164,13 @@ beforeEach(() => {
     "hr:salary_package:read",
   ]);
   apiMocks.getEmployeeDetail.mockResolvedValue({ code: 200, data: EMPLOYEES[0] });
-  apiMocks.listEmployees.mockResolvedValue({ code: 200, data: EMPLOYEES, total: 1, page: 1, page_size: 20 });
+  apiMocks.listEmployees.mockResolvedValue({
+    code: 200,
+    data: EMPLOYEES,
+    total: 1,
+    page: 1,
+    page_size: 20,
+  });
   apiMocks.getEmployeeStats.mockResolvedValue({ code: 200, data: STATS });
   apiMocks.getOrgTree.mockResolvedValue({ code: 200, data: ORG_TREE });
   apiMocks.getPositionOptions.mockResolvedValue({ code: 200, data: POSITIONS });

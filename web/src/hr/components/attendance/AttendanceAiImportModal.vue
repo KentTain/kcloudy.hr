@@ -5,9 +5,9 @@
  * 解析失败可重新解析（原文档留存）。
  */
 import { computed, onUnmounted, ref, watch } from "vue";
-
-import { Badge, Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,12 +26,12 @@ import {
   listAiImportBatches,
   retryAiImportBatch,
 } from "@/hr/api/attendance";
-import { downloadBase64File } from "@/hr/utils/download";
 import {
   ATTENDANCE_BATCH_STATUS_LABELS,
   type AttendanceBatch,
   type AttendanceBatchStatus,
 } from "@/hr/types/attendance";
+import { downloadBase64File } from "@/hr/utils/download";
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ "update:open": [value: boolean]; saved: [] }>();
@@ -60,7 +60,7 @@ watch(
     } else {
       stopPolling();
     }
-  },
+  }
 );
 
 onUnmounted(() => stopPolling());
@@ -148,7 +148,7 @@ async function pollBatch(batchId: string) {
 
 function enterPreview(data: AttendanceBatch) {
   selectedRows.value = new Set(
-    (data.row_results ?? []).filter((row) => row.parseable).map((row) => row.row_index),
+    (data.row_results ?? []).filter((row) => row.parseable).map((row) => row.row_index)
   );
   step.value = "preview";
 }
@@ -198,11 +198,14 @@ async function confirmImport() {
   if (!batch.value?.id || !canConfirm.value) return;
   submitting.value = true;
   try {
-    const res = await confirmAiImportBatch(batch.value.id, [...selectedRows.value].sort((a, b) => a - b));
+    const res = await confirmAiImportBatch(
+      batch.value.id,
+      [...selectedRows.value].sort((a, b) => a - b)
+    );
     batch.value = res.data ?? batch.value;
     step.value = "result";
     notifySuccess(
-      `导入完成：新增 ${batch.value?.new_count ?? 0} 条，覆盖 ${batch.value?.overwrite_count ?? 0} 条，丢弃 ${(batch.value?.row_results ?? []).length - selectedRows.value.size} 行`,
+      `导入完成：新增 ${batch.value?.new_count ?? 0} 条，覆盖 ${batch.value?.overwrite_count ?? 0} 条，丢弃 ${(batch.value?.row_results ?? []).length - selectedRows.value.size} 行`
     );
     emit("saved");
   } catch (error) {

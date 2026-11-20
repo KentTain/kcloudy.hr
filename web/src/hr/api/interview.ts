@@ -11,11 +11,11 @@ import type { Interview, InterviewCreatePayload, WeeklyInterviews } from "@/hr/t
 /** 安排面试（轮次自动 +1；不自动流转申请阶段，需另调 stage 流转） */
 export function createInterview(
   applicationId: string,
-  payload: InterviewCreatePayload,
+  payload: InterviewCreatePayload
 ): Promise<ApiResponse<Interview>> {
   return post<ApiResponse<Interview>>(
     `/hr/admin/v1/applications/${applicationId}/interviews`,
-    payload,
+    payload
   );
 }
 
@@ -29,7 +29,7 @@ export function getWeeklyInterviews(startDate?: string): Promise<ApiResponse<Wee
 /** 面试结论/反馈/改期（通过自动流转拟录用；改期通知面试官） */
 export function updateInterview(
   interviewId: string,
-  payload: { scheduled_at?: string; result?: string; feedback?: string },
+  payload: { scheduled_at?: string; result?: string; feedback?: string }
 ): Promise<ApiResponse<Interview>> {
   return put<ApiResponse<Interview>>(`/hr/admin/v1/interviews/${interviewId}`, payload);
 }
@@ -41,18 +41,18 @@ export function getInterviewDetail(interviewId: string): Promise<ApiResponse<Int
 
 /** 提交 AI 纪要任务（异步生成，消费者回写；进行中重复提交幂等返回既有 task_id） */
 export function submitInterviewSummary(
-  interviewId: string,
+  interviewId: string
 ): Promise<ApiResponse<{ task_id: string; duplicated: boolean }>> {
   return post<ApiResponse<{ task_id: string; duplicated: boolean }>>(
-    `/hr/admin/v1/interviews/${interviewId}/ai-summary`,
+    `/hr/admin/v1/interviews/${interviewId}/ai-summary`
   );
 }
 
 /** 面试智能追问建议（即时生成不落库；失败走手动填写兜底） */
 export function getFollowupQuestions(
-  interviewId: string,
+  interviewId: string
 ): Promise<ApiResponse<{ questions: string[] }>> {
   return post<ApiResponse<{ questions: string[] }>>(
-    `/hr/admin/v1/interviews/${interviewId}/followup-questions`,
+    `/hr/admin/v1/interviews/${interviewId}/followup-questions`
   );
 }

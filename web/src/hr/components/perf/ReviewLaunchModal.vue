@@ -5,7 +5,19 @@
  */
 import { computed, ref, watch } from "vue";
 
-import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@/components";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -36,7 +48,7 @@ const searching = ref<"" | "reviewer" | "target">("");
 const submitting = ref(false);
 
 const canSubmit = computed(
-  () => cycleId.value !== ALL && reviewer.value && targets.value.length > 0,
+  () => cycleId.value !== ALL && reviewer.value && targets.value.length > 0
 );
 
 watch(open, async (value) => {

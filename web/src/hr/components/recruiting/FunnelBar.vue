@@ -7,8 +7,8 @@ import { computed } from "vue";
 
 import {
   APPLICATION_STAGE_LABELS,
-  FUNNEL_SEGMENTS,
   type ApplicationStage,
+  FUNNEL_SEGMENTS,
   type FunnelStat,
 } from "@/hr/types/recruiting";
 
@@ -32,7 +32,7 @@ const segments = computed(() =>
       label: APPLICATION_STAGE_LABELS[stage],
       count: countOf(stage),
     })),
-  })),
+  }))
 );
 
 function handleStageClick(stage: ApplicationStage) {

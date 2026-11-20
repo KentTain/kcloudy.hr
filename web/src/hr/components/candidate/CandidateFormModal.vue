@@ -3,22 +3,22 @@
  * 手工录入候选人弹窗：主档字段 + 关联需求（关联时同步产生待初筛投递）。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Select } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
-import { listRequisitions } from "@/hr/api/recruiting";
 import { createCandidate } from "@/hr/api/candidate";
+import { listRequisitions } from "@/hr/api/recruiting";
 import { CANDIDATE_CHANNEL_OPTIONS } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -34,26 +34,30 @@ const requisitionId = ref("__none__");
 
 const requisitionOptions = ref<{ value: string; label: string }[]>([]);
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  name.value = "";
-  phone.value = "";
-  email.value = "";
-  sourceChannel.value = "manual";
-  requisitionId.value = "__none__";
-  try {
-    const res = await listRequisitions({ page: 1, page_size: 100 });
-    requisitionOptions.value = [
-      { value: "__none__", label: "暂不关联需求" },
-      ...(res.data ?? [])
-        .filter((item) => item.status !== "closed")
-        .map((item) => ({ value: item.id, label: `${item.title}（${item.req_no}）` })),
-    ];
-  } catch {
-    requisitionOptions.value = [{ value: "__none__", label: "暂不关联需求" }];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    name.value = "";
+    phone.value = "";
+    email.value = "";
+    sourceChannel.value = "manual";
+    requisitionId.value = "__none__";
+    try {
+      const res = await listRequisitions({ page: 1, page_size: 100 });
+      requisitionOptions.value = [
+        { value: "__none__", label: "暂不关联需求" },
+        ...(res.data ?? [])
+          .filter((item) => item.status !== "closed")
+          .map((item) => ({ value: item.id, label: `${item.title}（${item.req_no}）` })),
+      ];
+    } catch {
+      requisitionOptions.value = [{ value: "__none__", label: "暂不关联需求" }];
+    }
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   if (!name.value.trim()) {
@@ -69,9 +73,7 @@ async function handleSubmit() {
       source_channel: sourceChannel.value,
       requisition_id: requisitionId.value === "__none__" ? undefined : requisitionId.value,
     });
-    notifySuccess(
-      result.data?.application ? "候选人已录入并产生投递" : "候选人已录入",
-    );
+    notifySuccess(result.data?.application ? "候选人已录入并产生投递" : "候选人已录入");
     open.value = false;
     emit("saved");
   } catch (error) {

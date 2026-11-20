@@ -8,7 +8,7 @@ import type { RowAction } from "@/components";
 
 import { RowActions } from "@/components";
 
-import { isActiveEmployee, type Employee } from "@/hr/types/employee";
+import { type Employee, isActiveEmployee } from "@/hr/types/employee";
 
 const props = defineProps<{
   employee: Employee;

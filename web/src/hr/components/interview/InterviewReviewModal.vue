@@ -5,17 +5,19 @@
  * （即时生成不落库，点击问题插入反馈框；失败降级手动填写）。
  */
 import { onUnmounted, ref, watch } from "vue";
-
-import { Button, Input, Select, Textarea } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Textarea,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -58,20 +60,24 @@ const resultOptions = [
   { value: "fail", label: "未通过" },
 ];
 
-watch(open, (value) => {
-  if (!value) {
-    stopSummaryPolling();
-    return;
-  }
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  result.value = "pass";
-  feedback.value = "";
-  aiSummary.value = "";
-  summaryPending.value = false;
-  questions.value = [];
-  const raw = props.interview?.scheduled_at ?? "";
-  scheduledAt.value = raw ? raw.slice(0, 16) : "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) {
+      stopSummaryPolling();
+      return;
+    }
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    result.value = "pass";
+    feedback.value = "";
+    aiSummary.value = "";
+    summaryPending.value = false;
+    questions.value = [];
+    const raw = props.interview?.scheduled_at ?? "";
+    scheduledAt.value = raw ? raw.slice(0, 16) : "";
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => stopSummaryPolling());
 
@@ -169,9 +175,7 @@ async function handleSubmit() {
       payload.scheduled_at = scheduledAt.value;
     }
     await updateInterview(interview.id, payload);
-    notifySuccess(
-      result.value === "pass" ? "面试通过，申请已流转拟录用" : "面试结论已提交",
-    );
+    notifySuccess(result.value === "pass" ? "面试通过，申请已流转拟录用" : "面试结论已提交");
     open.value = false;
     emit("saved");
   } catch (error) {

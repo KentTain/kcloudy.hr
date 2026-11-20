@@ -4,20 +4,21 @@
  * channels 非空提交后立即发布；外部渠道按渠道管理凭证状态出项（拉取失败降级仅站内）。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button } from "@/components";
-import { Checkbox } from "@/components";
-import { Input, Select, Textarea } from "@/components";
 import {
+  Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  OrganizationSelect,
+  Select,
+  Textarea,
 } from "@/components";
-import { Label } from "@/components";
-import { OrganizationSelect } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -25,9 +26,9 @@ import { createRequisition, listChannels } from "@/hr/api/recruiting";
 import { getPositionOptions } from "@/hr/api/reference";
 import {
   CHANNEL_LABELS,
+  type ChannelCard,
   INTERNAL_CHANNEL,
   REQUISITION_PRIORITY_OPTIONS,
-  type ChannelCard,
   type RecruitingChannel,
   type RequisitionPriority,
 } from "@/hr/types/recruiting";
@@ -82,34 +83,41 @@ const channelOptions = computed(() => {
   });
 });
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  step.value = 0;
-  title.value = "";
-  orgIds.value = [];
-  positionId.value = NO_POSITION;
-  headcountInput.value = "1";
-  jobLevel.value = "";
-  jd.value = "";
-  salaryMinInput.value = "";
-  salaryMaxInput.value = "";
-  priority.value = "medium";
-  selectedChannels.value = [INTERNAL_CHANNEL];
-  try {
-    const [positionRes, channelRes] = await Promise.allSettled([
-      getPositionOptions(),
-      listChannels(),
-    ]);
-    positionOptions.value = (positionRes.value?.data ?? []).map((p) => ({ id: p.id, name: p.name }));
-    channelCards.value = channelRes.value?.data ?? [];
-  } catch {
-    positionOptions.value = [];
-    channelCards.value = [];
-  } finally {
-    channelsLoaded.value = true;
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    step.value = 0;
+    title.value = "";
+    orgIds.value = [];
+    positionId.value = NO_POSITION;
+    headcountInput.value = "1";
+    jobLevel.value = "";
+    jd.value = "";
+    salaryMinInput.value = "";
+    salaryMaxInput.value = "";
+    priority.value = "medium";
+    selectedChannels.value = [INTERNAL_CHANNEL];
+    try {
+      const [positionRes, channelRes] = await Promise.allSettled([
+        getPositionOptions(),
+        listChannels(),
+      ]);
+      positionOptions.value = (positionRes.value?.data ?? []).map((p) => ({
+        id: p.id,
+        name: p.name,
+      }));
+      channelCards.value = channelRes.value?.data ?? [];
+    } catch {
+      positionOptions.value = [];
+      channelCards.value = [];
+    } finally {
+      channelsLoaded.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 function validateStep(current: number): string | null {
   if (current === 0) {
@@ -168,7 +176,7 @@ async function handleSubmit() {
     notifySuccess(
       selectedChannels.value.some((channel) => channel !== INTERNAL_CHANNEL)
         ? "需求已创建，外部渠道发布中"
-        : "需求已创建",
+        : "需求已创建"
     );
     open.value = false;
     emit("saved");

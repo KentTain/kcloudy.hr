@@ -2,7 +2,7 @@
  * 员工域 api（admin 层 /hr/admin/v1：花名册/建档编辑/统计/导入/账号/扩展属性/异动）
  */
 
-import { get, post, put, del } from "@/framework/api/client";
+import { del, get, post, put } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
 
@@ -52,7 +52,7 @@ export function createEmployee(payload: EmployeeCreatePayload): Promise<ApiRespo
 /** 员工编辑（敏感字段提交掩码/空表示保留原值） */
 export function updateEmployee(
   employeeId: string,
-  payload: EmployeeUpdatePayload,
+  payload: EmployeeUpdatePayload
 ): Promise<ApiResponse<Employee>> {
   return put<ApiResponse<Employee>>(`/hr/admin/v1/employees/${employeeId}`, payload);
 }
@@ -77,7 +77,7 @@ export function openAccount(employeeId: string): Promise<ApiResponse<AccountOpen
 
 /** 员工扩展属性（定义 + 值合并结构） */
 export function getEmployeeAttributes(
-  employeeId: string,
+  employeeId: string
 ): Promise<ApiResponse<AttributeValueItem[]>> {
   return get<ApiResponse<AttributeValueItem[]>>(`/hr/admin/v1/employees/${employeeId}/attributes`);
 }
@@ -85,18 +85,17 @@ export function getEmployeeAttributes(
 /** 保存员工扩展属性值（values 以 definition_id 为键；按定义校验后 upsert） */
 export function saveEmployeeAttributes(
   employeeId: string,
-  values: Record<string, unknown>,
+  values: Record<string, unknown>
 ): Promise<ApiResponse<{ written: number }>> {
-  return put<ApiResponse<{ written: number }>>(
-    `/hr/admin/v1/employees/${employeeId}/attributes`,
-    { values },
-  );
+  return put<ApiResponse<{ written: number }>>(`/hr/admin/v1/employees/${employeeId}/attributes`, {
+    values,
+  });
 }
 
 /** 员工异动历史（成长记录时间线数据源，倒序由前端处理） */
 export function listEmployeeChanges(
   employeeId: string,
-  query: { page?: number; page_size?: number } = {},
+  query: { page?: number; page_size?: number } = {}
 ): Promise<ApiResponse<ChangeRecord[]>> {
   return get<ApiResponse<ChangeRecord[]>>(`/hr/admin/v1/employees/${employeeId}/changes`, {
     params: query,

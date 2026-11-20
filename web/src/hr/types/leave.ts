@@ -144,7 +144,11 @@ export interface LeaveBalanceQuery extends PageQuery {
 /* ── 时长计算（展示口径，落库以后端为准） ── */
 
 /** day = 起止日期闭区间天数；hour = 起止时间差小时数（不足一分钟向上取整到 0.01） */
-export function computeLeaveDuration(unit: LeaveUnit, startTime: string, endTime: string): number | null {
+export function computeLeaveDuration(
+  unit: LeaveUnit,
+  startTime: string,
+  endTime: string
+): number | null {
   const start = new Date(startTime);
   const end = new Date(endTime);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return null;

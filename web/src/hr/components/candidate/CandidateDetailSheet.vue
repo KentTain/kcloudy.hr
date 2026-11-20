@@ -14,18 +14,23 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import { getCandidate, parseResume, setBlacklist } from "@/hr/api/candidate";
 import { updateApplicationStage } from "@/hr/api/recruiting";
 import {
   APPLICATION_STAGE_LABELS,
   APPLICATION_STAGE_VARIANTS,
-  CANDIDATE_CHANNEL_LABELS,
-  STAGE_TRANSITIONS,
   type Application,
   type ApplicationStage,
+  CANDIDATE_CHANNEL_LABELS,
   type CandidateDetail,
+  STAGE_TRANSITIONS,
 } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -83,11 +88,15 @@ const profileView = computed<ProfileView>(() => {
   const asString = (value: unknown): string => (typeof value === "string" ? value : "");
   return {
     years: typeof record.years === "number" ? record.years : null,
-    education: asArray(record.education).filter((item): item is ProfileEducation => !!item && typeof item === "object"),
-    experiences: asArray(record.experiences).filter(
-      (item): item is ProfileExperience => !!item && typeof item === "object",
+    education: asArray(record.education).filter(
+      (item): item is ProfileEducation => !!item && typeof item === "object"
     ),
-    skills: asArray(record.skills).map((item) => String(item)).filter(Boolean),
+    experiences: asArray(record.experiences).filter(
+      (item): item is ProfileExperience => !!item && typeof item === "object"
+    ),
+    skills: asArray(record.skills)
+      .map((item) => String(item))
+      .filter(Boolean),
     highlights: asString(record.highlights),
     risks: asString(record.risks),
   };
@@ -100,7 +109,7 @@ const hasProfile = computed(
     profileView.value.experiences.length > 0 ||
     profileView.value.skills.length > 0 ||
     !!profileView.value.highlights ||
-    !!profileView.value.risks,
+    !!profileView.value.risks
 );
 
 async function loadAll() {
@@ -146,7 +155,8 @@ async function toggleBlacklist() {
 async function reparseResume() {
   const item = candidate.value;
   if (!item) return;
-  if (!(await confirmAction("重新解析简历为异步任务，解析完成后 AI 档案将自动更新。继续？"))) return;
+  if (!(await confirmAction("重新解析简历为异步任务，解析完成后 AI 档案将自动更新。继续？")))
+    return;
   try {
     await parseResume(item.id);
     notifySuccess("简历解析任务已提交，完成后档案自动更新");
@@ -161,8 +171,14 @@ const infoItems = computed(() => {
   return [
     { label: "手机号", value: item.phone || "--" },
     { label: "邮箱", value: item.email || "--" },
-    { label: "来源渠道", value: CANDIDATE_CHANNEL_LABELS[item.source_channel] ?? item.source_channel },
-    { label: "工作年限", value: profileView.value.years === null ? "--" : `${profileView.value.years} 年` },
+    {
+      label: "来源渠道",
+      value: CANDIDATE_CHANNEL_LABELS[item.source_channel] ?? item.source_channel,
+    },
+    {
+      label: "工作年限",
+      value: profileView.value.years === null ? "--" : `${profileView.value.years} 年`,
+    },
     { label: "简历文件", value: item.resume_file || "--" },
   ];
 });

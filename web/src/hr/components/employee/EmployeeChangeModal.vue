@@ -3,19 +3,20 @@
  * 人事异动弹窗（转正/调岗/职级变更/调薪/离职；hire 由建档自动写入）
  */
 import { computed, ref, watch } from "vue";
-
-import { DateInput, Input, Select } from "@/components";
-import { Button } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  OrganizationSelect,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
-import { OrganizationSelect } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -23,9 +24,9 @@ import { createChange } from "@/hr/api/employee";
 import { getPositionOptions, listSalaryItemOptions } from "@/hr/api/reference";
 import {
   CHANGE_TYPE_LABELS,
-  MANUAL_CHANGE_TYPES,
   type ChangeType,
   type Employee,
+  MANUAL_CHANGE_TYPES,
   type PositionOption,
 } from "@/hr/types/employee";
 
@@ -37,7 +38,7 @@ const props = withDefaults(
     /** 打开时预选的异动类型（如「办理离职」直达 offboard） */
     initialType?: ChangeType;
   }>(),
-  { initialType: "probate" },
+  { initialType: "probate" }
 );
 
 const emit = defineEmits<{ saved: [] }>();
@@ -59,28 +60,34 @@ const changeTypeOptions = MANUAL_CHANGE_TYPES.map((value) => ({
   label: CHANGE_TYPE_LABELS[value],
 }));
 
-const isTransfer = computed(() => changeType.value === "transfer" || changeType.value === "level_change");
+const isTransfer = computed(
+  () => changeType.value === "transfer" || changeType.value === "level_change"
+);
 const isSalary = computed(() => changeType.value === "salary_change");
 const isOffboard = computed(() => changeType.value === "offboard");
 
-watch(open, async (value) => {
-  if (!value) return;
-  changeType.value = props.initialType;
-  effectiveDate.value = new Date().toISOString().slice(0, 10);
-  orgIds.value = props.employee?.org_id ? [props.employee.org_id] : [];
-  positionId.value = props.employee?.position_id ?? "";
-  jobLevel.value = props.employee?.job_level ?? "";
-  reason.value = "";
-  remark.value = "";
-  salaryRows.value = [];
-  // 岗位选项按员工当前组织拉取；薪酬项选项失败降级（无 hr:position:read / hr:salary_item:read 时仍可提交其余类型）
-  if (props.employee?.org_id) {
-    positionOptions.value = (await loadPositionOptions(props.employee.org_id)) ?? [];
-  }
-  if (!salaryItemOptions.value.length) {
-    salaryItemOptions.value = (await loadSalaryItemOptions()) ?? [];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    changeType.value = props.initialType;
+    effectiveDate.value = new Date().toISOString().slice(0, 10);
+    orgIds.value = props.employee?.org_id ? [props.employee.org_id] : [];
+    positionId.value = props.employee?.position_id ?? "";
+    jobLevel.value = props.employee?.job_level ?? "";
+    reason.value = "";
+    remark.value = "";
+    salaryRows.value = [];
+    // 岗位选项按员工当前组织拉取；薪酬项选项失败降级（无 hr:position:read / hr:salary_item:read 时仍可提交其余类型）
+    if (props.employee?.org_id) {
+      positionOptions.value = (await loadPositionOptions(props.employee.org_id)) ?? [];
+    }
+    if (!salaryItemOptions.value.length) {
+      salaryItemOptions.value = (await loadSalaryItemOptions()) ?? [];
+    }
+  },
+  { immediate: true }
+);
 
 async function loadPositionOptions(orgId: string): Promise<PositionOption[]> {
   try {
@@ -124,7 +131,13 @@ async function handleSubmit() {
       employee_id: props.employee.id,
       change_type: changeType.value as ChangeCreateType,
       effective_date: effectiveDate.value,
-      ...(isTransfer.value ? { org_id: orgIds.value[0] || undefined, position_id: positionId.value || undefined, job_level: jobLevel.value || undefined } : {}),
+      ...(isTransfer.value
+        ? {
+            org_id: orgIds.value[0] || undefined,
+            position_id: positionId.value || undefined,
+            job_level: jobLevel.value || undefined,
+          }
+        : {}),
       ...(isSalary.value
         ? {
             salary_items: salaryRows.value.map((row) => ({
@@ -133,7 +146,9 @@ async function handleSubmit() {
             })),
           }
         : {}),
-      ...(isOffboard.value ? { reason: reason.value || undefined, remark: remark.value || undefined } : {}),
+      ...(isOffboard.value
+        ? { reason: reason.value || undefined, remark: remark.value || undefined }
+        : {}),
     });
     notifySuccess("异动已提交");
     emit("saved");

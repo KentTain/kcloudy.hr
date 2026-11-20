@@ -15,16 +15,25 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
-import { listChannelPostings, listChannels, testChannelConnection, triggerChannelSync } from "@/hr/api/recruiting";
+import {
+  listChannelPostings,
+  listChannels,
+  testChannelConnection,
+  triggerChannelSync,
+} from "@/hr/api/recruiting";
 import {
   CHANNEL_LABELS,
+  type ChannelCard,
   POSTING_STATUS_LABELS,
   POSTING_STATUS_VARIANTS,
-  type ChannelCard,
   type RequisitionPosting,
 } from "@/hr/types/recruiting";
 
@@ -35,7 +44,10 @@ const canSync = computed(() => userStore.hasPermission("hr:channel:sync"));
 const channels = ref<ChannelCard[]>([]);
 const loading = ref(false);
 
-function accessStatusOf(item: ChannelCard): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } {
+function accessStatusOf(item: ChannelCard): {
+  label: string;
+  variant: "default" | "secondary" | "destructive" | "outline";
+} {
   if (!item.enabled) return { label: "已禁用", variant: "destructive" };
   if (item.configured) return { label: "已配置", variant: "default" };
   return { label: "未配置", variant: "secondary" };
@@ -55,7 +67,12 @@ async function loadChannels() {
 }
 
 async function handleSync(item: ChannelCard) {
-  if (!(await confirmAction(`确定手动触发「${item.name}」候选人拉取？任务将异步执行，完成后站内信回告。`))) return;
+  if (
+    !(await confirmAction(
+      `确定手动触发「${item.name}」候选人拉取？任务将异步执行，完成后站内信回告。`
+    ))
+  )
+    return;
   try {
     const res = await triggerChannelSync(item.channel);
     notifySuccess(`同步任务已提交（任务 ID：${res.data?.task_id ?? "--"}）`);

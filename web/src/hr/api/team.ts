@@ -7,7 +7,10 @@ import type { ApiResponse } from "@/framework/api/types";
 import type { TeamInterviewItem, TeamRequisition, TeamReviewItem } from "@/hr/types/selfService";
 
 /** 团队招聘需求（本人组织子树，分页） */
-export function listTeamRequisitions(query: { page: number; page_size: number }): Promise<ApiResponse<TeamRequisition[]>> {
+export function listTeamRequisitions(query: {
+  page: number;
+  page_size: number;
+}): Promise<ApiResponse<TeamRequisition[]>> {
   return get<ApiResponse<TeamRequisition[]>>("/hr/console/v1/team/requisitions", { params: query });
 }
 
@@ -24,7 +27,7 @@ export function listTeamReviews(): Promise<ApiResponse<TeamReviewItem[]>> {
 /** 提交评分（reviewer 归属 + scoring 态双校验） */
 export function submitTeamReviewScore(
   reviewId: string,
-  data: { score: number; rating: string; self_score?: number | null },
+  data: { score: number; rating: string; self_score?: number | null }
 ): Promise<ApiResponse<{ id: string }>> {
   return put<ApiResponse<{ id: string }>>(`/hr/console/v1/team/reviews/${reviewId}/score`, data);
 }

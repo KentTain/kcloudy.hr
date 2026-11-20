@@ -2,7 +2,7 @@
  * 员工扩展属性定义 api（属性组 / 定义管理，admin 层 /hr/admin/v1）
  */
 
-import { get, post, put, del } from "@/framework/api/client";
+import { del, get, post, put } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
 
@@ -25,7 +25,7 @@ export function createFieldGroup(payload: {
 /** 更新属性组 */
 export function updateFieldGroup(
   groupId: string,
-  payload: { name?: string; sort?: number },
+  payload: { name?: string; sort?: number }
 ): Promise<ApiResponse<FieldGroup>> {
   return put<ApiResponse<FieldGroup>>(`/hr/admin/v1/field-groups/${groupId}`, payload);
 }
@@ -65,11 +65,11 @@ export function updateFieldDefinition(
     is_require?: boolean;
     can_edit?: boolean;
     sort?: number;
-  },
+  }
 ): Promise<ApiResponse<FieldDefinition>> {
   return put<ApiResponse<FieldDefinition>>(
     `/hr/admin/v1/field-definitions/${definitionId}`,
-    payload,
+    payload
   );
 }
 

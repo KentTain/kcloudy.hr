@@ -11,7 +11,7 @@ import { Badge, Button, DateInput, Tabs, TabsContent, TabsList, TabsTrigger } fr
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
+import { getOrgTree } from "@/hr/api/reference";
 import {
   exportReport,
   getReportAttritionRisk,
@@ -21,22 +21,25 @@ import {
   getReportRecruiting,
   getReportTurnover,
 } from "@/hr/api/report";
-import { getOrgTree } from "@/hr/api/reference";
 import ReportAskDialog from "@/hr/components/report/ReportAskDialog.vue";
 import TrendLineChart from "@/hr/components/report/TrendLineChart.vue";
-import { downloadBase64File } from "@/hr/utils/download";
+import type { OrgTreeNode } from "@/hr/types/employee";
+import { PERF_RATINGS } from "@/hr/types/perf";
 import {
-  defaultReportRange,
+  APPLICATION_STAGE_LABELS,
+  CANDIDATE_CHANNEL_LABELS,
+  FUNNEL_SEGMENTS,
+} from "@/hr/types/recruiting";
+import {
   type AttritionRiskData,
   type CompDistData,
+  defaultReportRange,
   type OverviewData,
   type PerformanceData,
   type RecruitingData,
   type TurnoverData,
 } from "@/hr/types/report";
-import { PERF_RATINGS } from "@/hr/types/perf";
-import { APPLICATION_STAGE_LABELS, CANDIDATE_CHANNEL_LABELS, FUNNEL_SEGMENTS } from "@/hr/types/recruiting";
-import type { OrgTreeNode } from "@/hr/types/employee";
+import { downloadBase64File } from "@/hr/utils/download";
 
 type DomainKey = "personnel" | "recruiting" | "compensation" | "performance";
 
@@ -53,7 +56,9 @@ const DOMAINS: { value: DomainKey; label: string }[] = [
   { value: "performance", label: "绩效" },
 ];
 
-const visibleDomains = computed(() => DOMAINS.filter((d) => d.value !== "compensation" || canSalary.value));
+const visibleDomains = computed(() =>
+  DOMAINS.filter((d) => d.value !== "compensation" || canSalary.value)
+);
 
 const activeDomain = ref<DomainKey>("personnel");
 const initialRange = defaultReportRange();
@@ -98,7 +103,10 @@ async function handleExport() {
   if (exporting.value) return;
   exporting.value = true;
   try {
-    const res = await exportReport({ ...rangeParams(), domain: EXPORT_DOMAIN_BY_TAB[activeDomain.value] });
+    const res = await exportReport({
+      ...rangeParams(),
+      domain: EXPORT_DOMAIN_BY_TAB[activeDomain.value],
+    });
     const file = res.data;
     if (!file?.content_base64) {
       notifyError(new Error("报表文件生成失败"));
@@ -125,7 +133,7 @@ async function loadPersonnel() {
 
 async function loadRisk() {
   riskList.value = envelope(
-    await getReportAttritionRisk({ org_id: drillOrgId.value ?? undefined, limit: 20 }),
+    await getReportAttritionRisk({ org_id: drillOrgId.value ?? undefined, limit: 20 })
   );
 }
 
@@ -166,7 +174,7 @@ watch(
       loading.value = false;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 /* ── 人事域派生 ── */
@@ -183,11 +191,11 @@ const statCards = computed(() => [
 ]);
 
 const headcountPoints = computed(() =>
-  (overview.value?.headcount_trend ?? []).map((p) => ({ label: p.month, value: p.count })),
+  (overview.value?.headcount_trend ?? []).map((p) => ({ label: p.month, value: p.count }))
 );
 
 const turnoverPoints = computed(() =>
-  (turnover.value?.points ?? []).map((p) => ({ label: p.month, value: p.rate ?? 0 })),
+  (turnover.value?.points ?? []).map((p) => ({ label: p.month, value: p.rate ?? 0 }))
 );
 
 /* ── 组织分布（按组织树聚合下钻） ── */
@@ -201,7 +209,7 @@ const distMap = computed(() => {
 });
 
 const unassignedCount = computed(
-  () => (overview.value?.org_distribution ?? []).find((item) => !item.org_id)?.count ?? 0,
+  () => (overview.value?.org_distribution ?? []).find((item) => !item.org_id)?.count ?? 0
 );
 
 const orgNodeMap = computed(() => {
@@ -250,7 +258,13 @@ const orgRows = computed<OrgRow[]>(() => {
   const rows: OrgRow[] = [];
   buildOrgRows(orgTree.value, 0, rows);
   if (unassignedCount.value > 0) {
-    rows.push({ id: "__none__", name: "未分配组织", count: unassignedCount.value, depth: 0, expandable: false });
+    rows.push({
+      id: "__none__",
+      name: "未分配组织",
+      count: unassignedCount.value,
+      depth: 0,
+      expandable: false,
+    });
   }
   return rows;
 });
@@ -268,7 +282,7 @@ const orgDistMax = computed(() => Math.max(1, ...orgRows.value.map((row) => row.
 /* ── 组织下钻（人事/招聘共用） ── */
 
 const drillOrgName = computed(
-  () => orgNodeMap.value.get(drillOrgId.value ?? "")?.name ?? drillOrgId.value ?? "",
+  () => orgNodeMap.value.get(drillOrgId.value ?? "")?.name ?? drillOrgId.value ?? ""
 );
 
 function drillTo(row: OrgRow) {
@@ -282,7 +296,10 @@ function resetDrill() {
 
 /* ── 离职风险名单派生 ── */
 
-const RISK_LEVEL_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const RISK_LEVEL_META: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   high: { label: "高风险", variant: "destructive" },
   mid: { label: "中风险", variant: "default" },
   low: { label: "低风险", variant: "secondary" },
@@ -294,7 +311,7 @@ const riskRows = computed(() =>
     orgName: item.org_id ? (orgNodeMap.value.get(item.org_id)?.name ?? "未分配组织") : "未分配组织",
     levelLabel: RISK_LEVEL_META[item.level]?.label ?? item.level,
     levelVariant: RISK_LEVEL_META[item.level]?.variant ?? ("secondary" as const),
-  })),
+  }))
 );
 
 /* ── 招聘域派生 ── */
@@ -304,7 +321,8 @@ const funnelRows = computed(() => {
   const max = Math.max(1, ...items.map((item) => item.count));
   return items.map((item) => ({
     stage: item.stage,
-    label: APPLICATION_STAGE_LABELS[item.stage as keyof typeof APPLICATION_STAGE_LABELS] ?? item.stage,
+    label:
+      APPLICATION_STAGE_LABELS[item.stage as keyof typeof APPLICATION_STAGE_LABELS] ?? item.stage,
     count: item.count,
     percent: Math.round((item.count / max) * 100),
   }));
@@ -334,7 +352,7 @@ const channelRows = computed<ChannelRow[]>(() =>
       rate: total > 0 ? `${((hired / total) * 100).toFixed(1)}%` : "0.0%",
       percent: 0,
     };
-  }),
+  })
 );
 
 const channelMax = computed(() => Math.max(1, ...channelRows.value.map((row) => row.total)));
@@ -360,22 +378,29 @@ function toCompRows(items: CompDistItem[], labelOf: (key: string | null) => stri
   }));
 }
 
-const levelRows = computed(() => toCompRows(compDist.value?.by_level ?? [], (key) => key ?? "未定级"));
-const compOrgRows = computed(() => toCompRows(compDist.value?.by_org ?? [], (key) => orgNodeMap.value.get(key ?? "")?.name ?? "未分配组织"));
+const levelRows = computed(() =>
+  toCompRows(compDist.value?.by_level ?? [], (key) => key ?? "未定级")
+);
+const compOrgRows = computed(() =>
+  toCompRows(
+    compDist.value?.by_org ?? [],
+    (key) => orgNodeMap.value.get(key ?? "")?.name ?? "未分配组织"
+  )
+);
 
 /* ── 绩效域派生 ── */
 
 const perfScorePoints = computed(() =>
   (performance.value?.cycles ?? [])
     .filter((cycle) => cycle.avg_score != null)
-    .map((cycle) => ({ label: cycle.cycle_name, value: cycle.avg_score ?? 0 })),
+    .map((cycle) => ({ label: cycle.cycle_name, value: cycle.avg_score ?? 0 }))
 );
 
 const perfDistRows = computed(() => {
   const cycles = performance.value?.cycles ?? [];
   const max = Math.max(
     1,
-    ...cycles.flatMap((cycle) => PERF_RATINGS.map((rating) => cycle.ratings[rating] ?? 0)),
+    ...cycles.flatMap((cycle) => PERF_RATINGS.map((rating) => cycle.ratings[rating] ?? 0))
   );
   return cycles.map((cycle) => ({
     id: cycle.cycle_id,

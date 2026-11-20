@@ -8,14 +8,7 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, ref } from "vue";
 
-import {
-  Badge,
-  Button,
-  DataTable,
-  DateInput,
-  Select,
-  useDataTable,
-} from "@/components";
+import { Badge, Button, DataTable, DateInput, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 
 import { useUserStore } from "@/framework/stores";
@@ -59,7 +52,18 @@ const statusOptions = [
 ];
 
 /** 信封适配：data 裸数组 + 顶层 total */
-function envelope<T>(res: { code: number; data?: T[] | null; msg?: string; page?: number; page_size?: number; total?: number }, page: number, pageSize: number) {
+function envelope<T>(
+  res: {
+    code: number;
+    data?: T[] | null;
+    msg?: string;
+    page?: number;
+    page_size?: number;
+    total?: number;
+  },
+  page: number,
+  pageSize: number
+) {
   return {
     code: res.code,
     data: res.data ?? [],
@@ -80,7 +84,7 @@ const columns = ref<ColumnDef<PerfCycleItem>[]>([
       h(
         Badge,
         { variant: PERF_CYCLE_STATUS_VARIANTS[row.original.status as PerfCycleStatus] },
-        () => PERF_CYCLE_STATUS_LABELS[row.original.status as PerfCycleStatus],
+        () => PERF_CYCLE_STATUS_LABELS[row.original.status as PerfCycleStatus]
       ),
   },
   {
@@ -107,8 +111,8 @@ const columns = ref<ColumnDef<PerfCycleItem>[]>([
             "data-testid": `cycle-overview-${item.id}`,
             onClick: () => openOverview(item),
           },
-          () => "概览",
-        ),
+          () => "概览"
+        )
       );
       if (canWrite.value) {
         const nextAction = PERF_TRANSITIONS[item.status as PerfCycleStatus][0];
@@ -122,8 +126,8 @@ const columns = ref<ColumnDef<PerfCycleItem>[]>([
                 "data-testid": `cycle-transition-${nextAction}-${item.id}`,
                 onClick: () => handleTransition(item, nextAction),
               },
-              () => PERF_TRANSITION_LABELS[nextAction],
-            ),
+              () => PERF_TRANSITION_LABELS[nextAction]
+            )
           );
         }
         if (item.status === "draft") {
@@ -136,8 +140,8 @@ const columns = ref<ColumnDef<PerfCycleItem>[]>([
                 "data-testid": `cycle-edit-${item.id}`,
                 onClick: () => openForm(item),
               },
-              () => "编辑",
-            ),
+              () => "编辑"
+            )
           );
         }
       }
@@ -151,8 +155,8 @@ const columns = ref<ColumnDef<PerfCycleItem>[]>([
               "data-testid": `cycle-delete-${item.id}`,
               onClick: () => handleDelete(item),
             },
-            () => "删除",
-          ),
+            () => "删除"
+          )
         );
       }
       return h("div", { class: "flex items-center gap-1" }, buttons);
@@ -195,9 +199,7 @@ function handleReset() {
 
 async function handleTransition(item: PerfCycleItem, action: string) {
   const label = PERF_TRANSITION_LABELS[action];
-  const confirmed = await confirmAction(
-    `确认将周期「${item.name}」${label}？状态推进后不可回退`,
-  );
+  const confirmed = await confirmAction(`确认将周期「${item.name}」${label}？状态推进后不可回退`);
   if (!confirmed) return;
   try {
     await transitionPerfCycle(item.id, action as "activate");

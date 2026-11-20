@@ -4,17 +4,18 @@
  * 历史版本只读不入本弹窗；新建版本由后端自动闭合当前版本区间。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, DateInput } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -40,26 +41,30 @@ const effectiveTo = ref("");
 
 const isEdit = () => !!props.band && bandEffectiveStatus(props.band) === "upcoming";
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  if (props.band) {
-    jobLevel.value = props.band.job_level;
-    minSalary.value = props.band.min_salary;
-    midSalary.value = props.band.mid_salary;
-    maxSalary.value = props.band.max_salary;
-    effectiveFrom.value = props.band.effective_from;
-    effectiveTo.value = props.band.effective_to ?? "";
-  } else {
-    const today = new Date();
-    jobLevel.value = "";
-    minSalary.value = 0;
-    midSalary.value = 0;
-    maxSalary.value = 0;
-    effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    effectiveTo.value = "";
-  }
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    if (props.band) {
+      jobLevel.value = props.band.job_level;
+      minSalary.value = props.band.min_salary;
+      midSalary.value = props.band.mid_salary;
+      maxSalary.value = props.band.max_salary;
+      effectiveFrom.value = props.band.effective_from;
+      effectiveTo.value = props.band.effective_to ?? "";
+    } else {
+      const today = new Date();
+      jobLevel.value = "";
+      minSalary.value = 0;
+      midSalary.value = 0;
+      maxSalary.value = 0;
+      effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      effectiveTo.value = "";
+    }
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   const min = Number(minSalary.value);

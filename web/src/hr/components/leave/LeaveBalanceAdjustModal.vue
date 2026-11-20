@@ -4,17 +4,18 @@
  * 已用/冻结只读展示；可用余额 = 总额度 - 已用 - 冻结。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, Input, Label } from "@/components";
 import {
+  Button,
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
 } from "@/components";
-import { DescriptionList } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -35,9 +36,12 @@ const totalQuota = ref(0);
 const items = computed(() => {
   const b = props.balance;
   if (!b) return [];
-  const unitSuffix = b.unit ? LEAVE_UNIT_LABELS[b.unit] ?? "" : "";
+  const unitSuffix = b.unit ? (LEAVE_UNIT_LABELS[b.unit] ?? "") : "";
   return [
-    { label: "员工", value: b.employee_name ? `${b.employee_name}（${b.employee_no ?? "—"}）` : "—" },
+    {
+      label: "员工",
+      value: b.employee_name ? `${b.employee_name}（${b.employee_no ?? "—"}）` : "—",
+    },
     { label: "假期类型", value: b.leave_type_name ?? "—" },
     { label: "年度", value: String(b.year) },
     { label: "已用", value: `${b.used}${unitSuffix}` },
@@ -55,7 +59,7 @@ watch(
     if (!value) return;
     totalQuota.value = props.balance?.total_quota ?? 0;
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 async function handleSubmit() {

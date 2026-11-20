@@ -8,9 +8,8 @@ import { computed, onMounted, ref } from "vue";
 
 import { Badge, Button, Checkbox, Input, Select, Table } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 
 import { getWeeklyInterviews } from "@/hr/api/interview";
 import InterviewQuickScheduleModal from "@/hr/components/interview/InterviewQuickScheduleModal.vue";
@@ -97,16 +96,17 @@ const filteredItems = computed(() =>
   allItems.value.filter((item) => {
     if (resultFilter.value !== "all" && item.result !== resultFilter.value) return false;
     if (mineOnly.value && item.interviewer_id !== currentUserId.value) return false;
-    if (keyword.value && !(item.requisition_title ?? "").includes(keyword.value.trim())) return false;
+    if (keyword.value && !(item.requisition_title ?? "").includes(keyword.value.trim()))
+      return false;
     return true;
-  }),
+  })
 );
 
 const filteredDays = computed(() =>
   days.value.map((day) => ({
     ...day,
     items: filteredItems.value.filter((item) => item.scheduled_at.slice(0, 10) === day.date),
-  })),
+  }))
 );
 
 function handleResetFilters() {
@@ -152,7 +152,7 @@ const overdueIds = computed(() => {
   return new Set(
     filteredItems.value
       .filter((item) => item.result === "pending" && new Date(item.scheduled_at).getTime() < now)
-      .map((item) => item.id),
+      .map((item) => item.id)
   );
 });
 

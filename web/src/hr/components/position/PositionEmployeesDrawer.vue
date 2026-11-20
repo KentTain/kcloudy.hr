@@ -3,9 +3,7 @@
  * 在岗员工抽屉：岗位摘要 + 在岗员工列表（后端默认排除已离职）+ 查看员工跳转
  */
 import { ref, watch } from "vue";
-
-import { Badge, Button } from "@/components";
-import { Table } from "@/components";
+import { Badge, Button, Table } from "@/components";
 import {
   Sheet,
   SheetContent,

@@ -138,12 +138,8 @@ describe("PerfCyclesPage", () => {
     mountPage();
     await flushPromises();
 
-    expect(
-      document.querySelector('[data-testid="cycle-transition-activate-cyc-1"]'),
-    ).toBeTruthy();
-    expect(
-      document.querySelector('[data-testid="cycle-transition-activate-cyc-2"]'),
-    ).toBeNull();
+    expect(document.querySelector('[data-testid="cycle-transition-activate-cyc-1"]')).toBeTruthy();
+    expect(document.querySelector('[data-testid="cycle-transition-activate-cyc-2"]')).toBeNull();
     expect(document.querySelector('[data-testid="cycle-edit-cyc-1"]')).toBeTruthy();
     expect(document.querySelector('[data-testid="cycle-edit-cyc-2"]')).toBeNull();
     expect(document.querySelector('[data-testid="cycle-delete-cyc-1"]')).toBeTruthy();
@@ -156,7 +152,7 @@ describe("PerfCyclesPage", () => {
     await flushPromises();
 
     const button = document.querySelector(
-      '[data-testid="cycle-transition-activate-cyc-1"]',
+      '[data-testid="cycle-transition-activate-cyc-1"]'
     ) as HTMLButtonElement;
     button.click();
     await flushPromises();

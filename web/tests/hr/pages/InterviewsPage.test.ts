@@ -106,7 +106,9 @@ const WEEKLY: WeeklyInterviews = {
         result: "pass",
       }),
     ],
-    "2026-10-13": [dayItem({ id: "iv-3", candidate_name: "王五", scheduled_at: "2026-10-13T09:30:00" })],
+    "2026-10-13": [
+      dayItem({ id: "iv-3", candidate_name: "王五", scheduled_at: "2026-10-13T09:30:00" }),
+    ],
     "2026-10-14": [],
     "2026-10-15": [],
     "2026-10-16": [],
@@ -186,7 +188,8 @@ describe("InterviewsPage", () => {
     expect(document.querySelector('[data-testid="interview-review-dialog"]')).toBeTruthy();
 
     const feedbackHost = document.querySelector('[data-testid="interview-review-feedback-input"]');
-    const textarea = (feedbackHost?.querySelector("textarea") ?? feedbackHost) as HTMLTextAreaElement | null;
+    const textarea = (feedbackHost?.querySelector("textarea") ??
+      feedbackHost) as HTMLTextAreaElement | null;
     textarea!.value = "基础扎实，通过";
     textarea!.dispatchEvent(new Event("input"));
     await flushPromises();

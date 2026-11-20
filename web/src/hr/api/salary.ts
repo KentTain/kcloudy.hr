@@ -2,7 +2,7 @@
  * 薪酬域 api（admin 层 /hr/admin/v1：薪酬项字典 CRUD + 类别字典读写 + 职级薪带版本管理）
  */
 
-import { get, post, put, del } from "@/framework/api/client";
+import { del, get, post, put } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
 
@@ -31,7 +31,7 @@ export function listSalaryItems(query: SalaryItemQuery): Promise<ApiResponse<Sal
 
 /** 创建薪酬项（编码租户唯一，创建后不可修改） */
 export function createSalaryItem(
-  payload: SalaryItemCreatePayload,
+  payload: SalaryItemCreatePayload
 ): Promise<ApiResponse<SalaryItem>> {
   return post<ApiResponse<SalaryItem>>("/hr/admin/v1/salary-items", payload);
 }
@@ -39,7 +39,7 @@ export function createSalaryItem(
 /** 更新薪酬项（编码不可修改；停用经 can_edit=false） */
 export function updateSalaryItem(
   itemId: string,
-  payload: SalaryItemUpdatePayload,
+  payload: SalaryItemUpdatePayload
 ): Promise<ApiResponse<SalaryItem>> {
   return put<ApiResponse<SalaryItem>>(`/hr/admin/v1/salary-items/${itemId}`, payload);
 }
@@ -57,7 +57,9 @@ export function getSalaryCategories(): Promise<ApiResponse<{ categories: string[
 }
 
 /** 类别字典维护（已绑定薪酬项的类别后端拒绝删除） */
-export function updateSalaryCategories(categories: string[]): Promise<ApiResponse<{ categories: string[] }>> {
+export function updateSalaryCategories(
+  categories: string[]
+): Promise<ApiResponse<{ categories: string[] }>> {
   return put<ApiResponse<{ categories: string[] }>>("/hr/admin/v1/salary-setting", { categories });
 }
 
@@ -70,7 +72,7 @@ export function listSalaryBands(query: SalaryBandQuery): Promise<ApiResponse<Sal
 
 /** 新建薪带版本（min ≤ mid ≤ max；当前版本自动闭合；重叠区间拒绝） */
 export function createSalaryBand(
-  payload: SalaryBandCreatePayload,
+  payload: SalaryBandCreatePayload
 ): Promise<ApiResponse<SalaryBand>> {
   return post<ApiResponse<SalaryBand>>("/hr/admin/v1/salary-bands", payload);
 }
@@ -78,7 +80,7 @@ export function createSalaryBand(
 /** 更新薪带（仅未生效版本可编辑） */
 export function updateSalaryBand(
   bandId: string,
-  payload: SalaryBandUpdatePayload,
+  payload: SalaryBandUpdatePayload
 ): Promise<ApiResponse<SalaryBand>> {
   return put<ApiResponse<SalaryBand>>(`/hr/admin/v1/salary-bands/${bandId}`, payload);
 }
@@ -93,9 +95,12 @@ export function deleteSalaryBand(bandId: string): Promise<ApiResponse<null>> {
 /** 调薪（一事一流水：按项逐行闭合旧区间 + 生成新区间，返回新区间行） */
 export function adjustSalaryPackage(
   employeeId: string,
-  payload: SalaryPackageAdjustPayload,
+  payload: SalaryPackageAdjustPayload
 ): Promise<ApiResponse<unknown[]>> {
-  return post<ApiResponse<unknown[]>>(`/hr/admin/v1/employees/${employeeId}/salary-packages`, payload);
+  return post<ApiResponse<unknown[]>>(
+    `/hr/admin/v1/employees/${employeeId}/salary-packages`,
+    payload
+  );
 }
 
 /* ── 发薪批次 ── */
@@ -106,8 +111,12 @@ export function listPayrollRuns(query: PayrollRunQuery): Promise<ApiResponse<Pay
 }
 
 /** 创建批次（期间租户唯一）并异步试算（返回 task_id） */
-export function createPayrollRun(period: string): Promise<ApiResponse<{ run: PayrollRun; task_id: string }>> {
-  return post<ApiResponse<{ run: PayrollRun; task_id: string }>>("/hr/admin/v1/payroll-runs", { period });
+export function createPayrollRun(
+  period: string
+): Promise<ApiResponse<{ run: PayrollRun; task_id: string }>> {
+  return post<ApiResponse<{ run: PayrollRun; task_id: string }>>("/hr/admin/v1/payroll-runs", {
+    period,
+  });
 }
 
 /** 批次详情 */
@@ -116,7 +125,10 @@ export function getPayrollRun(runId: string): Promise<ApiResponse<PayrollRun>> {
 }
 
 /** 批次明细（员工 × 薪酬项行；矩阵列由薪酬项字典动态生成） */
-export function listPayrollEntries(runId: string, pageSize = 200): Promise<ApiResponse<PayrollEntry[]>> {
+export function listPayrollEntries(
+  runId: string,
+  pageSize = 200
+): Promise<ApiResponse<PayrollEntry[]>> {
   return get<ApiResponse<PayrollEntry[]>>(`/hr/admin/v1/payroll-runs/${runId}/entries`, {
     params: { page: 1, page_size: pageSize },
   });
@@ -126,9 +138,12 @@ export function listPayrollEntries(runId: string, pageSize = 200): Promise<ApiRe
 export function updatePayrollEntry(
   runId: string,
   entryId: string,
-  payload: PayrollEntryUpdatePayload,
+  payload: PayrollEntryUpdatePayload
 ): Promise<ApiResponse<PayrollEntry>> {
-  return put<ApiResponse<PayrollEntry>>(`/hr/admin/v1/payroll-runs/${runId}/entries/${entryId}`, payload);
+  return put<ApiResponse<PayrollEntry>>(
+    `/hr/admin/v1/payroll-runs/${runId}/entries/${entryId}`,
+    payload
+  );
 }
 
 /** 确认批次（明细锁死；写审计） */
@@ -148,6 +163,10 @@ export function cancelPayrollRun(runId: string): Promise<ApiResponse<PayrollRun>
 
 /** 导出薪酬明细（写审计：操作人/期间/行数；返回 JSON 行集） */
 /** 标准代发文件导出（xlsx；confirmed/paid 态；写敏感审计） */
-export function exportPayrollRun(runId: string): Promise<ApiResponse<{ filename: string; content_base64: string }>> {
-  return get<ApiResponse<{ filename: string; content_base64: string }>>(`/hr/admin/v1/payroll-runs/${runId}/export`);
+export function exportPayrollRun(
+  runId: string
+): Promise<ApiResponse<{ filename: string; content_base64: string }>> {
+  return get<ApiResponse<{ filename: string; content_base64: string }>>(
+    `/hr/admin/v1/payroll-runs/${runId}/export`
+  );
 }

@@ -22,19 +22,28 @@ export interface ReportRangeParams {
   org_id?: string;
 }
 
-export function getReportOverview(params: ReportRangeParams & { months?: number }): Promise<ApiResponse<OverviewData>> {
+export function getReportOverview(
+  params: ReportRangeParams & { months?: number }
+): Promise<ApiResponse<OverviewData>> {
   return get<ApiResponse<OverviewData>>("/hr/admin/v1/reports/overview", { params });
 }
 
-export function getReportTurnover(params: ReportRangeParams & { months?: number }): Promise<ApiResponse<TurnoverData>> {
+export function getReportTurnover(
+  params: ReportRangeParams & { months?: number }
+): Promise<ApiResponse<TurnoverData>> {
   return get<ApiResponse<TurnoverData>>("/hr/admin/v1/reports/turnover", { params });
 }
 
-export function getReportRecruiting(params: ReportRangeParams): Promise<ApiResponse<RecruitingData>> {
+export function getReportRecruiting(
+  params: ReportRangeParams
+): Promise<ApiResponse<RecruitingData>> {
   return get<ApiResponse<RecruitingData>>("/hr/admin/v1/reports/recruiting", { params });
 }
 
-export function getReportAttritionRisk(params: { org_id?: string; limit?: number }): Promise<ApiResponse<AttritionRiskData>> {
+export function getReportAttritionRisk(params: {
+  org_id?: string;
+  limit?: number;
+}): Promise<ApiResponse<AttritionRiskData>> {
   return get<ApiResponse<AttritionRiskData>>("/hr/admin/v1/reports/attrition-risk", { params });
 }
 
@@ -44,9 +53,12 @@ export function getReportCompDist(): Promise<ApiResponse<CompDistData>> {
 
 /** 报表 Excel 导出（六域；comp-dist 域需薪酬查看权限；写审计） */
 export function exportReport(
-  params: ReportRangeParams & { domain: string; months?: number },
+  params: ReportRangeParams & { domain: string; months?: number }
 ): Promise<ApiResponse<{ filename: string; content_base64: string }>> {
-  return get<ApiResponse<{ filename: string; content_base64: string }>>("/hr/admin/v1/reports/export", { params });
+  return get<ApiResponse<{ filename: string; content_base64: string }>>(
+    "/hr/admin/v1/reports/export",
+    { params }
+  );
 }
 
 export function getReportPerformance(): Promise<ApiResponse<PerformanceData>> {

@@ -12,9 +12,9 @@ import { Badge, Button } from "@/components";
 import {
   APPLICATION_STAGE_LABELS,
   APPLICATION_STAGE_VARIANTS,
-  STAGE_TRANSITIONS,
   type Application,
   type ApplicationStage,
+  STAGE_TRANSITIONS,
 } from "@/hr/types/recruiting";
 
 const props = defineProps<{
@@ -43,23 +43,23 @@ const directTransitions = computed<ApplicationStage[]>(() =>
     if (OFFER_FLOW_TARGETS.has(target)) return false;
     if (props.application.stage === "offered" && target === "rejected") return false;
     return true;
-  }),
+  })
 );
 
 const showInterviewButton = computed(
-  () => props.canWrite && props.canInterview && props.application.stage === "screening_passed",
+  () => props.canWrite && props.canInterview && props.application.stage === "screening_passed"
 );
 
 const showOfferButton = computed(
-  () => props.canWrite && props.canOffer && props.application.stage === "pre_hire",
+  () => props.canWrite && props.canOffer && props.application.stage === "pre_hire"
 );
 
 const showOfferRespond = computed(
-  () => props.canWrite && props.canOffer && props.application.stage === "offered",
+  () => props.canWrite && props.canOffer && props.application.stage === "offered"
 );
 
 const showOnboardButton = computed(
-  () => props.canWrite && props.canOffer && props.application.stage === "pre_onboard",
+  () => props.canWrite && props.canOffer && props.application.stage === "pre_onboard"
 );
 
 const hasActions = computed(
@@ -69,7 +69,7 @@ const hasActions = computed(
       showInterviewButton.value ||
       showOfferButton.value ||
       showOfferRespond.value ||
-      showOnboardButton.value),
+      showOnboardButton.value)
 );
 
 const lastHistory = computed(() => props.application.stage_history?.at(-1) ?? null);

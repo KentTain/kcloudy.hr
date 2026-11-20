@@ -3,10 +3,8 @@
  * 需求列表行操作（详情/发布/关闭；按状态与权限出项）
  */
 import { computed } from "vue";
-
-import { RowActions } from "@/components";
-
 import type { RowAction } from "@/components";
+import { RowActions } from "@/components";
 
 import type { Requisition } from "@/hr/types/recruiting";
 
@@ -25,7 +23,11 @@ const actions = computed<RowAction[]>(() => {
   const result: RowAction[] = [
     { key: "detail", label: "详情", onClick: () => emit("detail", props.requisition) },
   ];
-  if (props.canWrite && props.requisition.status !== "closed" && props.requisition.status !== "filled") {
+  if (
+    props.canWrite &&
+    props.requisition.status !== "closed" &&
+    props.requisition.status !== "filled"
+  ) {
     result.push({
       key: "publish",
       label: "发布",

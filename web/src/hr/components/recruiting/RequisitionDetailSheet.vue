@@ -14,7 +14,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import {
   closeRequisition,
@@ -29,18 +34,18 @@ import FunnelBar from "@/hr/components/recruiting/FunnelBar.vue";
 import {
   APPLICATION_STAGE_LABELS,
   APPLICATION_STAGE_VARIANTS,
+  type Application,
+  type ApplicationStage,
   CHANNEL_LABELS,
+  type FunnelStat,
   POSTING_STATUS_LABELS,
   POSTING_STATUS_VARIANTS,
   REQUISITION_PRIORITY_LABELS,
   REQUISITION_PRIORITY_VARIANTS,
   REQUISITION_STATUS_LABELS,
   REQUISITION_STATUS_VARIANTS,
-  STAGE_TRANSITIONS,
-  type Application,
-  type ApplicationStage,
-  type FunnelStat,
   type Requisition,
+  STAGE_TRANSITIONS,
 } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });

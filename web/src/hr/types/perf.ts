@@ -6,12 +6,7 @@ import type { PageQuery } from "@/hr/types";
 
 /* ── 字典 ── */
 
-export type PerfCycleStatus =
-  | "draft"
-  | "active"
-  | "scoring"
-  | "calibrating"
-  | "closed";
+export type PerfCycleStatus = "draft" | "active" | "scoring" | "calibrating" | "closed";
 
 export const PERF_CYCLE_STATUS_LABELS: Record<PerfCycleStatus, string> = {
   draft: "草稿",

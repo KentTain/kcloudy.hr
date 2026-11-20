@@ -76,8 +76,20 @@ const REQUISITIONS: Requisition[] = [
     jd: null,
     filled_count: 1,
     postings: [
-      { id: "po-1", channel: "internal", status: "published", external_post_id: null, published_at: "2026-10-01T10:00:00" },
-      { id: "po-2", channel: "zhilian", status: "publishing", external_post_id: null, published_at: null },
+      {
+        id: "po-1",
+        channel: "internal",
+        status: "published",
+        external_post_id: null,
+        published_at: "2026-10-01T10:00:00",
+      },
+      {
+        id: "po-2",
+        channel: "zhilian",
+        status: "publishing",
+        external_post_id: null,
+        published_at: null,
+      },
     ],
   },
 ];
@@ -100,7 +112,13 @@ function findButton(text: string): HTMLButtonElement | undefined {
 beforeEach(() => {
   vi.resetAllMocks();
   permState.granted = new Set(["hr:requisition:read", "hr:requisition:write", "hr:candidate:read"]);
-  apiMocks.listRequisitions.mockResolvedValue({ code: 200, data: REQUISITIONS, total: 1, page: 1, page_size: 20 });
+  apiMocks.listRequisitions.mockResolvedValue({
+    code: 200,
+    data: REQUISITIONS,
+    total: 1,
+    page: 1,
+    page_size: 20,
+  });
   apiMocks.getOrgTree.mockResolvedValue({ code: 200, data: ORG_TREE });
   apiMocks.getPositionOptions.mockResolvedValue({
     code: 200,

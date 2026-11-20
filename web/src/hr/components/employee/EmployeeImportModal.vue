@@ -4,18 +4,17 @@
  * 后端导入接口消费 JSON 行数据，文件解析在前端完成（当前支持 CSV）。
  */
 import { ref } from "vue";
-
-import { Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  FileDropzone,
 } from "@/components";
-import { FileDropzone } from "@/components";
-import { Badge } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -82,7 +81,7 @@ async function onFileSelect(files: File[]) {
         row[header] = cells[index] ?? "";
       });
       return {
-        name: row["姓名"]?.trim() ?? "",
+        name: row.姓名?.trim() ?? "",
         gender: pick(row, "性别"),
         birth_date: pick(row, "出生日期"),
         id_card: pick(row, "证件号"),
@@ -91,7 +90,7 @@ async function onFileSelect(files: File[]) {
         org_id: pick(row, "组织ID"),
         position_id: pick(row, "岗位ID"),
         job_level: pick(row, "职级"),
-        hire_date: row["入职日期"]?.trim() ?? "",
+        hire_date: row.入职日期?.trim() ?? "",
         status: (pick(row, "状态") as EmployeeImportRowPayload["status"]) ?? "pending",
       };
     });

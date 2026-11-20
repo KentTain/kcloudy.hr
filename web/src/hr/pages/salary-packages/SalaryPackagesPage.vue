@@ -8,18 +8,21 @@ import { computed, onMounted, ref } from "vue";
 import { Badge, Button, Input } from "@/components";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
-import { getBandComparison, getOrgTree, getPositionOptions, listEmployeeSalaryPackages } from "@/hr/api/reference";
+import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 import { listEmployees } from "@/hr/api/employee";
+import {
+  getBandComparison,
+  getOrgTree,
+  getPositionOptions,
+  listEmployeeSalaryPackages,
+} from "@/hr/api/reference";
 import SalaryPackageEditorModal from "@/hr/components/salary/SalaryPackageEditorModal.vue";
 import {
+  type BandComparison,
   EMPLOYEE_STATUS_LABELS,
   type Employee,
   type EmployeeStatus,
-  type BandComparison,
   type OrgTreeNode,
   type PositionOption,
   type SalaryPackageRecord,
@@ -63,9 +66,13 @@ function positionNameOf(positionId: string | null): string {
 async function loadEmployees() {
   employeesLoading.value = true;
   try {
-    const res = await listEmployees({ page: 1, page_size: 50, keyword: keyword.value || undefined });
+    const res = await listEmployees({
+      page: 1,
+      page_size: 50,
+      keyword: keyword.value || undefined,
+    });
     employees.value = (res.data ?? []).filter((item) =>
-      ACTIVE_STATUSES.includes(item.status as EmployeeStatus),
+      ACTIVE_STATUSES.includes(item.status as EmployeeStatus)
     );
   } catch (error) {
     notifyError(error, getErrorMessage(error, "员工列表加载失败"));
@@ -87,7 +94,10 @@ const detailLoading = ref(false);
 
 const currentPackages = computed(() => packages.value.filter((row) => !row.effective_to));
 
-const COMPARISON_HINTS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const COMPARISON_HINTS: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
   below: { label: "低于带宽下限", variant: "destructive" },
   within: { label: "带宽区间内", variant: "default" },
   above: { label: "高于带宽上限", variant: "secondary" },
@@ -95,7 +105,7 @@ const COMPARISON_HINTS: Record<string, { label: string; variant: "default" | "se
 };
 
 const comparisonHint = computed(() =>
-  comparison.value ? COMPARISON_HINTS[comparison.value.position] ?? COMPARISON_HINTS.none : null,
+  comparison.value ? (COMPARISON_HINTS[comparison.value.position] ?? COMPARISON_HINTS.none) : null
 );
 
 async function selectEmployee(employee: Employee) {

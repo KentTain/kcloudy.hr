@@ -28,8 +28,20 @@ vi.mock("@/framework/utils/feedback", () => ({
 }));
 
 const SUGGESTIONS: MergeSuggestion[] = [
-  { candidate_id: "cand-2", name: "重名一", phone: "13800001111", email: null, matched_by: "phone" },
-  { candidate_id: "cand-3", name: "重名二", phone: null, email: "zhang@example.com", matched_by: "email" },
+  {
+    candidate_id: "cand-2",
+    name: "重名一",
+    phone: "13800001111",
+    email: null,
+    matched_by: "phone",
+  },
+  {
+    candidate_id: "cand-3",
+    name: "重名二",
+    phone: null,
+    email: "zhang@example.com",
+    matched_by: "email",
+  },
 ];
 
 function makeApplication(overrides: Partial<Application> = {}): Application {
@@ -52,7 +64,10 @@ beforeEach(() => {
   vi.resetAllMocks();
   apiMocks.listCandidateCards.mockResolvedValue({
     code: 200,
-    data: [makeApplication(), makeApplication({ id: "app-2", candidate_id: "cand-9", candidate_name: "李四" })],
+    data: [
+      makeApplication(),
+      makeApplication({ id: "app-2", candidate_id: "cand-9", candidate_name: "李四" }),
+    ],
     total: 2,
   });
   apiMocks.getMergeSuggestions.mockResolvedValue({ code: 200, data: SUGGESTIONS });
@@ -74,8 +89,12 @@ describe("MergeCandidateModal", () => {
     expect(apiMocks.getMergeSuggestions).toHaveBeenCalledWith("cand-1");
     const dialog = document.querySelector('[data-testid="merge-candidate-dialog"]');
     expect(dialog?.textContent).toContain("疑似重复档");
-    expect(dialog?.querySelector('[data-testid="merge-suggestion-cand-2"]')?.textContent).toContain("手机命中");
-    expect(dialog?.querySelector('[data-testid="merge-suggestion-cand-3"]')?.textContent).toContain("邮箱命中");
+    expect(dialog?.querySelector('[data-testid="merge-suggestion-cand-2"]')?.textContent).toContain(
+      "手机命中"
+    );
+    expect(dialog?.querySelector('[data-testid="merge-suggestion-cand-3"]')?.textContent).toContain(
+      "邮箱命中"
+    );
     wrapper.unmount();
   });
 
@@ -86,7 +105,9 @@ describe("MergeCandidateModal", () => {
     });
     await flushPromises();
 
-    (document.querySelector('[data-testid="merge-suggestion-cand-2"]') as HTMLButtonElement).click();
+    (
+      document.querySelector('[data-testid="merge-suggestion-cand-2"]') as HTMLButtonElement
+    ).click();
     await flushPromises();
 
     const submit = document.querySelector('[data-testid="merge-submit"]') as HTMLButtonElement;

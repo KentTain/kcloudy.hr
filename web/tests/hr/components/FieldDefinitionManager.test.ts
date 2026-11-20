@@ -73,12 +73,14 @@ describe("FieldDefinitionManager", () => {
     // 排序首组 basic（sort=1）默认选中
     expect(items[0].getAttribute("data-group-id")).toBe("g-basic");
     // basic 组暂无定义 → 空态
-    expect(document.querySelector('[data-testid="field-definition-table"]')?.textContent).toContain("暂无字段定义");
+    expect(document.querySelector('[data-testid="field-definition-table"]')?.textContent).toContain(
+      "暂无字段定义"
+    );
   });
 
   it("新增字段定义：载荷带组 ID 与表单值", async () => {
     apiMocks.listFieldDefinitions.mockImplementation((groupId?: string) =>
-      Promise.resolve({ code: 200, data: groupId === "g-custom" ? DEFINITIONS : [] }),
+      Promise.resolve({ code: 200, data: groupId === "g-custom" ? DEFINITIONS : [] })
     );
     mountModal();
     await flushPromises();
@@ -88,14 +90,20 @@ describe("FieldDefinitionManager", () => {
     (items[1] as HTMLButtonElement).click();
     await flushPromises();
 
-    document.querySelector('[data-testid="field-definition-add"]')?.dispatchEvent(new Event("click"));
+    document
+      .querySelector('[data-testid="field-definition-add"]')
+      ?.dispatchEvent(new Event("click"));
     await flushPromises();
 
-    const nameInput = document.querySelector('[data-testid="field-definition-name"] input') as HTMLInputElement;
+    const nameInput = document.querySelector(
+      '[data-testid="field-definition-name"] input'
+    ) as HTMLInputElement;
     nameInput.value = "政治面貌";
     nameInput.dispatchEvent(new Event("input"));
 
-    document.querySelector('[data-testid="field-definition-submit"]')?.dispatchEvent(new Event("click"));
+    document
+      .querySelector('[data-testid="field-definition-submit"]')
+      ?.dispatchEvent(new Event("click"));
     await flushPromises();
 
     expect(apiMocks.createFieldDefinition).toHaveBeenCalledTimes(1);

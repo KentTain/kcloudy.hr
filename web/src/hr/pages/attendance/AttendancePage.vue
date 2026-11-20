@@ -17,15 +17,13 @@ import {
   useDataTable,
 } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 
 import { getAttendanceStats, listAttendanceRecords } from "@/hr/api/attendance";
 import { getOrgTree } from "@/hr/api/reference";
 import AttendanceAiImportModal from "@/hr/components/attendance/AttendanceAiImportModal.vue";
 import AttendanceImportModal from "@/hr/components/attendance/AttendanceImportModal.vue";
-import type { OrgTreeNode } from "@/hr/types/employee";
 import {
   ATTENDANCE_SOURCE_LABELS,
   ATTENDANCE_STATUS_LABELS,
@@ -34,11 +32,12 @@ import {
   type AttendanceQuery,
   type AttendanceRecord,
   type AttendanceStats,
+  formatCheckTime,
   TIME_RANGE_OPTIONS,
   type TimeRangeValue,
-  formatCheckTime,
   timeRangeToDates,
 } from "@/hr/types/attendance";
+import type { OrgTreeNode } from "@/hr/types/employee";
 
 const userStore = useUserStore();
 const canImport = computed(() => userStore.hasPermission("hr:attendance:import"));
@@ -148,8 +147,10 @@ const columns = ref<ColumnDef<AttendanceRecord>[]>([
     header: "状态",
     size: 110,
     cell: ({ row }) =>
-      h(Badge, { variant: ATTENDANCE_STATUS_VARIANTS[row.original.status] ?? "secondary" }, () =>
-        ATTENDANCE_STATUS_LABELS[row.original.status] ?? row.original.status,
+      h(
+        Badge,
+        { variant: ATTENDANCE_STATUS_VARIANTS[row.original.status] ?? "secondary" },
+        () => ATTENDANCE_STATUS_LABELS[row.original.status] ?? row.original.status
       ),
   },
   {

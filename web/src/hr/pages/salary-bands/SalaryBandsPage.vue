@@ -8,17 +8,21 @@ import { computed, h, ref } from "vue";
 
 import { Badge, Button, DataTable, Input, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import { deleteSalaryBand, listSalaryBands } from "@/hr/api/salary";
 import BandFormModal from "@/hr/components/salary/BandFormModal.vue";
 import {
   BAND_EFFECTIVE_STATUS_LABELS,
   BAND_EFFECTIVE_STATUS_VARIANTS,
-  bandEffectiveStatus,
   type BandEffectiveStatus,
+  bandEffectiveStatus,
   type SalaryBand,
 } from "@/hr/types/salary";
 
@@ -33,7 +37,7 @@ const statusFilter = ref("all");
 const statusSelectOptions = computed(() => [
   { value: "all", label: "全部状态" },
   ...(Object.entries(BAND_EFFECTIVE_STATUS_LABELS) as [BandEffectiveStatus, string][]).map(
-    ([value, label]) => ({ value, label }),
+    ([value, label]) => ({ value, label })
   ),
 ]);
 
@@ -57,86 +61,113 @@ const money = (value: number) => value.toLocaleString("zh-CN", { minimumFraction
 
 /* ── 列表 ── */
 
-const columns = computed<ColumnDef<SalaryBand>[]>(() => [
-  { accessorKey: "job_level", header: "职级", size: 90 },
-  {
-    accessorKey: "min_salary",
-    header: "带宽下限",
-    size: 110,
-    cell: ({ row }) => money(row.original.min_salary),
-  },
-  {
-    accessorKey: "mid_salary",
-    header: "中位值",
-    size: 110,
-    cell: ({ row }) => money(row.original.mid_salary),
-  },
-  {
-    accessorKey: "max_salary",
-    header: "带宽上限",
-    size: 110,
-    cell: ({ row }) => money(row.original.max_salary),
-  },
-  {
-    id: "band_visual",
-    header: "带宽条带",
-    size: 180,
-    cell: ({ row }) => {
-      const band = row.original;
-      return h("div", { class: "relative h-2 w-full max-w-40 rounded-full bg-muted", title: `${band.min_salary} — ${band.mid_salary} — ${band.max_salary}` }, [
-        h("span", {
-          class: "absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary ring-2 ring-background",
-          style: { left: `${midPercentOf(band)}%` },
-        }),
-      ]);
-    },
-  },
-  {
-    accessorKey: "effective_from",
-    header: "生效起",
-    size: 110,
-  },
-  {
-    id: "effective_to",
-    header: "生效止",
-    size: 190,
-    cell: ({ row }) => {
-      const band = row.original;
-      const status = bandEffectiveStatus(band);
-      return h("div", { class: "flex items-center gap-2" }, [
-        h("span", {}, band.effective_to ?? "--"),
-        h(Badge, { variant: BAND_EFFECTIVE_STATUS_VARIANTS[status] }, () => BAND_EFFECTIVE_STATUS_LABELS[status]),
-      ]);
-    },
-  },
-  {
-    id: "actions",
-    header: "操作",
-    size: 150,
-    cell: ({ row }) => {
-      const band = row.original;
-      const status = bandEffectiveStatus(band);
-      const buttons = [];
-      if (!canWrite.value) return h("span", { class: "text-muted-foreground" }, "--");
-      if (status === "active") {
-        // 当前版本只读，入口是新建版本（预填带宽，后端自动闭合旧区间）
-        buttons.push(
-          h(Button, { variant: "ghost", size: "sm", onClick: () => openFormModal(band) }, () => "新建版本"),
-        );
-      } else if (status === "upcoming") {
-        buttons.push(
-          h(Button, { variant: "ghost", size: "sm", onClick: () => openFormModal(band) }, () => "编辑"),
-        );
-        buttons.push(
-          h(Button, { variant: "ghost", size: "sm", onClick: () => removeBand(band) }, () => "删除"),
-        );
-      } else {
-        return h("span", { class: "text-muted-foreground" }, "只读");
-      }
-      return h("div", { class: "flex items-center gap-1" }, buttons);
-    },
-  },
-] as ColumnDef<SalaryBand>[]);
+const columns = computed<ColumnDef<SalaryBand>[]>(
+  () =>
+    [
+      { accessorKey: "job_level", header: "职级", size: 90 },
+      {
+        accessorKey: "min_salary",
+        header: "带宽下限",
+        size: 110,
+        cell: ({ row }) => money(row.original.min_salary),
+      },
+      {
+        accessorKey: "mid_salary",
+        header: "中位值",
+        size: 110,
+        cell: ({ row }) => money(row.original.mid_salary),
+      },
+      {
+        accessorKey: "max_salary",
+        header: "带宽上限",
+        size: 110,
+        cell: ({ row }) => money(row.original.max_salary),
+      },
+      {
+        id: "band_visual",
+        header: "带宽条带",
+        size: 180,
+        cell: ({ row }) => {
+          const band = row.original;
+          return h(
+            "div",
+            {
+              class: "relative h-2 w-full max-w-40 rounded-full bg-muted",
+              title: `${band.min_salary} — ${band.mid_salary} — ${band.max_salary}`,
+            },
+            [
+              h("span", {
+                class:
+                  "absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary ring-2 ring-background",
+                style: { left: `${midPercentOf(band)}%` },
+              }),
+            ]
+          );
+        },
+      },
+      {
+        accessorKey: "effective_from",
+        header: "生效起",
+        size: 110,
+      },
+      {
+        id: "effective_to",
+        header: "生效止",
+        size: 190,
+        cell: ({ row }) => {
+          const band = row.original;
+          const status = bandEffectiveStatus(band);
+          return h("div", { class: "flex items-center gap-2" }, [
+            h("span", {}, band.effective_to ?? "--"),
+            h(
+              Badge,
+              { variant: BAND_EFFECTIVE_STATUS_VARIANTS[status] },
+              () => BAND_EFFECTIVE_STATUS_LABELS[status]
+            ),
+          ]);
+        },
+      },
+      {
+        id: "actions",
+        header: "操作",
+        size: 150,
+        cell: ({ row }) => {
+          const band = row.original;
+          const status = bandEffectiveStatus(band);
+          const buttons = [];
+          if (!canWrite.value) return h("span", { class: "text-muted-foreground" }, "--");
+          if (status === "active") {
+            // 当前版本只读，入口是新建版本（预填带宽，后端自动闭合旧区间）
+            buttons.push(
+              h(
+                Button,
+                { variant: "ghost", size: "sm", onClick: () => openFormModal(band) },
+                () => "新建版本"
+              )
+            );
+          } else if (status === "upcoming") {
+            buttons.push(
+              h(
+                Button,
+                { variant: "ghost", size: "sm", onClick: () => openFormModal(band) },
+                () => "编辑"
+              )
+            );
+            buttons.push(
+              h(
+                Button,
+                { variant: "ghost", size: "sm", onClick: () => removeBand(band) },
+                () => "删除"
+              )
+            );
+          } else {
+            return h("span", { class: "text-muted-foreground" }, "只读");
+          }
+          return h("div", { class: "flex items-center gap-1" }, buttons);
+        },
+      },
+    ] as ColumnDef<SalaryBand>[]
+);
 
 const dataTable = useDataTable<SalaryBand>({
   columns: columns.value,
@@ -175,9 +206,7 @@ function handleSaved() {
 
 async function removeBand(band: SalaryBand) {
   if (
-    !(await confirmAction(
-      `确定删除职级「${band.job_level}」的未生效薪带版本？该操作不可恢复。`,
-    ))
+    !(await confirmAction(`确定删除职级「${band.job_level}」的未生效薪带版本？该操作不可恢复。`))
   ) {
     return;
   }

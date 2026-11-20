@@ -14,7 +14,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{ switch: [employee: Employee] }>();
 
-const currentIndex = computed(() => props.employees.findIndex((employee) => employee.id === props.currentId));
+const currentIndex = computed(() =>
+  props.employees.findIndex((employee) => employee.id === props.currentId)
+);
 const total = computed(() => props.employees.length);
 const hasPrev = computed(() => currentIndex.value > 0);
 const hasNext = computed(() => currentIndex.value >= 0 && currentIndex.value < total.value - 1);

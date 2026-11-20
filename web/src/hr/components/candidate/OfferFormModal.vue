@@ -4,17 +4,17 @@
  * （发送后申请自动流转至已发 Offer）。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -33,12 +33,16 @@ const submitting = ref(false);
 const baseMonthly = ref("");
 const validUntil = ref("");
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  baseMonthly.value = "";
-  validUntil.value = "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    baseMonthly.value = "";
+    validUntil.value = "";
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   const application = props.application;

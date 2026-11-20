@@ -24,7 +24,7 @@ const props = withDefaults(
     color: "#2563eb",
     valueSuffix: "",
     height: 240,
-  },
+  }
 );
 
 interface ChartDatum {
@@ -40,7 +40,11 @@ const chartConfig = computed<ChartConfig>(() => ({
 }));
 
 const chartData = computed<ChartDatum[]>(() =>
-  props.points.map((point, index) => ({ label: point.label, idx: index, value: Number(point.value ?? 0) })),
+  props.points.map((point, index) => ({
+    label: point.label,
+    idx: index,
+    value: Number(point.value ?? 0),
+  }))
 );
 
 function getX(point: ChartDatum): number {
