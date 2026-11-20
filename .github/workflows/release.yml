@@ -85,7 +85,7 @@ jobs:
             --file "${MAIN_REPO_DIR}/server/python/Dockerfile" \
             --target production-hr-web \
             --build-arg BUILD_MODULES=hr,tenant,iam,ai,document,hermes,ontology,workflow,metadata_ingestion \
-            --build-arg EXTRA_GROUPS=ai-knowledge,ai-langchain \
+            --build-arg EXTRA_GROUPS=ai-knowledge \
             -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" \
             "${MAIN_REPO_DIR}"
           docker push "${IMAGE}:${TAG}"
