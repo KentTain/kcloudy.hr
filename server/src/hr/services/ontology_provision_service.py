@@ -100,6 +100,8 @@ _TABLE_DOMAINS: tuple[tuple[str, str, str], ...] = (
 
 _GLOSSARY_NAME = "hr-domain"
 _GLOSSARY_DISPLAY = "HR 业务域术语表"
+# hr-open 本体语义包（初始化自动导入；displayName 真源在 ontology 包注册表）
+_HR_OPEN_PACK_NAME = "hr-open"
 
 # 三域术语：name → (displayName, description)
 _TERMS: tuple[tuple[str, str, str], ...] = (
@@ -615,6 +617,55 @@ async def provision_hr_assets(session: AsyncSession) -> dict[str, int] | None:
                     )
                 except OntologyConflictError:
                     pass
+
+            # 步骤8：hr-open 本体语义包初始化自动导入（幂等）——首次缺失即整包
+            # 装入（displayName 取注册表「HR 本体语义包」，24 术语 + 分类挂载 +
+            # 表资产关联；依赖的表/分类资产已在前面步骤注册）；同名已存在
+            # （409 零写入语义）时以注册表摘要为真源同步 displayName/description
+            # （包改名/文案随初始化传播，不走 SQL 脚本修数据）
+            pack_glossary = await client.entity_get_by_fqn(
+                session, tenant_id=tenant_id, spec_key="glossary", fqn=_HR_OPEN_PACK_NAME,
+            )
+            if pack_glossary is None:
+                try:
+                    await client.install_glossary_pack(
+                        session, tenant_id=tenant_id, pack_name=_HR_OPEN_PACK_NAME,
+                    )
+                    _logger.info(f"hr-open 本体语义包自动导入完成（{_HR_OPEN_PACK_NAME}）")
+                except OntologyConflictError:
+                    _logger.info("hr-open 术语库并发已建，跳过自动导入")
+            else:
+                pack_summary = await client.get_glossary_pack(
+                    session, tenant_id=tenant_id, pack_name=_HR_OPEN_PACK_NAME,
+                )
+                ops = []
+                if pack_glossary.get("displayName") != pack_summary.get("displayName"):
+                    ops.append({
+                        "op": "replace" if "displayName" in pack_glossary else "add",
+                        "path": "/displayName",
+                        "value": pack_summary.get("displayName"),
+                    })
+                if (
+                    pack_summary.get("description")
+                    and pack_glossary.get("description") != pack_summary.get("description")
+                ):
+                    ops.append({
+                        "op": "replace" if "description" in pack_glossary else "add",
+                        "path": "/description",
+                        "value": pack_summary.get("description"),
+                    })
+                if ops:
+                    await client.entity_patch(
+                        session,
+                        tenant_id=tenant_id,
+                        spec_key="glossary",
+                        entity_id=pack_glossary["id"],
+                        ops=ops,
+                    )
+                    _logger.info(
+                        f"存量 {_HR_OPEN_PACK_NAME} 术语库 displayName/description"
+                        "同步注册表（幂等补偿）"
+                    )
     except OntologyUnavailableError:
         _logger.info("ontology 模块缺席，跳过 hr 资产注册")
         return None
