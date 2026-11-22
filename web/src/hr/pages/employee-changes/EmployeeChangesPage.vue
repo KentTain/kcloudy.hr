@@ -35,6 +35,8 @@ import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
+import type { ApiResponse } from "@/framework/api/types";
+
 import { listChangeRecords, transferChangeRecord } from "@/hr/api/change";
 import { listEmployees } from "@/hr/api/employee";
 import { getOrgTree, getPositionOptions } from "@/hr/api/reference";

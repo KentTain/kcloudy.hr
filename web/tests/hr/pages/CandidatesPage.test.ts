@@ -115,10 +115,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return document
-    .querySelectorAll("button")
-    .values()
-    .find((el) => el.textContent?.trim() === text) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find(
+    (el) => el.textContent?.trim() === text
+  ) as HTMLButtonElement | undefined;
 }
 
 beforeEach(() => {

@@ -12,6 +12,7 @@ import type {
   FunnelResponse,
   Requisition,
   RequisitionCreatePayload,
+  RequisitionPosting,
   RequisitionQuery,
   RequisitionUpdatePayload,
 } from "@/hr/types/recruiting";

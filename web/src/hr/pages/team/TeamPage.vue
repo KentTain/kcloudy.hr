@@ -22,6 +22,7 @@ import {
 } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
+import type { UserInfo } from "@/framework/stores/user";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -48,11 +49,19 @@ import type { TeamInterviewItem, TeamReviewItem } from "@/hr/types/selfService";
 
 type TabKey = "requisitions" | "interviews" | "reviews";
 
+/** /users/me 返回的 organizations 摘要（框架 UserInfo 暂未声明该字段，此处按响应契约局部收窄） */
+interface UserOrgSummary {
+  is_leader: boolean;
+}
+
 const userStore = useUserStore();
 // 团队工作台仅组织负责人可用（/users/me organizations.is_leader）
-const isLeader = computed(() =>
-  (userStore.userInfo?.organizations ?? []).some((org) => org.is_leader)
-);
+const isLeader = computed(() => {
+  const orgs =
+    (userStore.userInfo as (UserInfo & { organizations?: UserOrgSummary[] }) | null)
+      ?.organizations ?? [];
+  return orgs.some((org) => org.is_leader);
+});
 
 const activeTab = ref<TabKey>("requisitions");
 const orgTree = ref<OrgTreeNode[]>([]);

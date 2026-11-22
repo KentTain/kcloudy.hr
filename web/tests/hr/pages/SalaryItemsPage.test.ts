@@ -73,10 +73,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return document
-    .querySelectorAll("button")
-    .values()
-    .find((el) => el.textContent?.trim() === text) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find(
+    (el) => el.textContent?.trim() === text
+  ) as HTMLButtonElement | undefined;
 }
 
 /** DialogContent 经 Teleport 渲染到 body，按钮点击走 document 查询 */

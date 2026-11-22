@@ -70,6 +70,7 @@ export interface ChannelCard {
 
 export interface RequisitionPosting {
   id: string;
+  requisition_id: string;
   channel: string;
   status: string;
   external_post_id: string | null;

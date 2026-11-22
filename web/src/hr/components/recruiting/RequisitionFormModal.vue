@@ -104,11 +104,14 @@ watch(
         getPositionOptions(),
         listChannels(),
       ]);
-      positionOptions.value = (positionRes.value?.data ?? []).map((p) => ({
+      positionOptions.value = (
+        positionRes.status === "fulfilled" ? (positionRes.value.data ?? []) : []
+      ).map((p) => ({
         id: p.id,
         name: p.name,
       }));
-      channelCards.value = channelRes.value?.data ?? [];
+      channelCards.value =
+        channelRes.status === "fulfilled" ? (channelRes.value.data ?? []) : [];
     } catch {
       positionOptions.value = [];
       channelCards.value = [];

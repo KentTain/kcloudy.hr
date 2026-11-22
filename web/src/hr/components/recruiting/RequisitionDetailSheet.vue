@@ -101,8 +101,9 @@ async function loadAll() {
       getRequisition(props.requisitionId),
       getRequisitionFunnel(props.requisitionId),
     ]);
-    requisition.value = reqRes.value?.data ?? null;
-    funnelStats.value = funnelRes.value?.data?.stats ?? [];
+    requisition.value = reqRes.status === "fulfilled" ? (reqRes.value.data ?? null) : null;
+    funnelStats.value =
+      funnelRes.status === "fulfilled" ? (funnelRes.value.data?.stats ?? []) : [];
     if (props.canReadCandidates) {
       await loadApplications();
     }

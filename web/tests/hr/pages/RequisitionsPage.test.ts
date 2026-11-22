@@ -78,6 +78,7 @@ const REQUISITIONS: Requisition[] = [
     postings: [
       {
         id: "po-1",
+        requisition_id: "req-1",
         channel: "internal",
         status: "published",
         external_post_id: null,
@@ -85,6 +86,7 @@ const REQUISITIONS: Requisition[] = [
       },
       {
         id: "po-2",
+        requisition_id: "req-1",
         channel: "zhilian",
         status: "publishing",
         external_post_id: null,
@@ -103,10 +105,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return document
-    .querySelectorAll("button")
-    .values()
-    .find((el) => el.textContent?.trim() === text) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find(
+    (el) => el.textContent?.trim() === text
+  ) as HTMLButtonElement | undefined;
 }
 
 beforeEach(() => {
