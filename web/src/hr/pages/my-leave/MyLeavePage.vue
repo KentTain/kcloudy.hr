@@ -7,7 +7,7 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 
-import { Badge, Button, DataTable, Input, Select, useDataTable } from "@/components";
+import { Badge, Button, DataTable, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 
 import {

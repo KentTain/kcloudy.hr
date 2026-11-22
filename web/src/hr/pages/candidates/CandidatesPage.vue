@@ -31,7 +31,6 @@ import {
   type Application,
   type ApplicationStage,
   CANDIDATE_CHANNEL_LABELS,
-  type Candidate,
   type FunnelStat,
   type Requisition,
 } from "@/hr/types/recruiting";

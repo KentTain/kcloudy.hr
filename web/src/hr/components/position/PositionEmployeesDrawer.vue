@@ -35,7 +35,7 @@ const emit = defineEmits<{ viewEmployee: [employeeId: string] }>();
 
 const loading = ref(false);
 const employees = ref<Employee[]>([]);
-const orgTree = ref<OrgTreeNode[]>([]);
+ref<OrgTreeNode[]>([]);
 
 const columns = [
   { key: "employee_no", title: "工号", width: "110px" },

@@ -53,11 +53,6 @@ const itemSelectOptions = computed(() =>
   }))
 );
 
-/** 新旧对比：同 item 的旧金额（无旧行 = 新增项） */
-function oldAmountOf(itemId: string): number | null {
-  return props.currentPackages.find((row) => row.item_id === itemId)?.amount ?? null;
-}
-
 watch(
   open,
   async (value) => {

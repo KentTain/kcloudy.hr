@@ -24,7 +24,6 @@ import {
   PERF_REVIEW_STATUS_VARIANTS,
   type PerfCycleItem,
   type PerfDistribution,
-  type PerfRating,
   type PerfReviewItem,
   type PerfReviewQuery,
   type PerfReviewStatus,

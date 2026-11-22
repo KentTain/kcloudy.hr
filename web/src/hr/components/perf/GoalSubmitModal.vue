@@ -46,7 +46,7 @@ const searching = ref(false);
 const goals = ref<DraftGoal[]>([]);
 const submitting = ref(false);
 
-const selectedCycle = computed(
+computed(
   () => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null
 );
 
