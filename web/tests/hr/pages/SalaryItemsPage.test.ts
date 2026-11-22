@@ -192,7 +192,6 @@ describe("SalaryItemsPage", () => {
     expect(apiMocks.deleteSalaryItem).toHaveBeenCalledWith("it-1");
     const { notifyError } = await import("@/framework/utils/feedback");
     expect(notifyError).toHaveBeenCalledWith(
-      expect.anything(),
       expect.stringContaining("仅可停用")
     );
   });

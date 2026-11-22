@@ -71,7 +71,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "余额调整失败"));
+    notifyError(getErrorMessage(error, "余额调整失败"));
   } finally {
     submitting.value = false;
   }

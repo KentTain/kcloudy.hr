@@ -75,7 +75,7 @@ async function loadEmployees() {
       ACTIVE_STATUSES.includes(item.status as EmployeeStatus)
     );
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工列表加载失败"));
+    notifyError(getErrorMessage(error, "员工列表加载失败"));
     employees.value = [];
   } finally {
     employeesLoading.value = false;
@@ -121,7 +121,7 @@ async function selectEmployee(employee: Employee) {
     packages.value = packageRes.data ?? [];
     comparison.value = comparisonRes.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪酬方案加载失败"));
+    notifyError(getErrorMessage(error, "薪酬方案加载失败"));
   } finally {
     detailLoading.value = false;
   }

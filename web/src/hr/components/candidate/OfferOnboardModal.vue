@@ -68,7 +68,7 @@ async function handleSubmit() {
     const offerRes = await getApplicationOffer(application.id);
     const offer = offerRes.data;
     if (!offer) {
-      notifyError(new Error("未找到该投递的 Offer 单，请确认 Offer 已发送并接受"));
+      notifyError("未找到该投递的 Offer 单，请确认 Offer 已发送并接受");
       return;
     }
     const result = await onboardOffer(offer.id, {
@@ -79,7 +79,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "入职转化失败"));
+    notifyError(getErrorMessage(error, "入职转化失败"));
   } finally {
     submitting.value = false;
   }

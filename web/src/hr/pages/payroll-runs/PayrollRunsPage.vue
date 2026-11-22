@@ -79,7 +79,7 @@ async function loadRuns() {
     });
     runs.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "发薪批次加载失败"));
+    notifyError(getErrorMessage(error, "发薪批次加载失败"));
     runs.value = [];
   } finally {
     listLoading.value = false;
@@ -100,7 +100,7 @@ function openCreate() {
 
 async function handleCreate() {
   if (!/^\d{4}-\d{2}$/.test(createPeriod.value.trim())) {
-    notifyError(new Error("期间格式为 YYYY-MM"));
+    notifyError("期间格式为 YYYY-MM");
     return;
   }
   creating.value = true;
@@ -110,7 +110,7 @@ async function handleCreate() {
     createOpen.value = false;
     await loadRuns();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "批次创建失败（同期间可能已存在）"));
+    notifyError(getErrorMessage(error, "批次创建失败（同期间可能已存在）"));
   } finally {
     creating.value = false;
   }
@@ -187,7 +187,7 @@ async function openDetail(run: PayrollRun) {
     detailRun.value = (runRes.data as PayrollRun) ?? run;
     entries.value = entriesRes.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "批次明细加载失败"));
+    notifyError(getErrorMessage(error, "批次明细加载失败"));
     detailRun.value = run;
   }
 }
@@ -209,7 +209,7 @@ async function handleConfirm() {
     detailRun.value = res.data ?? detailRun.value;
     notifySuccess("批次已确认，明细已锁定");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "批次确认失败"));
+    notifyError(getErrorMessage(error, "批次确认失败"));
   }
 }
 
@@ -227,7 +227,7 @@ async function handlePay() {
     detailRun.value = res.data ?? detailRun.value;
     notifySuccess("批次已标记发放，个人薪酬单已生成");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "标记发放失败"));
+    notifyError(getErrorMessage(error, "标记发放失败"));
   }
 }
 
@@ -241,7 +241,7 @@ async function handleCancel(run: PayrollRun) {
     }
     await loadRuns();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "批次取消失败（已发放批次不可取消）"));
+    notifyError(getErrorMessage(error, "批次取消失败（已发放批次不可取消）"));
   }
 }
 
@@ -251,13 +251,13 @@ async function handleExport() {
     const res = await exportPayrollRun(detailRun.value.id);
     const file = res.data;
     if (!file?.content_base64) {
-      notifyError(new Error("代发文件生成失败"));
+      notifyError("代发文件生成失败");
       return;
     }
     downloadBase64File(file.filename, file.content_base64);
     notifySuccess("标准代发文件已下载（敏感导出已写审计）");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "标准代发文件导出失败"));
+    notifyError(getErrorMessage(error, "标准代发文件导出失败"));
   }
 }
 
@@ -286,7 +286,7 @@ async function handleEntrySave() {
   if (!editEntry.value || !detailRun.value) return;
   const amountChanged = Number(editAmount.value) !== editEntry.value.amount;
   if (amountChanged && !editNote.value.trim()) {
-    notifyError(new Error("金额修改须填写备注（补发/扣减原因）"));
+    notifyError("金额修改须填写备注（补发/扣减原因）");
     return;
   }
   editSubmitting.value = true;
@@ -302,7 +302,7 @@ async function handleEntrySave() {
     notifySuccess("明细已修正");
     editOpen.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "明细修正失败（仅草稿态可修正）"));
+    notifyError(getErrorMessage(error, "明细修正失败（仅草稿态可修正）"));
   } finally {
     editSubmitting.value = false;
   }

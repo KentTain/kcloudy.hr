@@ -46,11 +46,11 @@ watch(
 function addCategory() {
   const value = newCategory.value.trim();
   if (!value) {
-    notifyError(new Error("请输入类别编码"));
+    notifyError("请输入类别编码");
     return;
   }
   if (editing.value.includes(value)) {
-    notifyError(new Error(`类别「${value}」已存在`));
+    notifyError(`类别「${value}」已存在`);
     return;
   }
   editing.value = [...editing.value, value];
@@ -69,7 +69,7 @@ async function handleSave() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "类别字典保存失败（已绑定薪酬项的类别不可删除）"));
+    notifyError(getErrorMessage(error, "类别字典保存失败（已绑定薪酬项的类别不可删除）"));
   } finally {
     submitting.value = false;
   }

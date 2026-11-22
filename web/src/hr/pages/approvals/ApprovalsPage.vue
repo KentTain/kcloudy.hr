@@ -175,7 +175,7 @@ const dataTable = useDataTable<ApprovalRequestItem>({
       const res = await listApprovalRequests(query);
       return envelope<ApprovalRequestItem>(res, page, page_size);
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "审批请求加载失败"));
+      notifyError(getErrorMessage(error, "审批请求加载失败"));
       throw error;
     }
   },
@@ -241,7 +241,7 @@ async function handleTransferConfirm(
     notifySuccess(targetName ? `已移交至 ${targetName}` : "移交成功");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "移交失败"));
+    notifyError(getErrorMessage(error, "移交失败"));
   }
 }
 </script>

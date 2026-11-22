@@ -65,7 +65,7 @@ watch(cycleId, async (value) => {
     const res = await getPerfDistribution(value);
     distribution.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "评级分布加载失败"));
+    notifyError(getErrorMessage(error, "评级分布加载失败"));
   }
 });
 
@@ -74,7 +74,7 @@ async function loadCycles() {
     const res = await listPerfCycles({ page: 1, page_size: 100 });
     cycles.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "考核周期加载失败"));
+    notifyError(getErrorMessage(error, "考核周期加载失败"));
   }
 }
 
@@ -214,7 +214,7 @@ const dataTable = useDataTable<PerfReviewItem>({
       const res = await listPerfReviews(query);
       return envelope<PerfReviewItem>(res, page, page_size);
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "评估列表加载失败"));
+      notifyError(getErrorMessage(error, "评估列表加载失败"));
       throw error;
     }
   },

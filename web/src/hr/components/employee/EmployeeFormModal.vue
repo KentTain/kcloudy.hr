@@ -138,11 +138,11 @@ async function loadAttributeFields() {
 function validateCurrentStep(): boolean {
   if (isEdit.value) return Boolean(name.value.trim());
   if (step.value === 0 && !name.value.trim()) {
-    notifyError(new Error("请填写姓名"));
+    notifyError("请填写姓名");
     return false;
   }
   if (step.value === 1 && !hireDate.value) {
-    notifyError(new Error("请选择入职日期"));
+    notifyError("请选择入职日期");
     return false;
   }
   return true;
@@ -211,7 +211,7 @@ async function handleSubmit() {
     }
     open.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   } finally {
     submitting.value = false;
   }

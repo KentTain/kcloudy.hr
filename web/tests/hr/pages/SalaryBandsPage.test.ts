@@ -201,7 +201,7 @@ describe("SalaryBandsPage", () => {
     expect(apiMocks.createSalaryBand).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
     expect(notifyError).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining("下限") })
+      expect.stringContaining("下限")
     );
   });
 

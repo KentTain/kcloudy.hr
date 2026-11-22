@@ -210,7 +210,7 @@ async function toggleStatus(position: Position) {
     notifySuccess(`岗位已${verb}`);
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `岗位${verb}失败`));
+    notifyError(getErrorMessage(error, `岗位${verb}失败`));
   }
 }
 
@@ -222,7 +222,7 @@ async function removePosition(position: Position) {
     dataTable.refresh();
   } catch (error) {
     // 在岗员工 > 0 时后端拒绝删除，提示只可停用
-    notifyError(error, getErrorMessage(error, "删除失败：该岗位存在在岗员工，仅可停用"));
+    notifyError(getErrorMessage(error, "删除失败：该岗位存在在岗员工，仅可停用"));
   }
 }
 

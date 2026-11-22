@@ -308,7 +308,7 @@ async function handleTransferConfirm(
     notifySuccess(targetName ? `已移交至 ${targetName}` : "移交成功");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "移交失败"));
+    notifyError(getErrorMessage(error, "移交失败"));
   }
 }
 
@@ -331,7 +331,7 @@ async function searchPickerEmployees() {
     });
     pickerRows.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工搜索失败"));
+    notifyError(getErrorMessage(error, "员工搜索失败"));
   } finally {
     pickerLoading.value = false;
   }

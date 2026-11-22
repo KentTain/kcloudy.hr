@@ -81,7 +81,7 @@ watch(
 
 async function handleSubmit() {
   if (!name.value.trim()) {
-    notifyError(new Error("请填写假期类型名称"));
+    notifyError("请填写假期类型名称");
     return;
   }
   submitting.value = true;
@@ -98,7 +98,7 @@ async function handleSubmit() {
       notifySuccess("假期类型已更新");
     } else {
       if (!code.value.trim()) {
-        notifyError(new Error("请填写假期类型编码"));
+        notifyError("请填写假期类型编码");
         submitting.value = false;
         return;
       }
@@ -115,7 +115,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "假期类型保存失败"));
+    notifyError(getErrorMessage(error, "假期类型保存失败"));
   } finally {
     submitting.value = false;
   }

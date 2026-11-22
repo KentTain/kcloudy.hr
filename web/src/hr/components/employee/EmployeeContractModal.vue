@@ -63,7 +63,7 @@ watch(
 
 async function handleSubmit() {
   if (!contractNo.value.trim() || !startDate.value) {
-    notifyError(new Error("请填写合同编号与开始日期"));
+    notifyError("请填写合同编号与开始日期");
     return;
   }
   submitting.value = true;
@@ -88,7 +88,7 @@ async function handleSubmit() {
     emit("saved");
     open.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   } finally {
     submitting.value = false;
   }

@@ -195,7 +195,7 @@ async function toggleEnabled(item: SalaryItem) {
     notifySuccess(`薪酬项已${verb}`);
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `薪酬项${verb}失败`));
+    notifyError(getErrorMessage(error, `薪酬项${verb}失败`));
   }
 }
 
@@ -207,7 +207,7 @@ async function removeItem(item: SalaryItem) {
     dataTable.refresh();
   } catch (error) {
     // 被定薪方案/发薪明细引用时后端拒绝删除
-    notifyError(error, getErrorMessage(error, "删除失败：该薪酬项已被引用，仅可停用"));
+    notifyError(getErrorMessage(error, "删除失败：该薪酬项已被引用，仅可停用"));
   }
 }
 

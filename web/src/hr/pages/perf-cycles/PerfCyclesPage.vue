@@ -178,7 +178,7 @@ const dataTable = useDataTable<PerfCycleItem>({
       const res = await listPerfCycles(query);
       return envelope<PerfCycleItem>(res, page, page_size);
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "考核周期加载失败"));
+      notifyError(getErrorMessage(error, "考核周期加载失败"));
       throw error;
     }
   },
@@ -206,7 +206,7 @@ async function handleTransition(item: PerfCycleItem, action: string) {
     notifySuccess(`周期已${label}`);
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `周期${label}失败`));
+    notifyError(getErrorMessage(error, `周期${label}失败`));
   }
 }
 
@@ -218,7 +218,7 @@ async function handleDelete(item: PerfCycleItem) {
     notifySuccess("周期已删除");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "周期删除失败"));
+    notifyError(getErrorMessage(error, "周期删除失败"));
   }
 }
 

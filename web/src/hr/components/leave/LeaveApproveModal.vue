@@ -74,7 +74,7 @@ async function handleApprove() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "审批操作失败"));
+    notifyError(getErrorMessage(error, "审批操作失败"));
   } finally {
     submitting.value = false;
   }
@@ -83,7 +83,7 @@ async function handleApprove() {
 async function handleReject() {
   if (!props.request) return;
   if (!comment.value.trim()) {
-    notifyError(new Error("驳回时必须填写审批意见"));
+    notifyError("驳回时必须填写审批意见");
     return;
   }
   submitting.value = true;
@@ -93,7 +93,7 @@ async function handleReject() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "审批操作失败"));
+    notifyError(getErrorMessage(error, "审批操作失败"));
   } finally {
     submitting.value = false;
   }

@@ -70,19 +70,19 @@ watch(open, (value) => {
 
 async function handleSubmit() {
   if (!leaveTypeId.value) {
-    notifyError(new Error("请选择假期类型"));
+    notifyError("请选择假期类型");
     return;
   }
   if (!startTime.value || !endTime.value) {
-    notifyError(new Error("请填写请假起止时间"));
+    notifyError("请填写请假起止时间");
     return;
   }
   if (duration.value == null || duration.value <= 0) {
-    notifyError(new Error("结束时间须不早于开始时间"));
+    notifyError("结束时间须不早于开始时间");
     return;
   }
   if (!reason.value.trim()) {
-    notifyError(new Error("请填写请假事由"));
+    notifyError("请填写请假事由");
     return;
   }
   submitting.value = true;
@@ -97,7 +97,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "请假申请提交失败"));
+    notifyError(getErrorMessage(error, "请假申请提交失败"));
   } finally {
     submitting.value = false;
   }

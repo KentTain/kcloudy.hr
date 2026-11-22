@@ -94,7 +94,7 @@ async function loadAll() {
     }
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "属性组加载失败"));
+    notifyError(getErrorMessage(error, "属性组加载失败"));
   } finally {
     loading.value = false;
   }
@@ -109,7 +109,7 @@ async function loadDefinitions() {
     const res = await listFieldDefinitions(activeGroupId.value);
     definitions.value = (res.data ?? []).slice().sort((a, b) => a.sort - b.sort);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "字段定义加载失败"));
+    notifyError(getErrorMessage(error, "字段定义加载失败"));
     definitions.value = [];
   }
 }
@@ -126,7 +126,7 @@ function openGroupEditor(group: FieldGroup | null) {
 
 async function submitGroup() {
   if (!groupCode.value.trim() || !groupName.value.trim()) {
-    notifyError(new Error("请填写组编码与名称"));
+    notifyError("请填写组编码与名称");
     return;
   }
   try {
@@ -148,7 +148,7 @@ async function submitGroup() {
     groupEditorOpen.value = false;
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "属性组保存失败"));
+    notifyError(getErrorMessage(error, "属性组保存失败"));
   }
 }
 
@@ -160,7 +160,7 @@ async function removeGroup(group: FieldGroup) {
     if (activeGroupId.value === group.id) activeGroupId.value = "";
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -192,7 +192,7 @@ function validateExtData(): Record<string, unknown> | undefined {
 async function submitDefinition() {
   if (!activeGroupId.value) return;
   if (!defName.value.trim()) {
-    notifyError(new Error("请填写字段名称"));
+    notifyError("请填写字段名称");
     return;
   }
   const extData = validateExtData();
@@ -217,7 +217,7 @@ async function submitDefinition() {
     defEditorOpen.value = false;
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "字段定义保存失败"));
+    notifyError(getErrorMessage(error, "字段定义保存失败"));
   }
 }
 
@@ -228,7 +228,7 @@ async function removeDefinition(definition: FieldDefinition) {
     notifySuccess("字段定义已删除");
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 </script>

@@ -109,13 +109,13 @@ async function handleExport() {
     });
     const file = res.data;
     if (!file?.content_base64) {
-      notifyError(new Error("报表文件生成失败"));
+      notifyError("报表文件生成失败");
       return;
     }
     downloadBase64File(file.filename, file.content_base64);
     notifySuccess("报表已导出（已写审计）");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "报表导出失败"));
+    notifyError(getErrorMessage(error, "报表导出失败"));
   } finally {
     exporting.value = false;
   }

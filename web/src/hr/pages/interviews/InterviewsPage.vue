@@ -72,7 +72,7 @@ async function loadWeek() {
       .sort()
       .map((date) => ({ date, items: raw[date] ?? [] }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "面试日程加载失败"));
+    notifyError(getErrorMessage(error, "面试日程加载失败"));
     days.value = [];
   } finally {
     loading.value = false;

@@ -71,7 +71,7 @@ async function onFileSelect(files: File[]) {
     const text = await file.text();
     const table = parseCsv(text);
     if (!table.length) {
-      notifyError(new Error("文件为空"));
+      notifyError("文件为空");
       return;
     }
     const headers = table[0].map((header) => header.trim());
@@ -96,7 +96,7 @@ async function onFileSelect(files: File[]) {
     });
     notifySuccess(`已解析 ${rows.value.length} 行数据`);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "文件解析失败"));
+    notifyError(getErrorMessage(error, "文件解析失败"));
   } finally {
     parsing.value = false;
   }
@@ -104,7 +104,7 @@ async function onFileSelect(files: File[]) {
 
 async function handleDryRun() {
   if (!rows.value.length) {
-    notifyError(new Error("请先上传并解析文件"));
+    notifyError("请先上传并解析文件");
     return;
   }
   importing.value = true;
@@ -112,7 +112,7 @@ async function handleDryRun() {
     const res = await importEmployees({ dry_run: true, rows: rows.value });
     result.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "预检失败"));
+    notifyError(getErrorMessage(error, "预检失败"));
   } finally {
     importing.value = false;
   }
@@ -128,7 +128,7 @@ async function handleImport() {
       emit("imported");
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "导入失败"));
+    notifyError(getErrorMessage(error, "导入失败"));
   } finally {
     importing.value = false;
   }

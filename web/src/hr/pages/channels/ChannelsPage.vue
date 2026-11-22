@@ -59,7 +59,7 @@ async function loadChannels() {
     const res = await listChannels();
     channels.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "渠道清单加载失败"));
+    notifyError(getErrorMessage(error, "渠道清单加载失败"));
     channels.value = [];
   } finally {
     loading.value = false;
@@ -77,7 +77,7 @@ async function handleSync(item: ChannelCard) {
     const res = await triggerChannelSync(item.channel);
     notifySuccess(`同步任务已提交（任务 ID：${res.data?.task_id ?? "--"}）`);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "同步任务提交失败"));
+    notifyError(getErrorMessage(error, "同步任务提交失败"));
   }
 }
 
@@ -90,10 +90,10 @@ async function handleTestConnection(item: ChannelCard) {
     if (res.data?.ok) {
       notifySuccess(`「${item.name}」${res.data.message}`);
     } else {
-      notifyError(new Error(res.data?.message ?? "连通失败"), `「${item.name}」连通失败`);
+      notifyError(`「${item.name}」连通失败`);
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "连通测试请求失败"));
+    notifyError(getErrorMessage(error, "连通测试请求失败"));
   } finally {
     testingChannel.value = null;
   }
@@ -114,7 +114,7 @@ async function openPostings(item: ChannelCard) {
     const res = await listChannelPostings(item.channel);
     postings.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "已发布职位加载失败"));
+    notifyError(getErrorMessage(error, "已发布职位加载失败"));
     postings.value = [];
   } finally {
     postingsLoading.value = false;

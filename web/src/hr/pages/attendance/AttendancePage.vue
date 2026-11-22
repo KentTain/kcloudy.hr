@@ -104,7 +104,7 @@ async function loadStats() {
     });
     stats.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "考勤总览加载失败"));
+    notifyError(getErrorMessage(error, "考勤总览加载失败"));
     stats.value = null;
   } finally {
     statsLoading.value = false;

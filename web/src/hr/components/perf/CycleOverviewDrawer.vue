@@ -74,7 +74,7 @@ watch(open, async (value) => {
     goals.value = goalsRes.data ?? [];
     distribution.value = distRes.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "周期概览加载失败"));
+    notifyError(getErrorMessage(error, "周期概览加载失败"));
   } finally {
     loading.value = false;
   }

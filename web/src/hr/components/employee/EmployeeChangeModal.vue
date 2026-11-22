@@ -118,11 +118,11 @@ function removeSalaryRow(index: number) {
 async function handleSubmit() {
   if (!props.employee) return;
   if (!effectiveDate.value) {
-    notifyError(new Error("请选择生效日期"));
+    notifyError("请选择生效日期");
     return;
   }
   if (isSalary.value && salaryRows.value.some((row) => !row.item_id || row.amount == null)) {
-    notifyError(new Error("请补全薪酬项与金额"));
+    notifyError("请补全薪酬项与金额");
     return;
   }
   submitting.value = true;

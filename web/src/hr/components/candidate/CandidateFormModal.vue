@@ -61,7 +61,7 @@ watch(
 
 async function handleSubmit() {
   if (!name.value.trim()) {
-    notifyError(new Error("请填写候选人姓名"));
+    notifyError("请填写候选人姓名");
     return;
   }
   submitting.value = true;
@@ -77,7 +77,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人录入失败"));
+    notifyError(getErrorMessage(error, "候选人录入失败"));
   } finally {
     submitting.value = false;
   }

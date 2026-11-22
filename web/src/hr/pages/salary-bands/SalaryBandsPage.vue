@@ -215,7 +215,7 @@ async function removeBand(band: SalaryBand) {
     notifySuccess("薪带版本已删除");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败：仅未生效版本可删除"));
+    notifyError(getErrorMessage(error, "删除失败：仅未生效版本可删除"));
   }
 }
 </script>

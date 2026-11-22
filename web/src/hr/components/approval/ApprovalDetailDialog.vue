@@ -76,7 +76,7 @@ watch(
       const res = await getApprovalRequest(id);
       detail.value = res.data ?? null;
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "审批请求详情加载失败"));
+      notifyError(getErrorMessage(error, "审批请求详情加载失败"));
     }
     if (changes.value.length > 0 && definitions.value.length === 0) {
       try {

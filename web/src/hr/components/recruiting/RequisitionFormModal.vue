@@ -140,7 +140,7 @@ function validateStep(current: number): string | null {
 function handleNext() {
   const error = validateStep(step.value);
   if (error) {
-    notifyError(new Error(error));
+    notifyError(error);
     return;
   }
   step.value += 1;
@@ -153,7 +153,7 @@ function handlePrev() {
 async function handleSubmit() {
   const error = validateStep(2);
   if (error) {
-    notifyError(new Error(error));
+    notifyError(error);
     return;
   }
   submitting.value = true;
@@ -181,7 +181,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "需求创建失败"));
+    notifyError(getErrorMessage(error, "需求创建失败"));
   } finally {
     submitting.value = false;
   }

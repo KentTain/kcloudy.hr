@@ -40,7 +40,7 @@ async function loadBalances() {
     const res = await listMyLeaveBalances();
     balances.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "假期余额加载失败"));
+    notifyError(getErrorMessage(error, "假期余额加载失败"));
   } finally {
     balancesLoading.value = false;
   }
@@ -179,7 +179,7 @@ async function cancelRequest(item: LeaveRequest) {
     dataTable.refresh();
     void loadBalances();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "撤销失败"));
+    notifyError(getErrorMessage(error, "撤销失败"));
   }
 }
 

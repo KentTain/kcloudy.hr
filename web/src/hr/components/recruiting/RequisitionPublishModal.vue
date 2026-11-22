@@ -81,7 +81,7 @@ function toggleChannel(channel: RecruitingChannel, checked: boolean) {
 async function handlePublish() {
   if (!props.requisition) return;
   if (!selectedChannels.value.length) {
-    notifyError(new Error("请至少选择一个渠道"));
+    notifyError("请至少选择一个渠道");
     return;
   }
   submitting.value = true;
@@ -95,7 +95,7 @@ async function handlePublish() {
     open.value = false;
     emit("published");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "渠道发布失败"));
+    notifyError(getErrorMessage(error, "渠道发布失败"));
   } finally {
     submitting.value = false;
   }

@@ -82,25 +82,25 @@ function removeRow(index: number) {
 
 async function handleSubmit() {
   if (!rows.value.length) {
-    notifyError(new Error("请至少保留一行薪酬项"));
+    notifyError("请至少保留一行薪酬项");
     return;
   }
   if (rows.value.some((row) => !row.item_id)) {
-    notifyError(new Error("存在未选择薪酬项的行"));
+    notifyError("存在未选择薪酬项的行");
     return;
   }
   if (rows.value.some((row) => !(row.amount > 0))) {
-    notifyError(new Error("薪酬项金额需大于 0"));
+    notifyError("薪酬项金额需大于 0");
     return;
   }
   if (!effectiveFrom.value) {
-    notifyError(new Error("请选择生效日期"));
+    notifyError("请选择生效日期");
     return;
   }
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   if (effectiveFrom.value < todayStr) {
-    notifyError(new Error("生效日期不能早于当日"));
+    notifyError("生效日期不能早于当日");
     return;
   }
   submitting.value = true;
@@ -114,7 +114,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪酬方案保存失败"));
+    notifyError(getErrorMessage(error, "薪酬方案保存失败"));
   } finally {
     submitting.value = false;
   }

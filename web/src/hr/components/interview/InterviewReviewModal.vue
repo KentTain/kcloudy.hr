@@ -97,7 +97,7 @@ async function handleGenerateSummary() {
     const res = await submitInterviewSummary(props.interview.id);
     const data = res.data;
     if (!data?.task_id) {
-      notifyError(new Error("纪要任务提交失败，可后补重试"));
+      notifyError("纪要任务提交失败，可后补重试");
       return;
     }
     if (data.duplicated) {
@@ -106,7 +106,7 @@ async function handleGenerateSummary() {
     summaryPending.value = true;
     startSummaryPolling(props.interview.id, 0);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "纪要任务提交失败，可后补重试"));
+    notifyError(getErrorMessage(error, "纪要任务提交失败，可后补重试"));
   } finally {
     summarySubmitting.value = false;
   }
@@ -116,7 +116,7 @@ function startSummaryPolling(interviewId: string, round: number) {
   stopSummaryPolling();
   if (round >= SUMMARY_POLL_MAX_ROUNDS) {
     summaryPending.value = false;
-    notifyError(new Error("纪要仍在生成中，请稍后重新打开查看"));
+    notifyError("纪要仍在生成中，请稍后重新打开查看");
     return;
   }
   summaryPollTimer = setTimeout(() => {
@@ -149,10 +149,10 @@ async function handleFollowupQuestions() {
     const res = await getFollowupQuestions(props.interview.id);
     questions.value = res.data?.questions ?? [];
     if (!questions.value.length) {
-      notifyError(new Error("未生成追问建议，请手动填写反馈"));
+      notifyError("未生成追问建议，请手动填写反馈");
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "追问建议生成失败，请手动填写"));
+    notifyError(getErrorMessage(error, "追问建议生成失败，请手动填写"));
   } finally {
     questionsLoading.value = false;
   }
@@ -179,7 +179,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "面试评价提交失败"));
+    notifyError(getErrorMessage(error, "面试评价提交失败"));
   } finally {
     submitting.value = false;
   }

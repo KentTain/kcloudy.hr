@@ -46,11 +46,11 @@ watch(open, (value) => {
 async function handleSubmit() {
   const scoreValue = Number(score.value);
   if (!score.value || Number.isNaN(scoreValue)) {
-    notifyError(new Error("请填写得分"), "请填写得分");
+    notifyError("请填写得分");
     return;
   }
   if (rating.value === ALL) {
-    notifyError(new Error("请选择评级"), "请选择评级");
+    notifyError("请选择评级");
     return;
   }
   if (!props.review) return;
@@ -65,7 +65,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "评分提交失败"));
+    notifyError(getErrorMessage(error, "评分提交失败"));
   } finally {
     submitting.value = false;
   }

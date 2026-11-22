@@ -121,7 +121,7 @@ async function loadApplications() {
     });
     applications.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "投递列表加载失败"));
+    notifyError(getErrorMessage(error, "投递列表加载失败"));
     applications.value = [];
   }
 }
@@ -145,7 +145,7 @@ async function handleGenerateJd() {
     jdDraft.value = res.data?.jd_draft ?? "";
     if (jdDraft.value) notifySuccess("JD 草稿已生成，可复制后手动编辑保存");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "JD 草稿生成失败，请手动编辑"));
+    notifyError(getErrorMessage(error, "JD 草稿生成失败，请手动编辑"));
   } finally {
     jdGenerating.value = false;
   }
@@ -171,7 +171,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "阶段流转失败"));
+    notifyError(getErrorMessage(error, "阶段流转失败"));
   }
 }
 
@@ -182,7 +182,7 @@ async function handleOfflinePosting(postingId: string) {
     notifySuccess("渠道职位已下线");
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "下线失败"));
+    notifyError(getErrorMessage(error, "下线失败"));
   }
 }
 
@@ -196,7 +196,7 @@ async function handleClose() {
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "关闭需求失败"));
+    notifyError(getErrorMessage(error, "关闭需求失败"));
   }
 }
 

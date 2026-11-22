@@ -72,7 +72,7 @@ async function handleSubmit() {
   if (!application) return;
   const error = validate();
   if (error) {
-    notifyError(new Error(error));
+    notifyError(error);
     return;
   }
   submitting.value = true;
@@ -90,7 +90,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "安排面试失败"));
+    notifyError(getErrorMessage(error, "安排面试失败"));
   } finally {
     submitting.value = false;
   }

@@ -60,16 +60,16 @@ watch(open, (value) => {
 
 async function handleSubmit() {
   if (!code.value.trim()) {
-    notifyError(new Error("请填写岗位编码"));
+    notifyError("请填写岗位编码");
     return;
   }
   if (!name.value.trim()) {
-    notifyError(new Error("请填写岗位名称"));
+    notifyError("请填写岗位名称");
     return;
   }
   const headcount = headcountInput.value.trim() === "" ? undefined : Number(headcountInput.value);
   if (headcount !== undefined && (!Number.isInteger(headcount) || headcount < 0)) {
-    notifyError(new Error("编制数须为非负整数"));
+    notifyError("编制数须为非负整数");
     return;
   }
   submitting.value = true;
@@ -98,7 +98,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, isEdit.value ? "岗位更新失败" : "岗位创建失败"));
+    notifyError(getErrorMessage(error, isEdit.value ? "岗位更新失败" : "岗位创建失败"));
   } finally {
     submitting.value = false;
   }

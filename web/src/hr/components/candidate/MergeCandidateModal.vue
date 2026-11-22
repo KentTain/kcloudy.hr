@@ -69,7 +69,7 @@ async function search() {
       return true;
     });
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人检索失败"));
+    notifyError(getErrorMessage(error, "候选人检索失败"));
     rows.value = [];
   } finally {
     loading.value = false;
@@ -107,7 +107,7 @@ async function handleMerge() {
     open.value = false;
     emit("merged");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人合并失败"));
+    notifyError(getErrorMessage(error, "候选人合并失败"));
   }
 }
 </script>

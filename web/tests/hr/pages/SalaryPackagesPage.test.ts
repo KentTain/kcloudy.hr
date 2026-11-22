@@ -235,7 +235,7 @@ describe("SalaryPackagesPage", () => {
     expect(apiMocks.adjustSalaryPackage).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
     expect(notifyError).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining("早于当日") })
+      expect.stringContaining("早于当日")
     );
   });
 

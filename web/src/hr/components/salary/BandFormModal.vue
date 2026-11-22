@@ -71,15 +71,15 @@ async function handleSubmit() {
   const mid = Number(midSalary.value);
   const max = Number(maxSalary.value);
   if (!jobLevel.value.trim()) {
-    notifyError(new Error("请填写职级"));
+    notifyError("请填写职级");
     return;
   }
   if (!(min <= mid && mid <= max)) {
-    notifyError(new Error("带宽校验失败：需满足 下限 ≤ 中位值 ≤ 上限"));
+    notifyError("带宽校验失败：需满足 下限 ≤ 中位值 ≤ 上限");
     return;
   }
   if (!effectiveFrom.value) {
-    notifyError(new Error("请选择生效起日期"));
+    notifyError("请选择生效起日期");
     return;
   }
   submitting.value = true;
@@ -107,7 +107,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪带保存失败"));
+    notifyError(getErrorMessage(error, "薪带保存失败"));
   } finally {
     submitting.value = false;
   }

@@ -119,7 +119,7 @@ async function loadAll() {
     const res = await getCandidate(props.candidateId);
     candidate.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人详情加载失败"));
+    notifyError(getErrorMessage(error, "候选人详情加载失败"));
     candidate.value = null;
   } finally {
     loading.value = false;
@@ -148,7 +148,7 @@ async function toggleBlacklist() {
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "黑名单操作失败"));
+    notifyError(getErrorMessage(error, "黑名单操作失败"));
   }
 }
 
@@ -161,7 +161,7 @@ async function reparseResume() {
     await parseResume(item.id);
     notifySuccess("简历解析任务已提交，完成后档案自动更新");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "简历解析提交失败"));
+    notifyError(getErrorMessage(error, "简历解析提交失败"));
   }
 }
 
@@ -198,7 +198,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "阶段流转失败"));
+    notifyError(getErrorMessage(error, "阶段流转失败"));
   }
 }
 </script>

@@ -56,7 +56,7 @@ watch(open, async (value) => {
     const res = await listEmployees({ page: 1, page_size: 50, position_id: props.position.id });
     employees.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "在岗员工加载失败"));
+    notifyError(getErrorMessage(error, "在岗员工加载失败"));
   } finally {
     loading.value = false;
   }

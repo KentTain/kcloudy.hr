@@ -144,7 +144,7 @@ async function loadCards() {
     rows.value = res.data ?? [];
     total.value = res.total || 0;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人卡片加载失败"));
+    notifyError(getErrorMessage(error, "候选人卡片加载失败"));
     rows.value = [];
     total.value = 0;
   } finally {
@@ -191,7 +191,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
     notifySuccess(`已流转至「${APPLICATION_STAGE_LABELS[target]}」`);
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "阶段流转失败"));
+    notifyError(getErrorMessage(error, "阶段流转失败"));
   }
 }
 
@@ -224,14 +224,14 @@ async function applyOfferAction(
     const offerRes = await getApplicationOffer(application.id);
     const offer = offerRes.data;
     if (!offer) {
-      notifyError(new Error("未找到该投递的 Offer 单，请确认 Offer 已发送"));
+      notifyError("未找到该投递的 Offer 单，请确认 Offer 已发送");
       return;
     }
     await (action === "accept" ? acceptOffer(offer.id) : rejectOffer(offer.id));
     notifySuccess(`已${label} Offer，申请${action === "accept" ? "进入待入职" : "已淘汰"}`);
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `Offer ${label}失败`));
+    notifyError(getErrorMessage(error, `Offer ${label}失败`));
   }
 }
 

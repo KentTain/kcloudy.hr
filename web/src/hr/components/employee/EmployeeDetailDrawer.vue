@@ -227,7 +227,7 @@ async function initLoad() {
     detail.value = res.data ?? null;
   } catch (error) {
     if (s !== seq) return;
-    notifyError(error, getErrorMessage(error, "员工详情加载失败"));
+    notifyError(getErrorMessage(error, "员工详情加载失败"));
   } finally {
     if (s === seq) loading.value = false;
   }
@@ -321,7 +321,7 @@ async function loadTab(tab: string) {
       }
     }
   } catch (error) {
-    if (s === seq) notifyError(error, getErrorMessage(error, "数据加载失败"));
+    if (s === seq) notifyError(getErrorMessage(error, "数据加载失败"));
   }
 }
 
@@ -422,7 +422,7 @@ async function showSensitive() {
     sensitive.value = res.data ?? null;
     notifySuccess("已查看明文（操作已记录审计）");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "明文查看失败"));
+    notifyError(getErrorMessage(error, "明文查看失败"));
   }
 }
 
@@ -439,7 +439,7 @@ async function openAccountFor() {
     const res = await openAccount(props.employeeId);
     accountResult.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "账号开通失败"));
+    notifyError(getErrorMessage(error, "账号开通失败"));
   }
 }
 
@@ -452,7 +452,7 @@ async function deleteEmployeeFor() {
     open.value = false;
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -464,7 +464,7 @@ async function copyAccountResult() {
     );
     notifySuccess("已复制账号与初始密码");
   } catch {
-    notifyError(new Error("复制失败，请手动复制"));
+    notifyError("复制失败，请手动复制");
   }
 }
 
@@ -478,7 +478,7 @@ async function terminateContractFor(contract: Contract) {
     await reload();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "终止失败"));
+    notifyError(getErrorMessage(error, "终止失败"));
   }
 }
 
@@ -489,7 +489,7 @@ async function removeContract(contract: Contract) {
     notifySuccess("合同已删除");
     await reload();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -509,7 +509,7 @@ async function uploadAttachment(docType: string, files: File[]) {
     loadedTabs.value.delete("attachments");
     await loadTab("attachments");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "附件上传失败"));
+    notifyError(getErrorMessage(error, "附件上传失败"));
   } finally {
     uploadingDocType.value = "";
   }
@@ -520,7 +520,7 @@ async function downloadAttachment(attachment: Attachment) {
     const res = await getAttachmentDownloadUrl(attachment.id);
     if (res.data?.url) window.open(res.data.url, "_blank");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "下载链接获取失败"));
+    notifyError(getErrorMessage(error, "下载链接获取失败"));
   }
 }
 
@@ -531,7 +531,7 @@ async function removeAttachment(attachment: Attachment) {
     notifySuccess("附件已删除");
     attachments.value = attachments.value.filter((item) => item.id !== attachment.id);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -574,7 +574,7 @@ async function saveCustomAttributes() {
     await loadTab("custom");
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   }
 }
 </script>

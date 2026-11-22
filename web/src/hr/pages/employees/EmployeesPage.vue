@@ -297,7 +297,7 @@ async function openAccountFor(employee: Employee) {
     accountResult.value = res.data ?? null;
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "账号开通失败"));
+    notifyError(getErrorMessage(error, "账号开通失败"));
   }
 }
 
@@ -308,7 +308,7 @@ async function removeEmployee(employee: Employee) {
     notifySuccess("员工已删除");
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -320,7 +320,7 @@ async function copyAccountResult() {
     );
     notifySuccess("已复制账号与初始密码");
   } catch {
-    notifyError(new Error("复制失败，请手动复制"));
+    notifyError("复制失败，请手动复制");
   }
 }
 

@@ -97,12 +97,12 @@ async function downloadFailures(item: AttendanceBatch) {
     const res = await exportAiBatchFailures(item.id);
     const file = res.data;
     if (!file?.content_base64) {
-      notifyError(new Error("失败明细文件生成失败"));
+      notifyError("失败明细文件生成失败");
       return;
     }
     downloadBase64File(file.filename, file.content_base64);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "失败明细下载失败"));
+    notifyError(getErrorMessage(error, "失败明细下载失败"));
   } finally {
     downloadingId.value = null;
   }
@@ -155,7 +155,7 @@ function enterPreview(data: AttendanceBatch) {
 
 async function startParse() {
   if (!selectedFile.value) {
-    notifyError(new Error("请先选择考勤文档"));
+    notifyError("请先选择考勤文档");
     return;
   }
   submitting.value = true;
@@ -167,7 +167,7 @@ async function startParse() {
       startPolling(batch.value.id);
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "上传失败"));
+    notifyError(getErrorMessage(error, "上传失败"));
   } finally {
     submitting.value = false;
   }
@@ -181,7 +181,7 @@ async function retryParse() {
     batch.value = res.data ?? batch.value;
     startPolling(batch.value.id);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "重新解析失败"));
+    notifyError(getErrorMessage(error, "重新解析失败"));
   } finally {
     submitting.value = false;
   }
@@ -209,7 +209,7 @@ async function confirmImport() {
     );
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "导入失败"));
+    notifyError(getErrorMessage(error, "导入失败"));
   } finally {
     submitting.value = false;
   }

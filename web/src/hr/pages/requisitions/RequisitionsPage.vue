@@ -245,7 +245,7 @@ async function handleClose(item: Requisition) {
     notifySuccess("需求已关闭");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "关闭需求失败"));
+    notifyError(getErrorMessage(error, "关闭需求失败"));
   }
 }
 
