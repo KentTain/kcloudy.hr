@@ -73,9 +73,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return [...document.querySelectorAll("button")].find(
-    (el) => el.textContent?.trim() === text
-  ) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find((el) => el.textContent?.trim() === text) as
+    | HTMLButtonElement
+    | undefined;
 }
 
 /** DialogContent 经 Teleport 渲染到 body，按钮点击走 document 查询 */
@@ -190,9 +190,7 @@ describe("SalaryItemsPage", () => {
 
     expect(apiMocks.deleteSalaryItem).toHaveBeenCalledWith("it-1");
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(
-      expect.stringContaining("仅可停用")
-    );
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining("仅可停用"));
   });
 
   it("新增与维护按钮随写权限显隐", async () => {

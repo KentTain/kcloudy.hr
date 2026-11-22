@@ -39,11 +39,11 @@ import {
   INTERVIEW_FORM_LABELS,
   INTERVIEW_RESULT_LABELS,
   INTERVIEW_RESULT_VARIANTS,
+  type InterviewForm,
   REQUISITION_PRIORITY_LABELS,
   REQUISITION_PRIORITY_VARIANTS,
   REQUISITION_STATUS_LABELS,
   REQUISITION_STATUS_VARIANTS,
-  type InterviewForm,
   type Requisition,
 } from "@/hr/types/recruiting";
 import type { TeamInterviewItem, TeamReviewItem } from "@/hr/types/selfService";

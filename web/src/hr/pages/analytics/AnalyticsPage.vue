@@ -24,13 +24,13 @@ import {
 import ReportAskDialog from "@/hr/components/report/ReportAskDialog.vue";
 import TrendLineChart from "@/hr/components/report/TrendLineChart.vue";
 import type { OrgTreeNode } from "@/hr/types/employee";
-import type { CompDistItem } from "@/hr/types/report";
 import { PERF_RATINGS } from "@/hr/types/perf";
 import {
   APPLICATION_STAGE_LABELS,
   CANDIDATE_CHANNEL_LABELS,
   FUNNEL_SEGMENTS,
 } from "@/hr/types/recruiting";
+import type { CompDistItem } from "@/hr/types/report";
 import {
   type AttritionRiskData,
   type CompDistData,

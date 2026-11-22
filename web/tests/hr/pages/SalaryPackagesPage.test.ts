@@ -234,9 +234,7 @@ describe("SalaryPackagesPage", () => {
 
     expect(apiMocks.adjustSalaryPackage).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(
-      expect.stringContaining("早于当日")
-    );
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining("早于当日"));
   });
 
   it("发起调薪按钮随 hr:salary_package:write 权限显隐", async () => {

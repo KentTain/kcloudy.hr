@@ -74,9 +74,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return [...document.querySelectorAll("button")].find(
-    (el) => el.textContent?.trim() === text
-  ) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find((el) => el.textContent?.trim() === text) as
+    | HTMLButtonElement
+    | undefined;
 }
 
 /** DialogContent 经 Teleport 渲染到 body，按钮点击走 document 查询 */
@@ -199,9 +199,7 @@ describe("SalaryBandsPage", () => {
 
     expect(apiMocks.createSalaryBand).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(
-      expect.stringContaining("下限")
-    );
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining("下限"));
   });
 
   it("未生效版本删除走确认，历史版本无删除入口；写权限隐藏维护入口", async () => {

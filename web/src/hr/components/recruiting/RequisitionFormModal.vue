@@ -110,8 +110,7 @@ watch(
         id: p.id,
         name: p.name,
       }));
-      channelCards.value =
-        channelRes.status === "fulfilled" ? (channelRes.value.data ?? []) : [];
+      channelCards.value = channelRes.status === "fulfilled" ? (channelRes.value.data ?? []) : [];
     } catch {
       positionOptions.value = [];
       channelCards.value = [];

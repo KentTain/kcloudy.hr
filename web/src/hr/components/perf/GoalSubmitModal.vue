@@ -46,9 +46,7 @@ const searching = ref(false);
 const goals = ref<DraftGoal[]>([]);
 const submitting = ref(false);
 
-computed(
-  () => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null
-);
+computed(() => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null);
 
 const totalWeight = computed(() =>
   goals.value.reduce((sum, goal) => sum + (Number(goal.weight) || 0), 0)
