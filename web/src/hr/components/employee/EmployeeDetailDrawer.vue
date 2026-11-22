@@ -867,7 +867,7 @@ async function saveCustomAttributes() {
                     </div>
                     <div v-if="canContractWrite" class="flex items-center gap-1">
                       <Button
-                        v-if="contract.status === 'active' && isActiveEmployee(detail?.status)"
+                        v-if="contract.status === 'active' && isActiveEmployee(detail?.status ?? '')"
                         variant="ghost"
                         size="sm"
                         @click="renewFrom = contract; contractModalOpen = true"

@@ -137,7 +137,7 @@ async function handleSubmit() {
         code: goal.code.trim(),
         name: goal.name.trim(),
         weight: Number(goal.weight),
-        target_value: goal.target_value.trim() || undefined,
+        target_value: goal.target_value?.trim() || undefined,
       })),
     });
     notifySuccess("目标已提交");

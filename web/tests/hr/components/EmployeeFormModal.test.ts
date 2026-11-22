@@ -60,7 +60,7 @@ function clickButton(testid: string) {
   (el as HTMLButtonElement).click();
 }
 
-function mountModal(props: Record<string, unknown>) {
+function mountModal(props: { mode: "create" | "edit"; employee: EmployeeDetail | null }) {
   return mount(EmployeeFormModal, {
     props: { open: true, ...props, "onUpdate:open": vi.fn(), onSaved: vi.fn() },
     global: { stubs: { DateInput: DateInputStub } },
@@ -87,6 +87,7 @@ const EDIT_EMPLOYEE: EmployeeDetail = {
   birth_date: "1995-01-01",
   id_card_masked: "110101********1234",
   bank_card_masked: null,
+  bank_name: null,
 };
 
 beforeEach(() => {

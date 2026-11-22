@@ -185,7 +185,7 @@ describe("SalaryPackagesPage", () => {
     const header =
       document.querySelector('[data-testid="package-employee-header"]')?.textContent ?? "";
     expect(header).toContain("带宽区间内");
-    expect(header).toContain("18000.00") || expect(header).toContain("18,000.00");
+    expect(header.includes("18000.00") || header.includes("18,000.00")).toBe(true);
     const history = document.querySelector('[data-testid="package-history"]')?.textContent ?? "";
     expect(history).toContain("2025-03-01 ~ 2025-12-31");
   });

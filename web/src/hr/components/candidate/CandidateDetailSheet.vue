@@ -173,7 +173,7 @@ const infoItems = computed(() => {
     { label: "邮箱", value: item.email || "--" },
     {
       label: "来源渠道",
-      value: CANDIDATE_CHANNEL_LABELS[item.source_channel] ?? item.source_channel,
+      value: CANDIDATE_CHANNEL_LABELS[item.source_channel ?? ""] ?? item.source_channel,
     },
     {
       label: "工作年限",
@@ -214,7 +214,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
               <Badge v-if="candidate?.is_blacklist" variant="destructive">黑名单</Badge>
             </SheetTitle>
             <SheetDescription class="mt-1">
-              来源：{{ candidate ? (CANDIDATE_CHANNEL_LABELS[candidate.source_channel] ?? candidate.source_channel) : "--" }}
+              来源：{{ candidate ? (CANDIDATE_CHANNEL_LABELS[candidate.source_channel ?? ""] ?? candidate.source_channel) : "--" }}
             </SheetDescription>
           </div>
           <div v-if="canWrite && candidate" class="flex shrink-0 flex-wrap justify-end gap-2">

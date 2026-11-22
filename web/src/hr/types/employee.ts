@@ -5,6 +5,9 @@
 
 import type { BadgeVariants } from "@/components/ui/badge";
 
+/** 徽标 variant 联合类型（VariantProps 含 null/undefined 外壳，取其 variant 字段） */
+type BadgeVariant = NonNullable<BadgeVariants["variant"]>;
+
 /** ── 枚举与文案 ── */
 
 export type EmployeeStatus = "pending" | "probation" | "regular" | "intern" | "offboarded";
@@ -18,7 +21,7 @@ export const EMPLOYEE_STATUS_LABELS: Record<EmployeeStatus, string> = {
 };
 
 /** 状态徽标配色：在职正向、待入职中性、离职危险 */
-export const EMPLOYEE_STATUS_VARIANTS: Record<EmployeeStatus, BadgeVariants> = {
+export const EMPLOYEE_STATUS_VARIANTS: Record<EmployeeStatus, BadgeVariant> = {
   pending: "secondary",
   probation: "default",
   regular: "default",

@@ -82,6 +82,7 @@ const PROFILE: MyProfileData = {
     birth_date: "1995-01-01",
     id_card_masked: "110***",
     bank_card_masked: "622***",
+    bank_name: null,
   },
   attributes: [
     {

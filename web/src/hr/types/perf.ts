@@ -121,7 +121,7 @@ export interface PerfGoalDraftRow {
   code: string;
   name: string;
   weight: number;
-  target_value: string;
+  target_value?: string;
 }
 
 /* ── 评级分布 ── */

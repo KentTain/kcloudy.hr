@@ -514,7 +514,7 @@ async function handleEntrySave() {
               :model-value="String(editAmount)"
               type="number"
               data-testid="entry-edit-amount"
-              @update:model-value="(v: string) => (editAmount = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (editAmount = Number(v) || 0)"
             />
           </div>
           <div class="flex flex-col gap-1.5">

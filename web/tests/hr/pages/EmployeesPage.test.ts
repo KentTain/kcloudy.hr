@@ -233,7 +233,7 @@ describe("EmployeesPage", () => {
     await flushPromises();
 
     expect(apiMocks.getEmployeeStats).toHaveBeenCalledWith("org-1");
-    const lastQuery = apiMocks.listEmployees.mock.calls.at(-1)[0];
+    const lastQuery = apiMocks.listEmployees.mock.calls.at(-1)![0];
     expect(lastQuery.org_id).toBe("org-1");
   });
 

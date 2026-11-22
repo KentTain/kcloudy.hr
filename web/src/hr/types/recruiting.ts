@@ -5,6 +5,9 @@
 
 import type { BadgeVariants } from "@/components/ui/badge";
 
+/** 徽标 variant 联合类型（VariantProps 含 null/undefined 外壳，取其 variant 字段） */
+type BadgeVariant = NonNullable<BadgeVariants["variant"]>;
+
 /* ── 招聘需求 ── */
 
 export type RequisitionStatus = "draft" | "recruiting" | "partial" | "filled" | "closed";
@@ -17,7 +20,7 @@ export const REQUISITION_STATUS_LABELS: Record<RequisitionStatus, string> = {
   closed: "已关闭",
 };
 
-export const REQUISITION_STATUS_VARIANTS: Record<RequisitionStatus, BadgeVariants> = {
+export const REQUISITION_STATUS_VARIANTS: Record<RequisitionStatus, BadgeVariant> = {
   draft: "outline",
   recruiting: "default",
   partial: "secondary",
@@ -34,7 +37,7 @@ export const REQUISITION_PRIORITY_LABELS: Record<RequisitionPriority, string> = 
   urgent: "紧急",
 };
 
-export const REQUISITION_PRIORITY_VARIANTS: Record<RequisitionPriority, BadgeVariants> = {
+export const REQUISITION_PRIORITY_VARIANTS: Record<RequisitionPriority, BadgeVariant> = {
   low: "outline",
   medium: "secondary",
   high: "default",
@@ -207,7 +210,7 @@ export const STAGE_TRANSITIONS: Record<ApplicationStage, ApplicationStage[]> = {
   withdrawn: [],
 };
 
-export const APPLICATION_STAGE_VARIANTS: Record<ApplicationStage, BadgeVariants> = {
+export const APPLICATION_STAGE_VARIANTS: Record<ApplicationStage, BadgeVariant> = {
   pending_screening: "outline",
   screening_passed: "outline",
   interviewing: "default",

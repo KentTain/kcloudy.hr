@@ -176,7 +176,7 @@ async function handleSubmit() {
               :model-value="String(sort)"
               type="number"
               data-testid="salary-item-sort-input"
-              @update:model-value="(v: string) => (sort = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (sort = Number(v) || 0)"
             />
           </div>
         </div>

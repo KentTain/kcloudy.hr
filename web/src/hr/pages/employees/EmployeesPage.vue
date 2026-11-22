@@ -210,7 +210,7 @@ const columns = computed<ColumnDef<Employee>[]>(
             onOpenAccount: (employee: Employee) => openAccountFor(employee),
             onOffboard: (employee: Employee) => openChangeModal(employee, "offboard"),
             onRemove: (employee: Employee) => removeEmployee(employee),
-          } as Record<string, unknown>),
+          }),
       },
     ] as ColumnDef<Employee>[]
 );

@@ -149,7 +149,7 @@ const columns = computed<ColumnDef<Position>[]>(
             onEmployees: (position: Position) => openEmployeesDrawer(position),
             onToggleStatus: (position: Position) => toggleStatus(position),
             onRemove: (position: Position) => removePosition(position),
-          } as Record<string, unknown>),
+          }),
       },
     ] as ColumnDef<Position>[]
 );

@@ -174,7 +174,7 @@ async function handleSubmit() {
               :disabled="quotaRule === 'manual'"
               :placeholder="quotaRule === 'manual' ? '手工调整' : '如 5'"
               data-testid="leave-type-default-quota-input"
-              @update:model-value="(v: string) => (defaultQuota = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (defaultQuota = Number(v) || 0)"
             />
           </div>
         </div>

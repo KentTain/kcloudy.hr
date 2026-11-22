@@ -132,7 +132,6 @@ async function submitGroup() {
   try {
     if (groupEditing.value) {
       await updateFieldGroup(groupEditing.value.id, {
-        code: groupCode.value,
         name: groupName.value,
         sort: groupSort.value,
       });
@@ -205,7 +204,7 @@ async function submitDefinition() {
       is_require: defRequire.value,
       can_edit: defCanEdit.value,
       sort: defSort.value,
-      ext_data: extData ?? null,
+      ext_data: extData ?? undefined,
     };
     if (defEditing.value) {
       await updateFieldDefinition(defEditing.value.id, payload);

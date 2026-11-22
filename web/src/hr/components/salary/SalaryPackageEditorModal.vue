@@ -158,7 +158,7 @@ async function handleSubmit() {
               :model-value="row.item_id"
                   :options="itemSelectOptions"
               :data-testid="`package-item-select-${index}`"
-              @update:model-value="(v: string) => (rows[index] = { ...row, item_id: v })"
+              @update:model-value="(v: string | number | null) => (rows[index] = { ...row, item_id: String(v ?? '') })"
             />
           </div>
           <Input
@@ -166,7 +166,7 @@ async function handleSubmit() {
             type="number"
             class="w-32"
             :data-testid="`package-amount-input-${index}`"
-            @update:model-value="(v: string) => (rows[index] = { ...row, amount: Number(v) || 0 })"
+            @update:model-value="(v: string | number) => (rows[index] = { ...row, amount: Number(v) || 0 })"
           />
           <Button variant="ghost" size="sm" :data-testid="`package-remove-row-${index}`" @click="removeRow(index)">
             删除

@@ -140,7 +140,7 @@ describe("PositionsPage", () => {
     node.click();
     await flushPromises();
 
-    const lastQuery = apiMocks.listPositions.mock.calls.at(-1)[0];
+    const lastQuery = apiMocks.listPositions.mock.calls.at(-1)![0];
     expect(lastQuery.org_id).toBe("org-1");
   });
 });

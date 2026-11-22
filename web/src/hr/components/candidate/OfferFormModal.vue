@@ -59,7 +59,7 @@ async function handleSubmit() {
       salary_snapshot: { base_monthly: amount },
       valid_until: validUntil.value || undefined,
     });
-    await sendOffer(created.data.id);
+    await sendOffer(created.data!.id);
     notifySuccess("Offer 已发送，申请进入已发 Offer");
     open.value = false;
     emit("saved");

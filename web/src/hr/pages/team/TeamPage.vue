@@ -43,6 +43,7 @@ import {
   REQUISITION_PRIORITY_VARIANTS,
   REQUISITION_STATUS_LABELS,
   REQUISITION_STATUS_VARIANTS,
+  type InterviewForm,
   type Requisition,
 } from "@/hr/types/recruiting";
 import type { TeamInterviewItem, TeamReviewItem } from "@/hr/types/selfService";
@@ -271,7 +272,7 @@ function switchTab(value: string | number) {
                     <td class="px-4 py-2">{{ interview.candidate_name }}</td>
                     <td class="px-4 py-2">{{ interview.requisition_title }}</td>
                     <td class="px-4 py-2">第 {{ interview.round }} 轮</td>
-                    <td class="px-4 py-2">{{ INTERVIEW_FORM_LABELS[interview.interview_form] ?? interview.interview_form }}</td>
+                    <td class="px-4 py-2">{{ INTERVIEW_FORM_LABELS[interview.interview_form as InterviewForm] ?? interview.interview_form }}</td>
                     <td class="px-4 py-2">{{ interview.scheduled_at }}</td>
                     <td class="px-4 py-2">
                       <Badge :variant="INTERVIEW_RESULT_VARIANTS[interview.result] ?? 'secondary'">

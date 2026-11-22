@@ -223,9 +223,10 @@ type ChangeCreateType = (typeof MANUAL_CHANGE_TYPES)[number];
                 placeholder="薪酬项"
               />
               <Input
-                v-model.number="row.amount"
+                :model-value="row.amount ?? undefined"
                 type="number"
                 placeholder="元/月"
+                @update:model-value="(v) => (row.amount = Number.isNaN(Number(v)) ? null : Number(v))"
               />
               <Button variant="ghost" size="sm" @click="removeSalaryRow(index)">删除</Button>
             </div>

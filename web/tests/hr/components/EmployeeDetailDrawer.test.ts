@@ -118,7 +118,7 @@ const DETAIL = {
   org_id: "org-1",
   position_id: "pos-1",
   job_level: "P5",
-  status: "probation",
+  status: "probation" as const,
   hire_date: "2025-01-01",
   regular_date: null,
   offboard_date: null,

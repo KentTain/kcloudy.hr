@@ -95,7 +95,7 @@ async function handleSubmit() {
             :model-value="String(totalQuota)"
             type="number"
             data-testid="leave-balance-adjust-quota-input"
-            @update:model-value="(v: string) => (totalQuota = Number(v) || 0)"
+            @update:model-value="(v: string | number) => (totalQuota = Number(v) || 0)"
           />
         </div>
       </div>

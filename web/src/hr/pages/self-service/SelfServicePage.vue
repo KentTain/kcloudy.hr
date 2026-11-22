@@ -425,12 +425,12 @@ function switchTab(value: string | number) {
                 {{ EMPLOYEE_STATUS_LABELS[profile.status] }}
               </Badge>
             </div>
-            <DescriptionList class="mt-3" :items="profileHeader" :columns="4" />
+            <DescriptionList class="mt-3" :items="profileHeader" :columns="(4 as 1 | 2 | 3)" />
           </div>
 
           <div class="bg-card ring-foreground/10 rounded-xl p-4 ring-1 shadow-sm" data-testid="self-base-info">
             <p class="mb-3 font-medium">基础信息</p>
-            <DescriptionList :items="baseInfoItems" :columns="4" />
+            <DescriptionList :items="baseInfoItems" :columns="(4 as 1 | 2 | 3)" />
           </div>
 
           <div class="bg-card ring-foreground/10 rounded-xl p-4 ring-1 shadow-sm" data-testid="self-attributes">

@@ -65,7 +65,7 @@ function formatTick(value: number | Date): string {
   return chartData.value.find((point) => point.idx === Number(value))?.label ?? "";
 }
 
-function formatValue(value: number): string {
+function formatValue(value: unknown): string {
   const numeric = Number(value ?? 0);
   const text = Number.isInteger(numeric) ? numeric.toLocaleString("zh-CN") : numeric.toFixed(2);
   return props.valueSuffix ? `${text}${props.valueSuffix}` : text;

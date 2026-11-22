@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  type DynamicFormDataType,
   type DynamicFormField,
   Input,
   Label,
@@ -124,7 +125,7 @@ async function loadAttributeFields() {
       .map((definition) => ({
         name: definition.id,
         display_name: definition.name,
-        data_type: definition.data_type,
+        data_type: definition.data_type as DynamicFormDataType,
         is_require: definition.is_require,
         can_edit: definition.can_edit,
         index: definition.sort,

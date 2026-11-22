@@ -144,7 +144,7 @@ async function handleSubmit() {
               :model-value="String(minSalary)"
               type="number"
               data-testid="band-min-input"
-              @update:model-value="(v: string) => (minSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (minSalary = Number(v) || 0)"
             />
           </div>
           <div class="flex flex-col gap-1.5">
@@ -153,7 +153,7 @@ async function handleSubmit() {
               :model-value="String(midSalary)"
               type="number"
               data-testid="band-mid-input"
-              @update:model-value="(v: string) => (midSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (midSalary = Number(v) || 0)"
             />
           </div>
           <div class="flex flex-col gap-1.5">
@@ -162,7 +162,7 @@ async function handleSubmit() {
               :model-value="String(maxSalary)"
               type="number"
               data-testid="band-max-input"
-              @update:model-value="(v: string) => (maxSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (maxSalary = Number(v) || 0)"
             />
           </div>
         </div>

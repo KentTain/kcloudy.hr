@@ -76,6 +76,8 @@ export interface ApprovalRequestQuery extends PageQuery {
   biz_type?: ApprovalBizType;
   status?: ApprovalStatus;
   applicant_employee_id?: string;
+  /** 关键字（备注：后端 ApprovalRequestQuery 暂未声明该字段，当前被忽略，缺陷已登记） */
+  keyword?: string;
 }
 
 /** profile_change 载荷变更项 */
