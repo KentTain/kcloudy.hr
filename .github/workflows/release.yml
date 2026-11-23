@@ -1,7 +1,9 @@
 # hr 全合一镜像发布流水线（GitHub Actions 托管 runner；与主仓 platform 侧流水线同构）
 #
-# 范围：ai-platform-backend-hr 全合一镜像构建推送 + master 滚动（hr-api 单容器双端口 8090/8091）。
+# 范围：ai-backend-api-hr 全合一镜像构建推送 + master 滚动（hr-api 单容器双端口 8090/8091）。
 # 主仓 platform 侧（worker02/worker01）另线独立承载，两线无依赖冲突。
+# 镜像命名规范见主仓 docker/AGENTS.md「镜像命名规范」节：tag={技术栈}-YYYYMMDD.运行号
+#（hr 属后端线，python- 前缀）；GitHub Release tag 保持 vYYYYMMDD.运行号。
 #
 # 触发前提：GitHub 侧 main push——本仓双推惯例（origin Gitee + github 镜像）已保证同步。
 #
@@ -16,12 +18,12 @@
 #    SSH_USER                  —— SSH 用户名
 # 3. known_hosts：首跑经 StrictHostKeyChecking=accept-new TOFU 自动落册。
 #
-# 产物：ai-platform-backend-hr 双 tag —— vYYYYMMDD.<run_number> + latest；
-#       GitHub Release —— vYYYYMMDD.<run_number>（tag 同镜像 tag，中文说明）
+# 产物：ai-backend-api-hr 双 tag —— python-YYYYMMDD.<run_number> + latest；
+#       GitHub Release —— vYYYYMMDD.<run_number>（tag 保持 v 格式，中文说明）
 # 流程：合并 main → 构建推送（自动）→ deploy-master（Environment 审批）→
-#       SSH master：publish git pull → .env.node-hr VERSION bump → pull/up hr-api →
+#       SSH master：publish git pull → .env.node-hr VERSION_BACKEND bump → pull/up hr-api →
 #       健康检查（8090 uvicorn + 8091 内嵌 nginx）→ create-release（Release 发布）
-# 回滚：master deploy/.env.node-hr 的 VERSION 改回旧 tag 后 up -d hr-api
+# 回滚：master deploy/.env.node-hr 的 VERSION_BACKEND 改回旧 tag 后 up -d hr-api
 
 name: 发布 hr 全合一镜像
 
@@ -38,7 +40,7 @@ concurrency:
 
 env:
   REGISTRY: registry.cn-zhangjiakou.aliyuncs.com
-  IMAGE: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-platform-backend-hr
+  IMAGE: registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-backend-api-hr
   MAIN_REPO_DIR: main-repo
   MOUNT_DIR: main-repo/server/python/src/modules/hr
 
@@ -77,9 +79,13 @@ jobs:
       - name: 构建并推送（production-hr-web，DOCKER_BUILDKIT 必须开启）
         id: ver
         run: |
-          # TAG 在 shell 内求值：env 块不做命令替换，Actions 只预展开双花括号表达式
-          TAG="v$(date +%Y%m%d).${GITHUB_RUN_NUMBER}"
+          # TAG 在 shell 内求值：env 块不做命令替换，Actions 只预展开双花括号表达式。
+          # 镜像 tag 带技术栈前缀 python-（命名规范见主仓 docker/AGENTS.md）；Release
+          # tag 保持 v- 格式（同 run_number 对齐）
+          TAG="python-$(date +%Y%m%d).${GITHUB_RUN_NUMBER}"
+          RELEASE_TAG="v$(date +%Y%m%d).${GITHUB_RUN_NUMBER}"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
           export DOCKER_BUILDKIT=1
           docker build \
             --file "${MAIN_REPO_DIR}/server/python/Dockerfile" \
@@ -103,7 +109,7 @@ jobs:
           install -m 600 /dev/null ~/deploy_key
           echo "${SSH_PRIVATE_KEY}" > ~/deploy_key
 
-      - name: master 滚动（publish 编排同步 + .env.node-hr VERSION bump + pull/up）
+      - name: master 滚动（publish 编排同步 + .env.node-hr VERSION_BACKEND bump + pull/up）
         env:
           TAG: ${{ needs.build-push.outputs.tag }}
           SSH_USER: ${{ secrets.SSH_USER }}
@@ -111,7 +117,8 @@ jobs:
           ssh -i ~/deploy_key -o StrictHostKeyChecking=accept-new "${SSH_USER}@121.89.220.143" \
             "cd /mnt/docker-images/kcloudy.publish \
              && git pull --ff-only \
-             && sed -i 's/^VERSION=.*/VERSION=${TAG}/' deploy/.env.node-hr \
+             && sed -i -e '/^VERSION=[^_]/d' -e '/^VERSION_BACKEND=/d' deploy/.env.node-hr \
+             && echo 'VERSION_BACKEND=${TAG}' >> deploy/.env.node-hr \
              && docker compose -f deploy/docker-compose.node-hr.yml --env-file deploy/.env.node-hr pull hr-api \
              && docker compose -f deploy/docker-compose.node-hr.yml --env-file deploy/.env.node-hr up -d hr-api"
 
@@ -128,7 +135,7 @@ jobs:
             sleep 5
           done
           rm -f ~/deploy_key
-          [ "$ok" = 1 ] || { echo "健康检查超时（3 分钟），SSH 上 master 查 docker logs ai-platform-backend-hr"; exit 1; }
+          [ "$ok" = 1 ] || { echo "健康检查超时（3 分钟），SSH 上 master 查 docker logs ai-backend-api-hr"; exit 1; }
           echo "master hr-api 滚动完成：${{ needs.build-push.outputs.tag }}（8090/8091 双检通过）"
 
   create-release:
@@ -137,13 +144,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 创建 GitHub Release（tag 同镜像 tag vYYYYMMDD.<run_number>，中文说明）
+      - name: 创建 GitHub Release（tag 保持 vYYYYMMDD.<run_number> 格式，中文说明）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ needs.build-push.outputs.tag }}
+          RELEASE_TAG: ${{ needs.build-push.outputs.release_tag }}
         run: |
-          # Release tag 与镜像 tag 统一同名（vYYYYMMDD.运行号）
-          TAG="${IMAGE_TAG}"
+          # Release tag 与镜像 tag 同 run_number 但格式分立（镜像 python-、Release v-）
+          TAG="${RELEASE_TAG}"
           if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             echo "Release ${TAG} 已存在（上次运行已创建），跳过"
             exit 0
@@ -152,7 +160,7 @@ jobs:
           PREV=$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName' || true)
           {
             echo "## 本版本镜像"
-            echo "- \`registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-platform-backend-hr:${IMAGE_TAG}\`"
+            echo "- \`registry.cn-zhangjiakou.aliyuncs.com/kcloudy-project/ai-backend-api-hr:${IMAGE_TAG}\`"
             echo ""
             echo "## 提交清单"
             if [ -n "${PREV}" ]; then

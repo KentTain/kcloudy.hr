@@ -155,14 +155,14 @@ flowchart TD
     B --> B1[拉主仓<br/>Gitee token 浅克隆]
     B1 --> B2[子仓内容 tar 装配主仓挂载点<br/>server/python/src/modules/hr]
     B2 --> B3[docker build production-hr-web]
-    B3 --> B4[push 双 tag<br/>vYYYYMMDD.run_number + latest]
+    B3 --> B4[push 双 tag<br/>python-YYYYMMDD.run_number + latest]
     B4 --> C[deploy-master<br/>Environment production 审批闸门]
-    C -->|人工批准| D[SSH master<br/>publish git pull + VERSION bump + pull/up -d hr-api]
+    C -->|人工批准| D[SSH master<br/>publish git pull + VERSION_BACKEND bump + pull/up -d hr-api]
     D --> E[SSH 上 master 健康检查<br/>8090 uvicorn + 8091 内嵌 nginx 双检]
 ```
 
 - **build-push**（自动）：构建上下文为主仓布局——拉主仓（Gitee token）后由子仓内容 tar 装配至挂载点（等价 bootstrap.sh rsync 语义，被测代码由子仓 HEAD 锁定），`docker build --target production-hr-web` 后 push 至阿里云 registry。
-- **deploy-master**（人工审批）：批准后经 SSH 在 master 上执行 publish 编排同步、`.env.node-hr` VERSION bump、`pull` + `up -d hr-api`，健康检查（SSH 上 master curl 双检）超时（3 分钟）即判失败。
+- **deploy-master**（人工审批）：批准后经 SSH 在 master 上执行 publish 编排同步、`.env.node-hr` VERSION_BACKEND bump、`pull` + `up -d hr-api`，健康检查（SSH 上 master curl 双检）超时（3 分钟）即判失败。
 
 ### 前置配置（一次性）
 
@@ -183,19 +183,19 @@ flowchart TD
 
 1. 配置完成后，GitHub Actions 页面对之前排队失败的 run 点 **Re-run**（或随便推一个 main 提交）。
 2. build-push 通过后，deploy-master 显示 **Waiting for approval** → 审批人在页面点批准。
-3. 真机核对：`docker ps` 中 `ai-platform-backend-hr` healthy；`curl http://172.23.160.12:8090/health` 与 `curl -I http://172.23.160.12:8091/` 均 200；hr-api 日志无 nginx 权限报错。
+3. 真机核对：`docker ps` 中 `ai-backend-api-hr` healthy；`curl http://172.23.160.12:8090/health` 与 `curl -I http://172.23.160.12:8091/` 均 200；hr-api 日志无 nginx 权限报错。
 
 ### 日常发布与范围
 
 - 合并至 `main`（PR 合并或直推）即自动触发；每次提交前先双远端推送（见「远端」节）。
-- 镜像 tag 规则：`vYYYYMMDD.<run_number>` + `latest`，master `.env.node-hr` 的 `VERSION` 由流水线自动 bump。
+- 镜像 tag 规则：`python-YYYYMMDD.<run_number>` + `latest`（命名规范见主仓 docker/AGENTS.md），master `.env.node-hr` 的 `VERSION_BACKEND` 由流水线自动 bump；GitHub Release tag 保持 `vYYYYMMDD.<run_number>`。
 - **范围仅 master hr-api 单容器**；worker01/worker02 的 platform 滚动不在流水线内，由主仓流水线独立承载（详见主仓 `docs/README.md`「四、自动化发布」）。
 
 ### 回滚
 
 ```bash
 cd /mnt/docker-images/kcloudy.publish/deploy
-sed -i 's/^VERSION=.*/VERSION=<旧tag>/' .env.node-hr
+sed -i 's/^VERSION_BACKEND=.*/VERSION_BACKEND=<旧tag>/' .env.node-hr
 docker compose -f docker-compose.node-hr.yml --env-file .env.node-hr up -d hr-api
 ```
 
@@ -209,7 +209,7 @@ registry 旧 tag 永不删除，任意历史版本可回。
 | registry push 403 | RAM 子账号权限不足，检查 kcloudy-mirror / kcloudy-project 两 namespace 授权 |
 | 构建失败（apt/uv/pnpm 网络抖动） | 直接 Re-run，层缓存可续（与手动构建同口径） |
 | SSH 连接失败 | `SSH_PRIVATE_KEY`/`SSH_USER` Secret 核对；master 安全组放行 runner 出口；账号非 root 时确认 docker 命令权限 |
-| 健康检查超时 | SSH 上 master `docker logs ai-platform-backend-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |
+| 健康检查超时 | SSH 上 master `docker logs ai-backend-api-hr --tail 100`；日志卷属主（`chown -R 1000:1000 /mnt/kcloudy-data/logs/hr`）与 nginx error_log（`/mnt/kcloudy-data/logs/hr/nginx-error.log`） |
 | `git pull --ff-only` 失败 | master publish 仓库有本地改动，先手工处理再 Re-run deploy job |
 
 ### 方式二：GitHub Actions self-hosted runner（备选，未实施）
@@ -241,7 +241,7 @@ Gitee 原生流水线，托管云构建节点执行（无 self-hosted runner 对
 1. **开通**：Gitee 仓库页「流水线」开通 Gitee Go，仓库根新建 `.workflow/release.yml`（Gitee Go 语法，与 GitHub Actions 语法不兼容，需按官方 plugin 体系改写）。
 2. **凭据**：构建环境变量登记 Gitee 令牌（拉主仓）与阿里云 registry 账号密码（流水线配置页环境变量，勾选加密）。
 3. **构建步骤**：与方式一 build-push 逻辑相同——拉主仓 → tar 装配挂载点 → `docker build --target production-hr-web` → push 双 tag。云构建节点自带 docker，构建时长 10-20 分钟/次。
-4. **滚动步骤**：Gitee Go 部署插件（主机组功能）配 master 主机 + SSH 凭据，执行与方式一 deploy-master 相同的 publish 同步 + VERSION bump + pull/up + 健康检查；人工审核插件放在部署步骤前作为闸门。
+4. **滚动步骤**：Gitee Go 部署插件（主机组功能）配 master 主机 + SSH 凭据，执行与方式一 deploy-master 相同的 publish 同步 + VERSION_BACKEND bump + pull/up + 健康检查；人工审核插件放在部署步骤前作为闸门。
 5. **计费约束**：每仓 200 分钟永久 + 每月 500 分钟免费，超出按构建时长预付费。10-20 分钟/次 ≈ 每月 15-25 次，低频发布够用。
 
 注意：云构建节点在境外或境内机房以 Gitee 实际分配为准，拉推阿里云 registry 走公网，速度与方式一托管 runner 相当，劣于方式二 self-hosted 的 master 内网。
@@ -282,7 +282,7 @@ HTTPServer(("127.0.0.1", 18099), H).serve_forever()
 
 3. **systemd unit**：`/etc/systemd/system/hr-release-listener.service`（ExecStart 上述脚本，Restart=always），`systemctl enable --now`。
 4. **build-push.sh**：翻译 release.yml 的 build-push job——checkout/装配（tar 管道）→ `docker build` → `docker push`，输出 tag 落 `/opt/hr-release/last-tag` 供人工滚动参考。
-5. **滚动保持人工**：无审批 UI，滚动不进脚本——构建完成后按主仓发布指南 master 段手动执行（或临时 `sed` VERSION 后 `up -d hr-api`），与「先构建后择机滚动」的节奏天然契合。
+5. **滚动保持人工**：无审批 UI，滚动不进脚本——构建完成后按主仓发布指南 master 段手动执行（或临时 `sed` VERSION_BACKEND 后 `up -d hr-api`），与「先构建后择机滚动」的节奏天然契合。
 
 ## License
 
