@@ -3,18 +3,20 @@
  * 合同新签/续签弹窗（续签由后端闭合旧合同区间并生成新合同）
  */
 import { ref, watch } from "vue";
-
-import { Button } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
 } from "@/components";
-import { DateInput, Input, Select, Switch } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -43,21 +45,25 @@ const remark = ref<string>("");
 
 const isRenew = () => Boolean(props.renewFrom);
 
-watch(open, (value) => {
-  if (!value) return;
-  contractNo.value = "";
-  contractType.value = props.renewFrom?.contract_type ?? "fixed";
-  startDate.value = props.renewFrom?.end_date ?? new Date().toISOString().slice(0, 10);
-  endDate.value = "";
-  company.value = props.renewFrom?.company ?? "";
-  signedDate.value = new Date().toISOString().slice(0, 10);
-  expiryRemind.value = true;
-  remark.value = "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    contractNo.value = "";
+    contractType.value = props.renewFrom?.contract_type ?? "fixed";
+    startDate.value = props.renewFrom?.end_date ?? new Date().toISOString().slice(0, 10);
+    endDate.value = "";
+    company.value = props.renewFrom?.company ?? "";
+    signedDate.value = new Date().toISOString().slice(0, 10);
+    expiryRemind.value = true;
+    remark.value = "";
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   if (!contractNo.value.trim() || !startDate.value) {
-    notifyError(new Error("请填写合同编号与开始日期"));
+    notifyError("请填写合同编号与开始日期");
     return;
   }
   submitting.value = true;
@@ -82,7 +88,7 @@ async function handleSubmit() {
     emit("saved");
     open.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   } finally {
     submitting.value = false;
   }

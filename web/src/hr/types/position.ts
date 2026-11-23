@@ -4,6 +4,9 @@
 
 import type { BadgeVariants } from "@/components/ui/badge";
 
+/** 徽标 variant 联合类型（VariantProps 含 null/undefined 外壳，取其 variant 字段） */
+type BadgeVariant = NonNullable<BadgeVariants["variant"]>;
+
 export type PositionStatus = "draft" | "active" | "disabled";
 
 export const POSITION_STATUS_LABELS: Record<PositionStatus, string> = {
@@ -12,7 +15,7 @@ export const POSITION_STATUS_LABELS: Record<PositionStatus, string> = {
   disabled: "停用",
 };
 
-export const POSITION_STATUS_VARIANTS: Record<PositionStatus, BadgeVariants> = {
+export const POSITION_STATUS_VARIANTS: Record<PositionStatus, BadgeVariant> = {
   draft: "outline",
   active: "default",
   disabled: "secondary",

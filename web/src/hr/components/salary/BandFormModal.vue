@@ -4,17 +4,18 @@
  * 历史版本只读不入本弹窗；新建版本由后端自动闭合当前版本区间。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, DateInput } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -40,41 +41,45 @@ const effectiveTo = ref("");
 
 const isEdit = () => !!props.band && bandEffectiveStatus(props.band) === "upcoming";
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  if (props.band) {
-    jobLevel.value = props.band.job_level;
-    minSalary.value = props.band.min_salary;
-    midSalary.value = props.band.mid_salary;
-    maxSalary.value = props.band.max_salary;
-    effectiveFrom.value = props.band.effective_from;
-    effectiveTo.value = props.band.effective_to ?? "";
-  } else {
-    const today = new Date();
-    jobLevel.value = "";
-    minSalary.value = 0;
-    midSalary.value = 0;
-    maxSalary.value = 0;
-    effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    effectiveTo.value = "";
-  }
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    if (props.band) {
+      jobLevel.value = props.band.job_level;
+      minSalary.value = props.band.min_salary;
+      midSalary.value = props.band.mid_salary;
+      maxSalary.value = props.band.max_salary;
+      effectiveFrom.value = props.band.effective_from;
+      effectiveTo.value = props.band.effective_to ?? "";
+    } else {
+      const today = new Date();
+      jobLevel.value = "";
+      minSalary.value = 0;
+      midSalary.value = 0;
+      maxSalary.value = 0;
+      effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      effectiveTo.value = "";
+    }
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   const min = Number(minSalary.value);
   const mid = Number(midSalary.value);
   const max = Number(maxSalary.value);
   if (!jobLevel.value.trim()) {
-    notifyError(new Error("请填写职级"));
+    notifyError("请填写职级");
     return;
   }
   if (!(min <= mid && mid <= max)) {
-    notifyError(new Error("带宽校验失败：需满足 下限 ≤ 中位值 ≤ 上限"));
+    notifyError("带宽校验失败：需满足 下限 ≤ 中位值 ≤ 上限");
     return;
   }
   if (!effectiveFrom.value) {
-    notifyError(new Error("请选择生效起日期"));
+    notifyError("请选择生效起日期");
     return;
   }
   submitting.value = true;
@@ -102,7 +107,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪带保存失败"));
+    notifyError(getErrorMessage(error, "薪带保存失败"));
   } finally {
     submitting.value = false;
   }
@@ -139,7 +144,7 @@ async function handleSubmit() {
               :model-value="String(minSalary)"
               type="number"
               data-testid="band-min-input"
-              @update:model-value="(v: string) => (minSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (minSalary = Number(v) || 0)"
             />
           </div>
           <div class="flex flex-col gap-1.5">
@@ -148,7 +153,7 @@ async function handleSubmit() {
               :model-value="String(midSalary)"
               type="number"
               data-testid="band-mid-input"
-              @update:model-value="(v: string) => (midSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (midSalary = Number(v) || 0)"
             />
           </div>
           <div class="flex flex-col gap-1.5">
@@ -157,7 +162,7 @@ async function handleSubmit() {
               :model-value="String(maxSalary)"
               type="number"
               data-testid="band-max-input"
-              @update:model-value="(v: string) => (maxSalary = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (maxSalary = Number(v) || 0)"
             />
           </div>
         </div>

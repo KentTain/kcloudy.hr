@@ -5,20 +5,23 @@
  */
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
-
 import {
   Badge,
   Button,
   DataTable,
   Input,
+  OrganizationSelect,
   Select,
   useDataTable,
 } from "@/components";
-import { OrganizationSelect } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { getErrorMessage, notifyError, notifySuccess, confirmAction } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import { closeRequisition, listRequisitions } from "@/hr/api/recruiting";
 import { getOrgTree, getPositionOptions } from "@/hr/api/reference";
@@ -96,10 +99,7 @@ const statusOptions = [
   })),
 ];
 
-const priorityOptions = [
-  { value: "all", label: "全部优先级" },
-  ...REQUISITION_PRIORITY_OPTIONS,
-];
+const priorityOptions = [{ value: "all", label: "全部优先级" }, ...REQUISITION_PRIORITY_OPTIONS];
 
 function handleResetFilters() {
   statusFilter.value = "all";
@@ -116,72 +116,84 @@ function salaryRangeOf(item: Requisition): string {
   return `${item.salary_min ?? ""} ~ ${item.salary_max ?? ""}`;
 }
 
-const columns = computed<ColumnDef<Requisition>[]>(() => [
-  { accessorKey: "req_no", header: "需求编号", size: 140 },
-  { accessorKey: "title", header: "职位名称", size: 180 },
-  {
-    accessorKey: "org_id",
-    header: "部门",
-    size: 120,
-    cell: ({ row }) => orgNameOf(row.original.org_id),
-  },
-  {
-    id: "headcount",
-    header: "入职/招聘",
-    size: 90,
-    cell: ({ row }) => `${row.original.filled_count} / ${row.original.headcount}`,
-  },
-  {
-    accessorKey: "job_level",
-    header: "职级",
-    size: 80,
-    cell: ({ row }) => row.original.job_level ?? "--",
-  },
-  {
-    id: "salary",
-    header: "薪酬区间",
-    size: 130,
-    cell: ({ row }) => h("span", { class: "text-muted-foreground" }, salaryRangeOf(row.original)),
-  },
-  {
-    accessorKey: "priority",
-    header: "优先级",
-    size: 90,
-    cell: ({ row }) =>
-      h(Badge, { variant: REQUISITION_PRIORITY_VARIANTS[row.original.priority] }, () =>
-        REQUISITION_PRIORITY_LABELS[row.original.priority] ?? row.original.priority,
-      ),
-  },
-  {
-    accessorKey: "status",
-    header: "状态",
-    size: 90,
-    cell: ({ row }) =>
-      h(Badge, { variant: REQUISITION_STATUS_VARIANTS[row.original.status] }, () =>
-        REQUISITION_STATUS_LABELS[row.original.status] ?? row.original.status,
-      ),
-  },
-  {
-    id: "channels",
-    header: "已发布渠道",
-    size: 100,
-    cell: ({ row }) =>
-      h("span", { class: "text-muted-foreground" }, `${row.original.postings?.length ?? 0} 个渠道`),
-  },
-  {
-    id: "actions",
-    header: "操作",
-    size: 90,
-    cell: ({ row }) =>
-      h(RequisitionRowActions, {
-        requisition: row.original,
-        canWrite: canWrite.value,
-        onDetail: (item: Requisition) => openDetail(item),
-        onPublish: (item: Requisition) => openPublish(item),
-        onClose: (item: Requisition) => void handleClose(item),
-      }),
-  },
-] as ColumnDef<Requisition>[]);
+const columns = computed<ColumnDef<Requisition>[]>(
+  () =>
+    [
+      { accessorKey: "req_no", header: "需求编号", size: 140 },
+      { accessorKey: "title", header: "职位名称", size: 180 },
+      {
+        accessorKey: "org_id",
+        header: "部门",
+        size: 120,
+        cell: ({ row }) => orgNameOf(row.original.org_id),
+      },
+      {
+        id: "headcount",
+        header: "入职/招聘",
+        size: 90,
+        cell: ({ row }) => `${row.original.filled_count} / ${row.original.headcount}`,
+      },
+      {
+        accessorKey: "job_level",
+        header: "职级",
+        size: 80,
+        cell: ({ row }) => row.original.job_level ?? "--",
+      },
+      {
+        id: "salary",
+        header: "薪酬区间",
+        size: 130,
+        cell: ({ row }) =>
+          h("span", { class: "text-muted-foreground" }, salaryRangeOf(row.original)),
+      },
+      {
+        accessorKey: "priority",
+        header: "优先级",
+        size: 90,
+        cell: ({ row }) =>
+          h(
+            Badge,
+            { variant: REQUISITION_PRIORITY_VARIANTS[row.original.priority] },
+            () => REQUISITION_PRIORITY_LABELS[row.original.priority] ?? row.original.priority
+          ),
+      },
+      {
+        accessorKey: "status",
+        header: "状态",
+        size: 90,
+        cell: ({ row }) =>
+          h(
+            Badge,
+            { variant: REQUISITION_STATUS_VARIANTS[row.original.status] },
+            () => REQUISITION_STATUS_LABELS[row.original.status] ?? row.original.status
+          ),
+      },
+      {
+        id: "channels",
+        header: "已发布渠道",
+        size: 100,
+        cell: ({ row }) =>
+          h(
+            "span",
+            { class: "text-muted-foreground" },
+            `${row.original.postings?.length ?? 0} 个渠道`
+          ),
+      },
+      {
+        id: "actions",
+        header: "操作",
+        size: 90,
+        cell: ({ row }) =>
+          h(RequisitionRowActions, {
+            requisition: row.original,
+            canWrite: canWrite.value,
+            onDetail: (item: Requisition) => openDetail(item),
+            onPublish: (item: Requisition) => openPublish(item),
+            onClose: (item: Requisition) => void handleClose(item),
+          }),
+      },
+    ] as ColumnDef<Requisition>[]
+);
 
 const dataTable = useDataTable<Requisition>({
   columns: columns.value,
@@ -190,7 +202,8 @@ const dataTable = useDataTable<Requisition>({
       page,
       page_size,
       status: statusFilter.value === "all" ? undefined : (statusFilter.value as RequisitionStatus),
-      priority: priorityFilter.value === "all" ? undefined : (priorityFilter.value as RequisitionPriority),
+      priority:
+        priorityFilter.value === "all" ? undefined : (priorityFilter.value as RequisitionPriority),
       org_id: orgIds.value[0] || undefined,
       keyword: keyword.value || undefined,
     });
@@ -232,7 +245,7 @@ async function handleClose(item: Requisition) {
     notifySuccess("需求已关闭");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "关闭需求失败"));
+    notifyError(getErrorMessage(error, "关闭需求失败"));
   }
 }
 

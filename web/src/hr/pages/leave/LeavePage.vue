@@ -89,7 +89,7 @@ async function loadLeaveTypes() {
     const res = await listLeaveTypes({ page: 1, page_size: 200 });
     leaveTypes.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "假期类型加载失败"));
+    notifyError(getErrorMessage(error, "假期类型加载失败"));
   }
 }
 
@@ -246,7 +246,7 @@ async function toggleTypeStatus(item: LeaveType) {
     typeDataTable.refresh();
     void loadLeaveTypes();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "状态变更失败"));
+    notifyError(getErrorMessage(error, "状态变更失败"));
   }
 }
 
@@ -261,7 +261,7 @@ async function removeType(item: LeaveType) {
     typeDataTable.refresh();
     void loadLeaveTypes();
   } catch {
-    notifyError(new Error("该假期类型已被引用，无法删除，建议改为停用"));
+    notifyError("该假期类型已被引用，无法删除，建议改为停用");
   }
 }
 

@@ -6,20 +6,23 @@
  * 扩展属性经 json-render DynamicForm 渲染（values 以 definition_id 为键）。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button } from "@/components";
 import {
+  Button,
+  buildSettingFormSpec,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  type DynamicFormDataType,
+  type DynamicFormField,
+  Input,
+  Label,
+  OrganizationSelect,
+  Select,
 } from "@/components";
-import { DateInput, Input, Select } from "@/components";
-import { Label } from "@/components";
-import { OrganizationSelect } from "@/components";
-import { buildSettingFormSpec, type DynamicFormField } from "@/components";
 import { JsonRender } from "@/components/json-render";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -69,26 +72,30 @@ const stepTitles = isEdit.value ? ["员工信息"] : ["基础信息", "岗位任
 
 const attributeBuild = computed(() => buildSettingFormSpec(attributeFields.value));
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  step.value = 0;
-  const employee = props.employee;
-  const detail = (employee ?? null) as EmployeeDetail | null;
-  name.value = employee?.name ?? "";
-  gender.value = employee?.gender ?? "";
-  birthDate.value = detail?.birth_date ?? "";
-  idCard.value = detail?.id_card_masked ?? "";
-  bankName.value = detail?.bank_name ?? "";
-  phone.value = employee?.phone ?? "";
-  workEmail.value = employee?.work_email ?? "";
-  orgIds.value = employee?.org_id ? [employee.org_id] : [];
-  positionId.value = employee?.position_id ?? "";
-  jobLevel.value = employee?.job_level ?? "";
-  hireDate.value = employee?.hire_date ?? new Date().toISOString().slice(0, 10);
-  positionOptions.value = (await loadPositionOptions()) ?? [];
-  if (!isEdit.value) await loadAttributeFields();
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    step.value = 0;
+    const employee = props.employee;
+    const detail = (employee ?? null) as EmployeeDetail | null;
+    name.value = employee?.name ?? "";
+    gender.value = employee?.gender ?? "";
+    birthDate.value = detail?.birth_date ?? "";
+    idCard.value = detail?.id_card_masked ?? "";
+    bankName.value = detail?.bank_name ?? "";
+    phone.value = employee?.phone ?? "";
+    workEmail.value = employee?.work_email ?? "";
+    orgIds.value = employee?.org_id ? [employee.org_id] : [];
+    positionId.value = employee?.position_id ?? "";
+    jobLevel.value = employee?.job_level ?? "";
+    hireDate.value = employee?.hire_date ?? new Date().toISOString().slice(0, 10);
+    positionOptions.value = (await loadPositionOptions()) ?? [];
+    if (!isEdit.value) await loadAttributeFields();
+  },
+  { immediate: true }
+);
 
 async function loadPositionOptions(): Promise<PositionOption[]> {
   // 无 hr:position:read 权限时降级空选项（岗位字段退化为不选）
@@ -111,14 +118,14 @@ async function loadAttributeFields() {
     ]);
     const groups = groupsRes.data ?? [];
     const groupIds = new Set(
-      groups.filter((group) => EAV_CREATE_GROUP_CODES.includes(group.code)).map((group) => group.id),
+      groups.filter((group) => EAV_CREATE_GROUP_CODES.includes(group.code)).map((group) => group.id)
     );
     attributeFields.value = (definitionsRes.data ?? [])
       .filter((definition) => groupIds.has(definition.group_id))
       .map((definition) => ({
         name: definition.id,
         display_name: definition.name,
-        data_type: definition.data_type,
+        data_type: definition.data_type as DynamicFormDataType,
         is_require: definition.is_require,
         can_edit: definition.can_edit,
         index: definition.sort,
@@ -132,11 +139,11 @@ async function loadAttributeFields() {
 function validateCurrentStep(): boolean {
   if (isEdit.value) return Boolean(name.value.trim());
   if (step.value === 0 && !name.value.trim()) {
-    notifyError(new Error("请填写姓名"));
+    notifyError("请填写姓名");
     return false;
   }
   if (step.value === 1 && !hireDate.value) {
-    notifyError(new Error("请选择入职日期"));
+    notifyError("请选择入职日期");
     return false;
   }
   return true;
@@ -165,7 +172,10 @@ async function handleSubmit() {
         gender: gender.value || undefined,
         birth_date: birthDate.value || undefined,
         // 掩码/未变更时不下发，后端按「掩码/空 = 保留原值」处理
-        id_card: idCard.value && idCard.value !== (props.employee as EmployeeDetail).id_card_masked ? idCard.value : undefined,
+        id_card:
+          idCard.value && idCard.value !== (props.employee as EmployeeDetail).id_card_masked
+            ? idCard.value
+            : undefined,
         bank_name: bankName.value || undefined,
         phone: phone.value || undefined,
         work_email: workEmail.value || undefined,
@@ -194,14 +204,15 @@ async function handleSubmit() {
         position_id: positionId.value || undefined,
         job_level: jobLevel.value || undefined,
         hire_date: hireDate.value,
-        attribute_values: attributeValues && Object.keys(attributeValues).length ? attributeValues : undefined,
+        attribute_values:
+          attributeValues && Object.keys(attributeValues).length ? attributeValues : undefined,
       });
       notifySuccess("入职建档成功，工号已自动生成");
       if (res.data) emit("saved", res.data);
     }
     open.value = false;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   } finally {
     submitting.value = false;
   }

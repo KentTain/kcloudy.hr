@@ -5,7 +5,18 @@
  */
 import { ref, watch } from "vue";
 
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Select, Textarea } from "@/components";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Label,
+  Select,
+  Textarea,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -32,11 +43,11 @@ watch(open, (value) => {
 
 async function handleSubmit() {
   if (rating.value === ALL) {
-    notifyError(new Error("请选择最终评级"), "请选择最终评级");
+    notifyError("请选择最终评级");
     return;
   }
   if (!comment.value.trim()) {
-    notifyError(new Error("校准意见必填"), "校准意见必填");
+    notifyError("校准意见必填");
     return;
   }
   if (!props.review) return;
@@ -50,7 +61,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "校准失败"));
+    notifyError(getErrorMessage(error, "校准失败"));
   } finally {
     submitting.value = false;
   }

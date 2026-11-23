@@ -4,18 +4,24 @@
  * （source 投递/面试归并到 target 后删除 source）。
  */
 import { ref, watch } from "vue";
-
-import { Badge, Button, Input } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
 } from "@/components";
 
-import { getErrorMessage, notifyError, notifySuccess, confirmAction } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import { getMergeSuggestions, listCandidateCards, mergeCandidates } from "@/hr/api/candidate";
 import type { Application, MergeSuggestion } from "@/hr/types/recruiting";
@@ -51,7 +57,11 @@ async function loadSuggestions() {
 async function search() {
   loading.value = true;
   try {
-    const res = await listCandidateCards({ page: 1, page_size: 20, keyword: keyword.value || undefined });
+    const res = await listCandidateCards({
+      page: 1,
+      page_size: 20,
+      keyword: keyword.value || undefined,
+    });
     const seen = new Set<string>(props.source ? [props.source.id] : []);
     rows.value = (res.data ?? []).filter((item) => {
       if (seen.has(item.candidate_id)) return false;
@@ -59,20 +69,24 @@ async function search() {
       return true;
     });
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人检索失败"));
+    notifyError(getErrorMessage(error, "候选人检索失败"));
     rows.value = [];
   } finally {
     loading.value = false;
   }
 }
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  keyword.value = "";
-  target.value = null;
-  await Promise.all([loadSuggestions(), search()]);
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    keyword.value = "";
+    target.value = null;
+    await Promise.all([loadSuggestions(), search()]);
+  },
+  { immediate: true }
+);
 
 function pickTarget(candidateId: string, candidateName: string | null) {
   target.value = { candidate_id: candidateId, candidate_name: candidateName };
@@ -82,7 +96,7 @@ async function handleMerge() {
   if (!props.source || !target.value) return;
   if (
     !(await confirmAction(
-      `确定将「${props.source.name}」合并到「${target.value.candidate_name ?? target.value.candidate_id}」？投递与面试记录将归并，原档案删除且不可恢复。`,
+      `确定将「${props.source.name}」合并到「${target.value.candidate_name ?? target.value.candidate_id}」？投递与面试记录将归并，原档案删除且不可恢复。`
     ))
   ) {
     return;
@@ -93,7 +107,7 @@ async function handleMerge() {
     open.value = false;
     emit("merged");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人合并失败"));
+    notifyError(getErrorMessage(error, "候选人合并失败"));
   }
 }
 </script>

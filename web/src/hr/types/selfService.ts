@@ -2,7 +2,12 @@
  * 员工自助（console /hr/console/v1/me/* 与 /team/*）类型
  */
 import type { AttributeValueItem, Employee, EmployeeDetail } from "@/hr/types/employee";
-import type { PerfCycleStatus, PerfGoalStatus, PerfRating, PerfReviewStatus } from "@/hr/types/perf";
+import type {
+  PerfCycleStatus,
+  PerfGoalStatus,
+  PerfRating,
+  PerfReviewStatus,
+} from "@/hr/types/perf";
 import type { Requisition } from "@/hr/types/recruiting";
 
 export interface MyProfileData {

@@ -8,17 +8,16 @@ import { computed, onMounted, ref } from "vue";
 
 import { Button, Checkbox, Input, Pagination, Select } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
 import {
-  getGlobalFunnel,
-  listRequisitions,
-  updateApplicationStage,
-} from "@/hr/api/recruiting";
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 import { listCandidateCards } from "@/hr/api/candidate";
 import { acceptOffer, getApplicationOffer, rejectOffer } from "@/hr/api/offer";
+import { getGlobalFunnel, listRequisitions, updateApplicationStage } from "@/hr/api/recruiting";
 import CandidateCard from "@/hr/components/candidate/CandidateCard.vue";
 import CandidateDetailSheet from "@/hr/components/candidate/CandidateDetailSheet.vue";
 import CandidateFormModal from "@/hr/components/candidate/CandidateFormModal.vue";
@@ -29,10 +28,9 @@ import OfferOnboardModal from "@/hr/components/candidate/OfferOnboardModal.vue";
 import FunnelBar from "@/hr/components/recruiting/FunnelBar.vue";
 import {
   APPLICATION_STAGE_LABELS,
-  CANDIDATE_CHANNEL_LABELS,
   type Application,
   type ApplicationStage,
-  type Candidate,
+  CANDIDATE_CHANNEL_LABELS,
   type FunnelStat,
   type Requisition,
 } from "@/hr/types/recruiting";
@@ -98,7 +96,10 @@ async function loadRequisitionOptions() {
     const res = await listRequisitions({ page: 1, page_size: 100 });
     requisitionOptions.value = [
       { value: "all", label: "全部需求" },
-      ...(res.data ?? []).map((item: Requisition) => ({ value: item.id, label: `${item.title}（${item.req_no}）` })),
+      ...(res.data ?? []).map((item: Requisition) => ({
+        value: item.id,
+        label: `${item.title}（${item.req_no}）`,
+      })),
     ];
   } catch {
     requisitionOptions.value = [{ value: "all", label: "全部需求" }];
@@ -143,7 +144,7 @@ async function loadCards() {
     rows.value = res.data ?? [];
     total.value = res.total || 0;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人卡片加载失败"));
+    notifyError(getErrorMessage(error, "候选人卡片加载失败"));
     rows.value = [];
     total.value = 0;
   } finally {
@@ -175,8 +176,14 @@ function refreshAll() {
 /* ── 阶段流转 ── */
 
 async function handleStageChange(application: Application, target: ApplicationStage) {
-  const destructive = target === "rejected" || target === "withdrawn" || target === "onboard_abandoned";
-  if (destructive && !(await confirmAction(`确定将「${application.candidate_name ?? "该候选人"}」流转至「${APPLICATION_STAGE_LABELS[target]}」？`))) {
+  const destructive =
+    target === "rejected" || target === "withdrawn" || target === "onboard_abandoned";
+  if (
+    destructive &&
+    !(await confirmAction(
+      `确定将「${application.candidate_name ?? "该候选人"}」流转至「${APPLICATION_STAGE_LABELS[target]}」？`
+    ))
+  ) {
     return;
   }
   try {
@@ -184,7 +191,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
     notifySuccess(`已流转至「${APPLICATION_STAGE_LABELS[target]}」`);
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "阶段流转失败"));
+    notifyError(getErrorMessage(error, "阶段流转失败"));
   }
 }
 
@@ -210,21 +217,21 @@ const mergeSource = ref<{ id: string; name: string } | null>(null);
 /** Offer 状态机操作：卡片出项按申请查 offer 再调 accept/reject（offer_id 前端不持有） */
 async function applyOfferAction(
   application: Application,
-  action: "accept" | "reject",
+  action: "accept" | "reject"
 ): Promise<void> {
   const label = action === "accept" ? "接受" : "拒绝";
   try {
     const offerRes = await getApplicationOffer(application.id);
     const offer = offerRes.data;
     if (!offer) {
-      notifyError(new Error("未找到该投递的 Offer 单，请确认 Offer 已发送"));
+      notifyError("未找到该投递的 Offer 单，请确认 Offer 已发送");
       return;
     }
     await (action === "accept" ? acceptOffer(offer.id) : rejectOffer(offer.id));
     notifySuccess(`已${label} Offer，申请${action === "accept" ? "进入待入职" : "已淘汰"}`);
     refreshAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `Offer ${label}失败`));
+    notifyError(getErrorMessage(error, `Offer ${label}失败`));
   }
 }
 

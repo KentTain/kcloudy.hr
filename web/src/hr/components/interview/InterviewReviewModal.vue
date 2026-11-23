@@ -5,17 +5,19 @@
  * （即时生成不落库，点击问题插入反馈框；失败降级手动填写）。
  */
 import { onUnmounted, ref, watch } from "vue";
-
-import { Button, Input, Select, Textarea } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Textarea,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -58,20 +60,24 @@ const resultOptions = [
   { value: "fail", label: "未通过" },
 ];
 
-watch(open, (value) => {
-  if (!value) {
-    stopSummaryPolling();
-    return;
-  }
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  result.value = "pass";
-  feedback.value = "";
-  aiSummary.value = "";
-  summaryPending.value = false;
-  questions.value = [];
-  const raw = props.interview?.scheduled_at ?? "";
-  scheduledAt.value = raw ? raw.slice(0, 16) : "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) {
+      stopSummaryPolling();
+      return;
+    }
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    result.value = "pass";
+    feedback.value = "";
+    aiSummary.value = "";
+    summaryPending.value = false;
+    questions.value = [];
+    const raw = props.interview?.scheduled_at ?? "";
+    scheduledAt.value = raw ? raw.slice(0, 16) : "";
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => stopSummaryPolling());
 
@@ -91,7 +97,7 @@ async function handleGenerateSummary() {
     const res = await submitInterviewSummary(props.interview.id);
     const data = res.data;
     if (!data?.task_id) {
-      notifyError(new Error("纪要任务提交失败，可后补重试"));
+      notifyError("纪要任务提交失败，可后补重试");
       return;
     }
     if (data.duplicated) {
@@ -100,7 +106,7 @@ async function handleGenerateSummary() {
     summaryPending.value = true;
     startSummaryPolling(props.interview.id, 0);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "纪要任务提交失败，可后补重试"));
+    notifyError(getErrorMessage(error, "纪要任务提交失败，可后补重试"));
   } finally {
     summarySubmitting.value = false;
   }
@@ -110,7 +116,7 @@ function startSummaryPolling(interviewId: string, round: number) {
   stopSummaryPolling();
   if (round >= SUMMARY_POLL_MAX_ROUNDS) {
     summaryPending.value = false;
-    notifyError(new Error("纪要仍在生成中，请稍后重新打开查看"));
+    notifyError("纪要仍在生成中，请稍后重新打开查看");
     return;
   }
   summaryPollTimer = setTimeout(() => {
@@ -143,10 +149,10 @@ async function handleFollowupQuestions() {
     const res = await getFollowupQuestions(props.interview.id);
     questions.value = res.data?.questions ?? [];
     if (!questions.value.length) {
-      notifyError(new Error("未生成追问建议，请手动填写反馈"));
+      notifyError("未生成追问建议，请手动填写反馈");
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "追问建议生成失败，请手动填写"));
+    notifyError(getErrorMessage(error, "追问建议生成失败，请手动填写"));
   } finally {
     questionsLoading.value = false;
   }
@@ -169,13 +175,11 @@ async function handleSubmit() {
       payload.scheduled_at = scheduledAt.value;
     }
     await updateInterview(interview.id, payload);
-    notifySuccess(
-      result.value === "pass" ? "面试通过，申请已流转拟录用" : "面试结论已提交",
-    );
+    notifySuccess(result.value === "pass" ? "面试通过，申请已流转拟录用" : "面试结论已提交");
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "面试评价提交失败"));
+    notifyError(getErrorMessage(error, "面试评价提交失败"));
   } finally {
     submitting.value = false;
   }

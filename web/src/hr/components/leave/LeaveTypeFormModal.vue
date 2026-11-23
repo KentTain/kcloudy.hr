@@ -4,15 +4,18 @@
  * 额度规则 manual（仅手工调整）时默认额度不可填。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Label, Select, Switch } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
 } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -46,9 +49,10 @@ const unitOptions = (Object.keys(LEAVE_UNIT_LABELS) as LeaveUnit[]).map((value) 
   value,
   label: LEAVE_UNIT_LABELS[value],
 }));
-const quotaRuleOptions = (
-  ["annual_fixed", "manual"] as const
-).map((value) => ({ value, label: LEAVE_QUOTA_RULE_LABELS[value] }));
+const quotaRuleOptions = (["annual_fixed", "manual"] as const).map((value) => ({
+  value,
+  label: LEAVE_QUOTA_RULE_LABELS[value],
+}));
 
 watch(
   open,
@@ -72,12 +76,12 @@ watch(
       status.value = true;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 async function handleSubmit() {
   if (!name.value.trim()) {
-    notifyError(new Error("请填写假期类型名称"));
+    notifyError("请填写假期类型名称");
     return;
   }
   submitting.value = true;
@@ -94,7 +98,7 @@ async function handleSubmit() {
       notifySuccess("假期类型已更新");
     } else {
       if (!code.value.trim()) {
-        notifyError(new Error("请填写假期类型编码"));
+        notifyError("请填写假期类型编码");
         submitting.value = false;
         return;
       }
@@ -111,7 +115,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "假期类型保存失败"));
+    notifyError(getErrorMessage(error, "假期类型保存失败"));
   } finally {
     submitting.value = false;
   }
@@ -170,7 +174,7 @@ async function handleSubmit() {
               :disabled="quotaRule === 'manual'"
               :placeholder="quotaRule === 'manual' ? '手工调整' : '如 5'"
               data-testid="leave-type-default-quota-input"
-              @update:model-value="(v: string) => (defaultQuota = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (defaultQuota = Number(v) || 0)"
             />
           </div>
         </div>

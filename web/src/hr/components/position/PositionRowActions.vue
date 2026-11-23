@@ -3,10 +3,8 @@
  * 岗位列表行操作（编辑/在岗员工/停用或启用/删除；删除仅无在岗员工时出项）
  */
 import { computed } from "vue";
-
-import { RowActions } from "@/components";
-
 import type { RowAction } from "@/components";
+import { RowActions } from "@/components";
 
 import type { Position } from "@/hr/types/position";
 

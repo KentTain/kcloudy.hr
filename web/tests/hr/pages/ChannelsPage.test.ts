@@ -72,7 +72,10 @@ beforeEach(() => {
   vi.resetAllMocks();
   permState.granted = new Set(["hr:channel:read", "hr:channel:sync"]);
   apiMocks.listChannels.mockResolvedValue({ code: 200, data: CHANNELS });
-  apiMocks.triggerChannelSync.mockResolvedValue({ code: 200, data: { task_id: "task-1", channel: "zhilian" } });
+  apiMocks.triggerChannelSync.mockResolvedValue({
+    code: 200,
+    data: { task_id: "task-1", channel: "zhilian" },
+  });
   apiMocks.testChannelConnection.mockResolvedValue({
     code: 200,
     data: { channel: "zhilian", ok: true, message: "凭证有效，渠道连通正常" },
@@ -103,7 +106,9 @@ describe("ChannelsPage", () => {
 
     expect(apiMocks.listChannels).toHaveBeenCalled();
     expect(document.querySelectorAll('[data-testid="channel-card"]').length).toBe(2);
-    expect(document.querySelector('[data-testid="channel-status-zhilian"]')?.textContent).toContain("已配置");
+    expect(document.querySelector('[data-testid="channel-status-zhilian"]')?.textContent).toContain(
+      "已配置"
+    );
     const body = document.body.textContent ?? "";
     expect(body).toContain("累计归集：12");
     expect(body).toContain("站内直投");
@@ -113,7 +118,9 @@ describe("ChannelsPage", () => {
     mountPage();
     await flushPromises();
 
-    const syncButton = document.querySelector<HTMLButtonElement>('[data-testid="channel-sync-zhilian"]');
+    const syncButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="channel-sync-zhilian"]'
+    );
     expect(syncButton).toBeTruthy();
     syncButton!.click();
     await flushPromises();
@@ -127,7 +134,9 @@ describe("ChannelsPage", () => {
     mountPage();
     await flushPromises();
 
-    const postingsButton = document.querySelector<HTMLButtonElement>('[data-testid="channel-postings-zhilian"]');
+    const postingsButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="channel-postings-zhilian"]'
+    );
     postingsButton!.click();
     await flushPromises();
 
@@ -144,7 +153,7 @@ describe("ChannelsPage", () => {
     expect(document.querySelector('[data-testid="channel-sync-zhilian"]')).toBeTruthy();
 
     const settingsLink = [...document.querySelectorAll("button")].find((el) =>
-      el.textContent?.includes("配置凭证"),
+      el.textContent?.includes("配置凭证")
     );
     settingsLink!.click();
     expect(routerPush).toHaveBeenCalledWith("/iam/platform-settings");
@@ -163,7 +172,9 @@ describe("ChannelsPage", () => {
     mountPage();
     await flushPromises();
 
-    const testButton = document.querySelector<HTMLButtonElement>('[data-testid="channel-test-zhilian"]');
+    const testButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="channel-test-zhilian"]'
+    );
     expect(testButton).toBeTruthy();
     testButton!.click();
     await flushPromises();

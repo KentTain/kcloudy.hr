@@ -7,21 +7,11 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, ref, watch } from "vue";
 
-import {
-  Badge,
-  Button,
-  DataTable,
-  Select,
-  useDataTable,
-} from "@/components";
+import { Badge, Button, DataTable, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 
 import { useUserStore } from "@/framework/stores";
-import {
-  getErrorMessage,
-  notifyError,
-  notifySuccess,
-} from "@/framework/utils/feedback";
+import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
 import { getPerfDistribution, listPerfCycles, listPerfReviews } from "@/hr/api/perf";
 import ReviewCalibrateModal from "@/hr/components/perf/ReviewCalibrateModal.vue";
@@ -30,14 +20,13 @@ import ReviewScoreModal from "@/hr/components/perf/ReviewScoreModal.vue";
 import {
   PERF_CYCLE_STATUS_LABELS,
   PERF_RATINGS,
+  PERF_REVIEW_STATUS_LABELS,
+  PERF_REVIEW_STATUS_VARIANTS,
   type PerfCycleItem,
   type PerfDistribution,
-  type PerfRating,
   type PerfReviewItem,
   type PerfReviewQuery,
   type PerfReviewStatus,
-  PERF_REVIEW_STATUS_LABELS,
-  PERF_REVIEW_STATUS_VARIANTS,
 } from "@/hr/types/perf";
 
 const userStore = useUserStore();
@@ -63,7 +52,10 @@ const statusOptions = [
 const distribution = ref<PerfDistribution | null>(null);
 const maxCount = computed(() => {
   if (!distribution.value) return 0;
-  return Math.max(...PERF_RATINGS.map((rating) => distribution.value!.ratings[rating]?.count ?? 0), 1);
+  return Math.max(
+    ...PERF_RATINGS.map((rating) => distribution.value!.ratings[rating]?.count ?? 0),
+    1
+  );
 });
 
 watch(cycleId, async (value) => {
@@ -73,7 +65,7 @@ watch(cycleId, async (value) => {
     const res = await getPerfDistribution(value);
     distribution.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "评级分布加载失败"));
+    notifyError(getErrorMessage(error, "评级分布加载失败"));
   }
 });
 
@@ -82,7 +74,7 @@ async function loadCycles() {
     const res = await listPerfCycles({ page: 1, page_size: 100 });
     cycles.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "考核周期加载失败"));
+    notifyError(getErrorMessage(error, "考核周期加载失败"));
   }
 }
 
@@ -94,7 +86,18 @@ const cycleOptions = computed(() => [
   })),
 ]);
 
-function envelope<T>(res: { code: number; data?: T[] | null; msg?: string; page?: number; page_size?: number; total?: number }, page: number, pageSize: number) {
+function envelope<T>(
+  res: {
+    code: number;
+    data?: T[] | null;
+    msg?: string;
+    page?: number;
+    page_size?: number;
+    total?: number;
+  },
+  page: number,
+  pageSize: number
+) {
   return {
     code: res.code,
     data: res.data ?? [],
@@ -110,8 +113,7 @@ const columns = ref<ColumnDef<PerfReviewItem>[]>([
     id: "employee",
     header: "被评人",
     size: 140,
-    cell: ({ row }) =>
-      `${row.original.employee_name ?? ""}（${row.original.employee_no ?? ""}）`,
+    cell: ({ row }) => `${row.original.employee_name ?? ""}（${row.original.employee_no ?? ""}）`,
   },
   { accessorKey: "reviewer_name", header: "评估人", size: 110 },
   {
@@ -147,10 +149,9 @@ const columns = ref<ColumnDef<PerfReviewItem>[]>([
       h(
         Badge,
         {
-          variant:
-            PERF_REVIEW_STATUS_VARIANTS[row.original.status as PerfReviewStatus],
+          variant: PERF_REVIEW_STATUS_VARIANTS[row.original.status as PerfReviewStatus],
         },
-        () => PERF_REVIEW_STATUS_LABELS[row.original.status as PerfReviewStatus],
+        () => PERF_REVIEW_STATUS_LABELS[row.original.status as PerfReviewStatus]
       ),
   },
   {
@@ -170,8 +171,8 @@ const columns = ref<ColumnDef<PerfReviewItem>[]>([
               "data-testid": `review-score-${item.id}`,
               onClick: () => openScore(item),
             },
-            () => "评分",
-          ),
+            () => "评分"
+          )
         );
       }
       if (
@@ -188,8 +189,8 @@ const columns = ref<ColumnDef<PerfReviewItem>[]>([
               "data-testid": `review-calibrate-${item.id}`,
               onClick: () => openCalibrate(item),
             },
-            () => "校准",
-          ),
+            () => "校准"
+          )
         );
       }
       if (!buttons.length) {
@@ -213,7 +214,7 @@ const dataTable = useDataTable<PerfReviewItem>({
       const res = await listPerfReviews(query);
       return envelope<PerfReviewItem>(res, page, page_size);
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "评估列表加载失败"));
+      notifyError(getErrorMessage(error, "评估列表加载失败"));
       throw error;
     }
   },

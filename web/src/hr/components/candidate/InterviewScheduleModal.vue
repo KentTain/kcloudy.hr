@@ -3,26 +3,29 @@
  * 安排面试弹窗：面试官（人员选择）/时间/形式；成功后建面试记录并流转申请至面试中。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Select } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  PeopleSelectDialog,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
-import { PeopleSelectDialog } from "@/components";
-
-import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
 import type { UserItem } from "@/components/common/feedback/people-select/types";
+import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
 import { createInterview } from "@/hr/api/interview";
 import { updateApplicationStage } from "@/hr/api/recruiting";
-import { INTERVIEW_FORM_OPTIONS, type Application, type InterviewForm } from "@/hr/types/recruiting";
+import {
+  type Application,
+  INTERVIEW_FORM_OPTIONS,
+  type InterviewForm,
+} from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -40,14 +43,18 @@ const interviewForm = ref<InterviewForm>("onsite");
 
 const peoplePickerOpen = ref(false);
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  interviewerName.value = "";
-  interviewerId.value = "";
-  scheduledAt.value = "";
-  interviewForm.value = "onsite";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    interviewerName.value = "";
+    interviewerId.value = "";
+    scheduledAt.value = "";
+    interviewForm.value = "onsite";
+  },
+  { immediate: true }
+);
 
 function handlePeopleConfirm(userIds: string[], users: UserItem[]) {
   interviewerId.value = userIds[0] ?? "";
@@ -65,7 +72,7 @@ async function handleSubmit() {
   if (!application) return;
   const error = validate();
   if (error) {
-    notifyError(new Error(error));
+    notifyError(error);
     return;
   }
   submitting.value = true;
@@ -83,7 +90,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "安排面试失败"));
+    notifyError(getErrorMessage(error, "安排面试失败"));
   } finally {
     submitting.value = false;
   }

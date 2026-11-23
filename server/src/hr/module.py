@@ -159,6 +159,9 @@ class HrModule:
         from hr.controllers.inner.webhook_controller import (
             router as inner_webhook_router,
         )
+        from hr.controllers.inner.task_controller import (
+            router as inner_task_router,
+        )
 
         return [
             # Admin 层路由
@@ -191,6 +194,8 @@ class HrModule:
             (inner_employee_router, "/hr", ["Inner - Employee"]),
             (inner_agent_tools_router, "/hr", ["Inner - AgentTools"]),
             (inner_webhook_router, "/hr", ["Inner - ChannelWebhook"]),
+            # task/listener 瘦身：定时任务触发面（平台 task 薄壳 POST，后台执行）
+            (inner_task_router, "/hr", ["Inner - Task"]),
         ]
 
     def get_middlewares(self) -> list[type]:

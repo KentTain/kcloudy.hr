@@ -151,10 +151,13 @@ describe("MyLeavePage", () => {
     await flushPromises();
 
     expect(apiMocks.listMyLeaveBalances).toHaveBeenCalledTimes(1);
-    const cards = document.querySelector('[data-testid="my-leave-balance-cards"]')?.textContent ?? "";
+    const cards =
+      document.querySelector('[data-testid="my-leave-balance-cards"]')?.textContent ?? "";
     expect(cards).toContain("年假");
     expect(cards).toContain("事假");
-    expect(document.querySelector('[data-testid="my-leave-balance-lb-1"]')?.textContent).toContain("2");
+    expect(document.querySelector('[data-testid="my-leave-balance-lb-1"]')?.textContent).toContain(
+      "2"
+    );
     wrapper.unmount();
   });
 
@@ -197,7 +200,7 @@ describe("MyLeavePage", () => {
     await flushPromises();
 
     expect(apiMocks.listMyLeaveRequests).toHaveBeenLastCalledWith(
-      expect.objectContaining({ status: undefined, page: 1, page_size: 10 }),
+      expect.objectContaining({ status: undefined, page: 1, page_size: 10 })
     );
     wrapper.unmount();
   });

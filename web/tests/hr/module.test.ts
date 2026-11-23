@@ -70,7 +70,7 @@ describe("hr 模块路由", () => {
       "/hr/team",
     ];
     const routePaths = (hrRoutes[0].children ?? []).map(
-      (child) => `/${hrRoutes[0].path}/${child.path}`,
+      (child) => `/${hrRoutes[0].path}/${child.path}`
     );
     expect(routePaths).toEqual(expected);
   });

@@ -59,14 +59,58 @@ vi.mock("@/framework/utils/feedback", () => ({
 }));
 
 const RUNS: PayrollRun[] = [
-  { id: "run-1", period: "2026-10", status: "draft", total_amount: 45500, employee_count: 2, pay_date: null },
-  { id: "run-2", period: "2026-09", status: "paid", total_amount: 44000, employee_count: 2, pay_date: "2026-09-25" },
+  {
+    id: "run-1",
+    period: "2026-10",
+    status: "draft",
+    total_amount: 45500,
+    employee_count: 2,
+    pay_date: null,
+  },
+  {
+    id: "run-2",
+    period: "2026-09",
+    status: "paid",
+    total_amount: 44000,
+    employee_count: 2,
+    pay_date: "2026-09-25",
+  },
 ];
 
 const ENTRIES: PayrollEntry[] = [
-  { id: "entry-1", run_id: "run-1", employee_id: "emp-1", employee_no: "EMP001", employee_name: "张三", item_id: "it-1", item_code: "base_monthly", amount: 18000, note: null },
-  { id: "entry-2", run_id: "run-1", employee_id: "emp-1", employee_no: "EMP001", employee_name: "张三", item_id: "it-2", item_code: "perf_monthly", amount: 5000, note: null },
-  { id: "entry-3", run_id: "run-1", employee_id: "emp-2", employee_no: "EMP002", employee_name: "李四", item_id: "it-1", item_code: "base_monthly", amount: 22500, note: null },
+  {
+    id: "entry-1",
+    run_id: "run-1",
+    employee_id: "emp-1",
+    employee_no: "EMP001",
+    employee_name: "张三",
+    item_id: "it-1",
+    item_code: "base_monthly",
+    amount: 18000,
+    note: null,
+  },
+  {
+    id: "entry-2",
+    run_id: "run-1",
+    employee_id: "emp-1",
+    employee_no: "EMP001",
+    employee_name: "张三",
+    item_id: "it-2",
+    item_code: "perf_monthly",
+    amount: 5000,
+    note: null,
+  },
+  {
+    id: "entry-3",
+    run_id: "run-1",
+    employee_id: "emp-2",
+    employee_no: "EMP002",
+    employee_name: "李四",
+    item_id: "it-1",
+    item_code: "base_monthly",
+    amount: 22500,
+    note: null,
+  },
 ];
 
 function mountPage() {
@@ -90,8 +134,20 @@ function clickButton(testid: string) {
 beforeEach(() => {
   vi.resetAllMocks();
   permState.granted = new Set(["hr:payroll:read", "hr:payroll:write", "hr:payroll:confirm"]);
-  apiMocks.listPayrollRuns.mockResolvedValue({ code: 200, data: RUNS, total: 2, page: 1, page_size: 50 });
-  apiMocks.listPayrollEntries.mockResolvedValue({ code: 200, data: ENTRIES, total: 3, page: 1, page_size: 200 });
+  apiMocks.listPayrollRuns.mockResolvedValue({
+    code: 200,
+    data: RUNS,
+    total: 2,
+    page: 1,
+    page_size: 50,
+  });
+  apiMocks.listPayrollEntries.mockResolvedValue({
+    code: 200,
+    data: ENTRIES,
+    total: 3,
+    page: 1,
+    page_size: 200,
+  });
   apiMocks.createPayrollRun.mockResolvedValue({
     code: 200,
     data: { run: RUNS[0], task_id: "task-payroll-1" },
@@ -100,7 +156,10 @@ beforeEach(() => {
     code: 200,
     data: { ...ENTRIES[0], amount: 18500, note: "补发差额定额" },
   });
-  apiMocks.confirmPayrollRun.mockResolvedValue({ code: 200, data: { ...RUNS[0], status: "confirmed" } });
+  apiMocks.confirmPayrollRun.mockResolvedValue({
+    code: 200,
+    data: { ...RUNS[0], status: "confirmed" },
+  });
   apiMocks.cancelPayrollRun.mockResolvedValue({ code: 200, data: RUNS[0] });
 });
 
@@ -132,7 +191,8 @@ describe("PayrollRunsPage", () => {
     expect(document.querySelector('[data-testid="create-run-dialog"]')).toBeTruthy();
 
     const periodHost = document.querySelector('[data-testid="create-run-period"]');
-    const periodInput = (periodHost?.querySelector("input") ?? periodHost) as HTMLInputElement | null;
+    const periodInput = (periodHost?.querySelector("input") ??
+      periodHost) as HTMLInputElement | null;
     expect(periodInput?.value).toMatch(/^\d{4}-\d{2}$/);
 
     clickButton("create-run-submit");
@@ -159,7 +219,9 @@ describe("PayrollRunsPage", () => {
 
     const rows = document.querySelectorAll('[data-testid="matrix-row"]');
     expect(rows.length).toBe(2);
-    expect(document.querySelector('[data-testid="matrix-footer"]')?.textContent).toContain("45,500.00");
+    expect(document.querySelector('[data-testid="matrix-footer"]')?.textContent).toContain(
+      "45,500.00"
+    );
   });
 
   it("草稿批次单元格修正：金额修改无备注被拦截，补备注后提交载荷", async () => {

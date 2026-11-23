@@ -4,20 +4,27 @@
  * 左组右表布局：组列表可增删改；选中组内定义表支持新增/编辑/删除。
  */
 import { computed, ref, watch } from "vue";
-
-import { Badge } from "@/components";
-import { Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
+  Textarea,
 } from "@/components";
-import { Input, Select, Switch, Textarea } from "@/components";
-import { Label } from "@/components";
 
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import {
   createFieldDefinition,
@@ -37,7 +44,10 @@ import {
 
 const open = defineModel<boolean>("open", { required: true });
 
-const DATA_TYPE_OPTIONS = Object.entries(ATTRIBUTE_DATA_TYPE_LABELS).map(([value, label]) => ({ value, label }));
+const DATA_TYPE_OPTIONS = Object.entries(ATTRIBUTE_DATA_TYPE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const groups = ref<FieldGroup[]>([]);
 const definitions = ref<FieldDefinition[]>([]);
@@ -62,11 +72,17 @@ const defSort = ref<number>(0);
 const defExtData = ref("");
 const extDataError = ref("");
 
-const activeGroup = computed(() => groups.value.find((group) => group.id === activeGroupId.value) ?? null);
+const activeGroup = computed(
+  () => groups.value.find((group) => group.id === activeGroupId.value) ?? null
+);
 
-watch(open, async (value) => {
-  if (value) await loadAll();
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (value) await loadAll();
+  },
+  { immediate: true }
+);
 
 async function loadAll() {
   loading.value = true;
@@ -78,7 +94,7 @@ async function loadAll() {
     }
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "属性组加载失败"));
+    notifyError(getErrorMessage(error, "属性组加载失败"));
   } finally {
     loading.value = false;
   }
@@ -93,7 +109,7 @@ async function loadDefinitions() {
     const res = await listFieldDefinitions(activeGroupId.value);
     definitions.value = (res.data ?? []).slice().sort((a, b) => a.sort - b.sort);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "字段定义加载失败"));
+    notifyError(getErrorMessage(error, "字段定义加载失败"));
     definitions.value = [];
   }
 }
@@ -110,25 +126,28 @@ function openGroupEditor(group: FieldGroup | null) {
 
 async function submitGroup() {
   if (!groupCode.value.trim() || !groupName.value.trim()) {
-    notifyError(new Error("请填写组编码与名称"));
+    notifyError("请填写组编码与名称");
     return;
   }
   try {
     if (groupEditing.value) {
       await updateFieldGroup(groupEditing.value.id, {
-        code: groupCode.value,
         name: groupName.value,
         sort: groupSort.value,
       });
       notifySuccess("属性组已更新");
     } else {
-      await createFieldGroup({ code: groupCode.value, name: groupName.value, sort: groupSort.value });
+      await createFieldGroup({
+        code: groupCode.value,
+        name: groupName.value,
+        sort: groupSort.value,
+      });
       notifySuccess("属性组已创建");
     }
     groupEditorOpen.value = false;
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "属性组保存失败"));
+    notifyError(getErrorMessage(error, "属性组保存失败"));
   }
 }
 
@@ -140,7 +159,7 @@ async function removeGroup(group: FieldGroup) {
     if (activeGroupId.value === group.id) activeGroupId.value = "";
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -172,7 +191,7 @@ function validateExtData(): Record<string, unknown> | undefined {
 async function submitDefinition() {
   if (!activeGroupId.value) return;
   if (!defName.value.trim()) {
-    notifyError(new Error("请填写字段名称"));
+    notifyError("请填写字段名称");
     return;
   }
   const extData = validateExtData();
@@ -185,7 +204,7 @@ async function submitDefinition() {
       is_require: defRequire.value,
       can_edit: defCanEdit.value,
       sort: defSort.value,
-      ext_data: extData ?? null,
+      ext_data: extData ?? undefined,
     };
     if (defEditing.value) {
       await updateFieldDefinition(defEditing.value.id, payload);
@@ -197,7 +216,7 @@ async function submitDefinition() {
     defEditorOpen.value = false;
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "字段定义保存失败"));
+    notifyError(getErrorMessage(error, "字段定义保存失败"));
   }
 }
 
@@ -208,7 +227,7 @@ async function removeDefinition(definition: FieldDefinition) {
     notifySuccess("字段定义已删除");
     await loadDefinitions();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 </script>

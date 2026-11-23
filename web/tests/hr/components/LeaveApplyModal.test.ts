@@ -92,7 +92,8 @@ describe("LeaveApplyModal", () => {
     await flushPromises();
 
     const durationHost = document.querySelector('[data-testid="leave-apply-duration"]');
-    const durationText = durationHost?.querySelector("input")?.value ?? durationHost?.textContent ?? "";
+    const durationText =
+      durationHost?.querySelector("input")?.value ?? durationHost?.textContent ?? "";
     expect(durationText).toContain("2");
     expect(durationText).toContain("天");
 

@@ -30,7 +30,10 @@ export function getMyPaySlip(period: string): Promise<ApiResponse<PaySlipDetail>
 }
 
 /** 团队成员（本人组织子树，不含已离职），信封含 total 分页 */
-export function listTeamEmployees(query: { page: number; page_size: number }): Promise<ApiResponse<TeamEmployee[]>> {
+export function listTeamEmployees(query: {
+  page: number;
+  page_size: number;
+}): Promise<ApiResponse<TeamEmployee[]>> {
   return get<ApiResponse<TeamEmployee[]>>("/hr/console/v1/team/employees", { params: query });
 }
 
@@ -42,11 +45,11 @@ export function getMyGoals(): Promise<ApiResponse<MyGoalGroup[]>> {
 /** 更新本人目标进度（仅 active 周期） */
 export function updateMyGoalProgress(
   goalId: string,
-  data: { progress: number; actual_value?: string | null },
+  data: { progress: number; actual_value?: string | null }
 ): Promise<ApiResponse<{ id: string; progress: number; actual_value: string | null }>> {
   return put<ApiResponse<{ id: string; progress: number; actual_value: string | null }>>(
     `/hr/console/v1/me/goals/${goalId}/progress`,
-    data,
+    data
   );
 }
 
@@ -56,8 +59,13 @@ export function getMyReviews(): Promise<ApiResponse<MyReviewItem[]>> {
 }
 
 /** 我的档案变更申请列表 */
-export function listMyChangeRequests(query: { page: number; page_size: number }): Promise<ApiResponse<ChangeRequestSummary[]>> {
-  return get<ApiResponse<ChangeRequestSummary[]>>("/hr/console/v1/me/profile/change-requests", { params: query });
+export function listMyChangeRequests(query: {
+  page: number;
+  page_size: number;
+}): Promise<ApiResponse<ChangeRequestSummary[]>> {
+  return get<ApiResponse<ChangeRequestSummary[]>>("/hr/console/v1/me/profile/change-requests", {
+    params: query,
+  });
 }
 
 /** 提交档案变更申请（仅 self_editable 属性，走统一审批流） */
@@ -65,12 +73,17 @@ export function submitChangeRequest(data: {
   title: string;
   changes: ChangeRequestDraftItem[];
 }): Promise<ApiResponse<{ id: string; status: string }>> {
-  return post<ApiResponse<{ id: string; status: string }>>("/hr/console/v1/me/profile/change-requests", data);
+  return post<ApiResponse<{ id: string; status: string }>>(
+    "/hr/console/v1/me/profile/change-requests",
+    data
+  );
 }
 
 /** 撤销待审批的变更申请（仅本人 pending） */
-export function cancelChangeRequest(requestId: string): Promise<ApiResponse<{ id: string; status: string }>> {
+export function cancelChangeRequest(
+  requestId: string
+): Promise<ApiResponse<{ id: string; status: string }>> {
   return post<ApiResponse<{ id: string; status: string }>>(
-    `/hr/console/v1/me/profile/change-requests/${requestId}/cancel`,
+    `/hr/console/v1/me/profile/change-requests/${requestId}/cancel`
   );
 }

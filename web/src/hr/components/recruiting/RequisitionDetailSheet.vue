@@ -14,7 +14,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import {
   closeRequisition,
@@ -29,18 +34,17 @@ import FunnelBar from "@/hr/components/recruiting/FunnelBar.vue";
 import {
   APPLICATION_STAGE_LABELS,
   APPLICATION_STAGE_VARIANTS,
+  type Application,
+  type ApplicationStage,
   CHANNEL_LABELS,
+  type FunnelStat,
   POSTING_STATUS_LABELS,
   POSTING_STATUS_VARIANTS,
   REQUISITION_PRIORITY_LABELS,
-  REQUISITION_PRIORITY_VARIANTS,
   REQUISITION_STATUS_LABELS,
   REQUISITION_STATUS_VARIANTS,
-  STAGE_TRANSITIONS,
-  type Application,
-  type ApplicationStage,
-  type FunnelStat,
   type Requisition,
+  STAGE_TRANSITIONS,
 } from "@/hr/types/recruiting";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -97,8 +101,8 @@ async function loadAll() {
       getRequisition(props.requisitionId),
       getRequisitionFunnel(props.requisitionId),
     ]);
-    requisition.value = reqRes.value?.data ?? null;
-    funnelStats.value = funnelRes.value?.data?.stats ?? [];
+    requisition.value = reqRes.status === "fulfilled" ? (reqRes.value.data ?? null) : null;
+    funnelStats.value = funnelRes.status === "fulfilled" ? (funnelRes.value.data?.stats ?? []) : [];
     if (props.canReadCandidates) {
       await loadApplications();
     }
@@ -117,7 +121,7 @@ async function loadApplications() {
     });
     applications.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "投递列表加载失败"));
+    notifyError(getErrorMessage(error, "投递列表加载失败"));
     applications.value = [];
   }
 }
@@ -141,7 +145,7 @@ async function handleGenerateJd() {
     jdDraft.value = res.data?.jd_draft ?? "";
     if (jdDraft.value) notifySuccess("JD 草稿已生成，可复制后手动编辑保存");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "JD 草稿生成失败，请手动编辑"));
+    notifyError(getErrorMessage(error, "JD 草稿生成失败，请手动编辑"));
   } finally {
     jdGenerating.value = false;
   }
@@ -167,7 +171,7 @@ async function handleStageChange(application: Application, target: ApplicationSt
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "阶段流转失败"));
+    notifyError(getErrorMessage(error, "阶段流转失败"));
   }
 }
 
@@ -178,7 +182,7 @@ async function handleOfflinePosting(postingId: string) {
     notifySuccess("渠道职位已下线");
     await loadAll();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "下线失败"));
+    notifyError(getErrorMessage(error, "下线失败"));
   }
 }
 
@@ -192,7 +196,7 @@ async function handleClose() {
     await loadAll();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "关闭需求失败"));
+    notifyError(getErrorMessage(error, "关闭需求失败"));
   }
 }
 

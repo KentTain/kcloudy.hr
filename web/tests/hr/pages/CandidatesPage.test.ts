@@ -115,10 +115,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return document
-    .querySelectorAll("button")
-    .values()
-    .find((el) => el.textContent?.trim() === text) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find((el) => el.textContent?.trim() === text) as
+    | HTMLButtonElement
+    | undefined;
 }
 
 beforeEach(() => {
@@ -147,7 +146,12 @@ beforeEach(() => {
     code: 200,
     data: [
       makeApplication(),
-      makeApplication({ id: "app-2", candidate_id: "cand-2", candidate_name: "李四", stage: "screening_passed" }),
+      makeApplication({
+        id: "app-2",
+        candidate_id: "cand-2",
+        candidate_name: "李四",
+        stage: "screening_passed",
+      }),
     ],
     total: 2,
     page: 1,
@@ -157,10 +161,23 @@ beforeEach(() => {
   apiMocks.getMergeSuggestions.mockResolvedValue({ code: 200, data: [] });
   apiMocks.getApplicationOffer.mockResolvedValue({
     code: 200,
-    data: { id: "offer-1", application_id: "app-1", salary_snapshot: {}, status: "sent", valid_until: null, sent_at: null },
+    data: {
+      id: "offer-1",
+      application_id: "app-1",
+      salary_snapshot: {},
+      status: "sent",
+      valid_until: null,
+      sent_at: null,
+    },
   });
-  apiMocks.acceptOffer.mockResolvedValue({ code: 200, data: { id: "offer-1", status: "accepted" } });
-  apiMocks.rejectOffer.mockResolvedValue({ code: 200, data: { id: "offer-1", status: "rejected" } });
+  apiMocks.acceptOffer.mockResolvedValue({
+    code: 200,
+    data: { id: "offer-1", status: "accepted" },
+  });
+  apiMocks.rejectOffer.mockResolvedValue({
+    code: 200,
+    data: { id: "offer-1", status: "rejected" },
+  });
   apiMocks.onboardOffer.mockResolvedValue({
     code: 200,
     data: { employee_id: "emp-1", employee_no: "EMP0001" },
@@ -190,7 +207,9 @@ describe("CandidatesPage", () => {
     await flushPromises();
     expect(apiMocks.listCandidateCards).toHaveBeenCalledTimes(1);
 
-    const stageCell = document.querySelector<HTMLButtonElement>('[data-testid="funnel-stage-pending_screening"]');
+    const stageCell = document.querySelector<HTMLButtonElement>(
+      '[data-testid="funnel-stage-pending_screening"]'
+    );
     expect(stageCell, "漏斗应渲染待初筛阶段").toBeTruthy();
     stageCell!.click();
     await flushPromises();
@@ -216,7 +235,12 @@ describe("CandidatesPage", () => {
       code: 200,
       data: [
         makeApplication({ id: "app-2", candidate_id: "cand-2", stage: "screening_passed" }),
-        makeApplication({ id: "app-3", candidate_id: "cand-3", candidate_name: "王五", stage: "pre_hire" }),
+        makeApplication({
+          id: "app-3",
+          candidate_id: "cand-3",
+          candidate_name: "王五",
+          stage: "pre_hire",
+        }),
       ],
       total: 2,
     });
@@ -259,7 +283,9 @@ describe("CandidatesPage", () => {
 
     apiMocks.getApplicationOffer.mockResolvedValue({ code: 200, data: null });
     apiMocks.rejectOffer.mockClear();
-    (document.querySelector('[data-testid="card-offer-reject"]') as HTMLButtonElement | null)?.click();
+    (
+      document.querySelector('[data-testid="card-offer-reject"]') as HTMLButtonElement | null
+    )?.click();
     await flushPromises();
     expect(apiMocks.rejectOffer).not.toHaveBeenCalled();
   });
@@ -287,7 +313,7 @@ describe("CandidatesPage", () => {
     expect(apiMocks.getApplicationOffer).toHaveBeenCalledWith("app-1");
     expect(apiMocks.onboardOffer).toHaveBeenCalledWith(
       "offer-1",
-      expect.objectContaining({ hire_date: expect.any(String) }),
+      expect.objectContaining({ hire_date: expect.any(String) })
     );
   });
 

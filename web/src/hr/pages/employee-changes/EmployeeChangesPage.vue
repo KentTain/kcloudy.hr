@@ -30,10 +30,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { post } from "@/framework/api/client";
+import type { ApiResponse } from "@/framework/api/types";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-import { post } from "@/framework/api/client";
 
 import { listChangeRecords, transferChangeRecord } from "@/hr/api/change";
 import { listEmployees } from "@/hr/api/employee";
@@ -108,10 +109,9 @@ async function loadOperatorNames(operatorIds: string[]) {
   const missing = [...new Set(operatorIds.filter((id) => id && !operatorMap.value.has(id)))];
   if (missing.length === 0) return;
   try {
-    const res = await post<ApiResponse<{ items: { id: string; username?: string; display_name?: string }[] }>>(
-      "/iam/console/v1/users/batch",
-      { user_ids: missing },
-    );
+    const res = await post<
+      ApiResponse<{ items: { id: string; username?: string; display_name?: string }[] }>
+    >("/iam/console/v1/users/batch", { user_ids: missing });
     const items = res.data?.items ?? [];
     const next = new Map(operatorMap.value);
     for (const user of items) {
@@ -309,7 +309,7 @@ async function handleTransferConfirm(
     notifySuccess(targetName ? `已移交至 ${targetName}` : "移交成功");
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "移交失败"));
+    notifyError(getErrorMessage(error, "移交失败"));
   }
 }
 
@@ -332,7 +332,7 @@ async function searchPickerEmployees() {
     });
     pickerRows.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工搜索失败"));
+    notifyError(getErrorMessage(error, "员工搜索失败"));
   } finally {
     pickerLoading.value = false;
   }

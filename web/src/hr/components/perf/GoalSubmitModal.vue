@@ -6,7 +6,19 @@
  */
 import { computed, ref, watch } from "vue";
 
-import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@/components";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -34,12 +46,10 @@ const searching = ref(false);
 const goals = ref<DraftGoal[]>([]);
 const submitting = ref(false);
 
-const selectedCycle = computed(
-  () => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null,
-);
+computed(() => cycleOptions.value.find((option) => option.value === cycleId.value) ?? null);
 
 const totalWeight = computed(() =>
-  goals.value.reduce((sum, goal) => sum + (Number(goal.weight) || 0), 0),
+  goals.value.reduce((sum, goal) => sum + (Number(goal.weight) || 0), 0)
 );
 const weightGap = computed(() => {
   const gap = Math.round((100 - totalWeight.value) * 100) / 100;
@@ -60,7 +70,7 @@ watch(open, async (value) => {
       label: cycle.name,
     }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "周期加载失败"));
+    notifyError(getErrorMessage(error, "周期加载失败"));
   }
 });
 
@@ -79,7 +89,7 @@ async function searchEmployees() {
       label: `${employee.name}（${employee.employee_no}）`,
     }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工检索失败"));
+    notifyError(getErrorMessage(error, "员工检索失败"));
   } finally {
     searching.value = false;
   }
@@ -113,7 +123,7 @@ function validate(): string | null {
 async function handleSubmit() {
   const message = validate();
   if (message || !selectedEmployee.value) {
-    if (message) notifyError(new Error(message), message);
+    if (message) notifyError(message);
     return;
   }
   submitting.value = true;
@@ -125,14 +135,14 @@ async function handleSubmit() {
         code: goal.code.trim(),
         name: goal.name.trim(),
         weight: Number(goal.weight),
-        target_value: goal.target_value.trim() || undefined,
+        target_value: goal.target_value?.trim() || undefined,
       })),
     });
     notifySuccess("目标已提交");
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "目标提交失败"));
+    notifyError(getErrorMessage(error, "目标提交失败"));
   } finally {
     submitting.value = false;
   }

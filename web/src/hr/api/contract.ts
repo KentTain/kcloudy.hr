@@ -2,7 +2,7 @@
  * 合同与材料附件 api（admin 层 /hr/admin/v1）
  */
 
-import { get, post, put, del } from "@/framework/api/client";
+import { del, get, post } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
 
@@ -21,7 +21,7 @@ export function createContract(payload: ContractCreatePayload): Promise<ApiRespo
 /** 续签（旧合同区间闭合 + 新合同生效） */
 export function renewContract(
   contractId: string,
-  payload: Omit<ContractCreatePayload, "employee_id">,
+  payload: Omit<ContractCreatePayload, "employee_id">
 ): Promise<ApiResponse<Contract>> {
   return post<ApiResponse<Contract>>(`/hr/admin/v1/contracts/${contractId}/renew`, payload);
 }
@@ -45,23 +45,21 @@ export function listEmployeeAttachments(employeeId: string): Promise<ApiResponse
 export function uploadEmployeeAttachment(
   employeeId: string,
   docType: string,
-  file: File,
+  file: File
 ): Promise<ApiResponse<Attachment>> {
   const form = new FormData();
   form.append("file", file);
-  return post<ApiResponse<Attachment>>(
-    `/hr/admin/v1/employees/${employeeId}/attachments`,
-    form,
-    { params: { doc_type: docType } },
-  );
+  return post<ApiResponse<Attachment>>(`/hr/admin/v1/employees/${employeeId}/attachments`, form, {
+    params: { doc_type: docType },
+  });
 }
 
 /** 受控下载链接（调用即写审计） */
 export function getAttachmentDownloadUrl(
-  attachmentId: string,
+  attachmentId: string
 ): Promise<ApiResponse<{ file_name: string; url: string }>> {
   return get<ApiResponse<{ file_name: string; url: string }>>(
-    `/hr/admin/v1/attachments/${attachmentId}/download-url`,
+    `/hr/admin/v1/attachments/${attachmentId}/download-url`
   );
 }
 

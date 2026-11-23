@@ -182,9 +182,10 @@ describe("SalaryPackagesPage", () => {
 
     expect(apiMocks.listEmployeeSalaryPackages).toHaveBeenCalledWith("emp-1");
     expect(apiMocks.getBandComparison).toHaveBeenCalledWith("emp-1");
-    const header = document.querySelector('[data-testid="package-employee-header"]')?.textContent ?? "";
+    const header =
+      document.querySelector('[data-testid="package-employee-header"]')?.textContent ?? "";
     expect(header).toContain("带宽区间内");
-    expect(header).toContain("18000.00") || expect(header).toContain("18,000.00");
+    expect(header.includes("18000.00") || header.includes("18,000.00")).toBe(true);
     const history = document.querySelector('[data-testid="package-history"]')?.textContent ?? "";
     expect(history).toContain("2025-03-01 ~ 2025-12-31");
   });
@@ -199,7 +200,8 @@ describe("SalaryPackagesPage", () => {
     await flushPromises();
     expect(apiMocks.listSalaryItemOptions).toHaveBeenCalled();
 
-    const comparison = document.querySelector('[data-testid="package-comparison"]')?.textContent ?? "";
+    const comparison =
+      document.querySelector('[data-testid="package-comparison"]')?.textContent ?? "";
     expect(comparison).toContain("18000.00");
 
     setInputValue('[data-testid="package-amount-input-0"]', "20000");
@@ -232,13 +234,15 @@ describe("SalaryPackagesPage", () => {
 
     expect(apiMocks.adjustSalaryPackage).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("早于当日") }));
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining("早于当日"));
   });
 
   it("发起调薪按钮随 hr:salary_package:write 权限显隐", async () => {
     const withPerm = mountPage();
     await flushPromises();
-    const editorButton = document.querySelector<HTMLButtonElement>('[data-testid="open-package-editor"]');
+    const editorButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="open-package-editor"]'
+    );
     expect(editorButton?.disabled).toBe(true);
     withPerm.unmount();
     document.body.innerHTML = "";

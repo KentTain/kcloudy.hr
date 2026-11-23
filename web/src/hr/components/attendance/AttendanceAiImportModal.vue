@@ -5,9 +5,9 @@
  * 解析失败可重新解析（原文档留存）。
  */
 import { computed, onUnmounted, ref, watch } from "vue";
-
-import { Badge, Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,12 +26,12 @@ import {
   listAiImportBatches,
   retryAiImportBatch,
 } from "@/hr/api/attendance";
-import { downloadBase64File } from "@/hr/utils/download";
 import {
   ATTENDANCE_BATCH_STATUS_LABELS,
   type AttendanceBatch,
   type AttendanceBatchStatus,
 } from "@/hr/types/attendance";
+import { downloadBase64File } from "@/hr/utils/download";
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ "update:open": [value: boolean]; saved: [] }>();
@@ -60,7 +60,7 @@ watch(
     } else {
       stopPolling();
     }
-  },
+  }
 );
 
 onUnmounted(() => stopPolling());
@@ -97,12 +97,12 @@ async function downloadFailures(item: AttendanceBatch) {
     const res = await exportAiBatchFailures(item.id);
     const file = res.data;
     if (!file?.content_base64) {
-      notifyError(new Error("失败明细文件生成失败"));
+      notifyError("失败明细文件生成失败");
       return;
     }
     downloadBase64File(file.filename, file.content_base64);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "失败明细下载失败"));
+    notifyError(getErrorMessage(error, "失败明细下载失败"));
   } finally {
     downloadingId.value = null;
   }
@@ -148,14 +148,14 @@ async function pollBatch(batchId: string) {
 
 function enterPreview(data: AttendanceBatch) {
   selectedRows.value = new Set(
-    (data.row_results ?? []).filter((row) => row.parseable).map((row) => row.row_index),
+    (data.row_results ?? []).filter((row) => row.parseable).map((row) => row.row_index)
   );
   step.value = "preview";
 }
 
 async function startParse() {
   if (!selectedFile.value) {
-    notifyError(new Error("请先选择考勤文档"));
+    notifyError("请先选择考勤文档");
     return;
   }
   submitting.value = true;
@@ -167,7 +167,7 @@ async function startParse() {
       startPolling(batch.value.id);
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "上传失败"));
+    notifyError(getErrorMessage(error, "上传失败"));
   } finally {
     submitting.value = false;
   }
@@ -181,7 +181,7 @@ async function retryParse() {
     batch.value = res.data ?? batch.value;
     startPolling(batch.value.id);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "重新解析失败"));
+    notifyError(getErrorMessage(error, "重新解析失败"));
   } finally {
     submitting.value = false;
   }
@@ -198,15 +198,18 @@ async function confirmImport() {
   if (!batch.value?.id || !canConfirm.value) return;
   submitting.value = true;
   try {
-    const res = await confirmAiImportBatch(batch.value.id, [...selectedRows.value].sort((a, b) => a - b));
+    const res = await confirmAiImportBatch(
+      batch.value.id,
+      [...selectedRows.value].sort((a, b) => a - b)
+    );
     batch.value = res.data ?? batch.value;
     step.value = "result";
     notifySuccess(
-      `导入完成：新增 ${batch.value?.new_count ?? 0} 条，覆盖 ${batch.value?.overwrite_count ?? 0} 条，丢弃 ${(batch.value?.row_results ?? []).length - selectedRows.value.size} 行`,
+      `导入完成：新增 ${batch.value?.new_count ?? 0} 条，覆盖 ${batch.value?.overwrite_count ?? 0} 条，丢弃 ${(batch.value?.row_results ?? []).length - selectedRows.value.size} 行`
     );
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "导入失败"));
+    notifyError(getErrorMessage(error, "导入失败"));
   } finally {
     submitting.value = false;
   }

@@ -5,13 +5,14 @@
 import { get, post, put } from "@/framework/api/client";
 
 import type { ApiResponse } from "@/framework/api/types";
-
-import type { Application, ApplicationStage } from "@/hr/types/recruiting";
 import type {
+  Application,
+  ApplicationStage,
   ChannelCard,
   FunnelResponse,
   Requisition,
   RequisitionCreatePayload,
+  RequisitionPosting,
   RequisitionQuery,
   RequisitionUpdatePayload,
 } from "@/hr/types/recruiting";
@@ -28,7 +29,7 @@ export function getRequisition(requisitionId: string): Promise<ApiResponse<Requi
 
 /** 创建需求（编号自动生成；channels 非空时创建后立即发布） */
 export function createRequisition(
-  payload: RequisitionCreatePayload,
+  payload: RequisitionCreatePayload
 ): Promise<ApiResponse<Requisition>> {
   return post<ApiResponse<Requisition>>("/hr/admin/v1/requisitions", payload);
 }
@@ -36,7 +37,7 @@ export function createRequisition(
 /** 更新需求（草稿/招聘中可编辑） */
 export function updateRequisition(
   requisitionId: string,
-  payload: RequisitionUpdatePayload,
+  payload: RequisitionUpdatePayload
 ): Promise<ApiResponse<Requisition>> {
   return put<ApiResponse<Requisition>>(`/hr/admin/v1/requisitions/${requisitionId}`, payload);
 }
@@ -49,9 +50,12 @@ export function closeRequisition(requisitionId: string): Promise<ApiResponse<Req
 /** 发布需求到渠道（外部渠道任务化，回写 external_post_id） */
 export function publishRequisition(
   requisitionId: string,
-  channels: string[],
+  channels: string[]
 ): Promise<ApiResponse<string[]>> {
-  return post<ApiResponse<string[]>>(`/hr/admin/v1/requisitions/${requisitionId}/postings`, channels);
+  return post<ApiResponse<string[]>>(
+    `/hr/admin/v1/requisitions/${requisitionId}/postings`,
+    channels
+  );
 }
 
 /** 下线已发布渠道职位 */
@@ -72,7 +76,7 @@ export function getGlobalFunnel(): Promise<ApiResponse<FunnelResponse>> {
 /** 需求投递列表（候选人卡片流按需求筛选；需 hr:candidate:read） */
 export function listRequisitionApplications(
   requisitionId: string,
-  query: { page?: number; page_size?: number; stage?: ApplicationStage; keyword?: string } = {},
+  query: { page?: number; page_size?: number; stage?: ApplicationStage; keyword?: string } = {}
 ): Promise<ApiResponse<Application[]>> {
   return get<ApiResponse<Application[]>>("/hr/admin/v1/candidates", {
     params: { requisition_id: requisitionId, ...query },
@@ -83,7 +87,7 @@ export function listRequisitionApplications(
 export function updateApplicationStage(
   applicationId: string,
   stage: ApplicationStage,
-  remark?: string,
+  remark?: string
 ): Promise<ApiResponse<Application>> {
   return put<ApiResponse<Application>>(`/hr/admin/v1/applications/${applicationId}/stage`, {
     stage,
@@ -97,16 +101,20 @@ export function listChannels(): Promise<ApiResponse<ChannelCard[]>> {
 }
 
 /** 手动触发渠道候选人拉取（任务化异步执行，返回任务 ID；需 hr:channel:sync） */
-export function triggerChannelSync(channel: string): Promise<ApiResponse<{ task_id: string; channel: string }>> {
-  return post<ApiResponse<{ task_id: string; channel: string }>>(`/hr/admin/v1/channels/${channel}/sync`);
+export function triggerChannelSync(
+  channel: string
+): Promise<ApiResponse<{ task_id: string; channel: string }>> {
+  return post<ApiResponse<{ task_id: string; channel: string }>>(
+    `/hr/admin/v1/channels/${channel}/sync`
+  );
 }
 
 /** 渠道连通测试：换 token 验证凭证（配置缺失/换取失败 ok=False；需 hr:channel:sync） */
 export function testChannelConnection(
-  channel: string,
+  channel: string
 ): Promise<ApiResponse<{ channel: string; ok: boolean; message: string }>> {
   return post<ApiResponse<{ channel: string; ok: boolean; message: string }>>(
-    `/hr/admin/v1/channels/${channel}/test-connection`,
+    `/hr/admin/v1/channels/${channel}/test-connection`
   );
 }
 
@@ -116,10 +124,8 @@ export function listChannelPostings(channel: string): Promise<ApiResponse<Requis
 }
 
 /** JD 智能草稿生成（即时返回不落库；失败走手动编辑兜底） */
-export function generateJdDraft(
-  requisitionId: string,
-): Promise<ApiResponse<{ jd_draft: string }>> {
+export function generateJdDraft(requisitionId: string): Promise<ApiResponse<{ jd_draft: string }>> {
   return post<ApiResponse<{ jd_draft: string }>>(
-    `/hr/admin/v1/requisitions/${requisitionId}/jd-draft`,
+    `/hr/admin/v1/requisitions/${requisitionId}/jd-draft`
   );
 }

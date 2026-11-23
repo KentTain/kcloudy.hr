@@ -24,7 +24,7 @@ const props = withDefaults(
     color: "#2563eb",
     valueSuffix: "",
     height: 240,
-  },
+  }
 );
 
 interface ChartDatum {
@@ -40,7 +40,11 @@ const chartConfig = computed<ChartConfig>(() => ({
 }));
 
 const chartData = computed<ChartDatum[]>(() =>
-  props.points.map((point, index) => ({ label: point.label, idx: index, value: Number(point.value ?? 0) })),
+  props.points.map((point, index) => ({
+    label: point.label,
+    idx: index,
+    value: Number(point.value ?? 0),
+  }))
 );
 
 function getX(point: ChartDatum): number {
@@ -61,7 +65,7 @@ function formatTick(value: number | Date): string {
   return chartData.value.find((point) => point.idx === Number(value))?.label ?? "";
 }
 
-function formatValue(value: number): string {
+function formatValue(value: unknown): string {
   const numeric = Number(value ?? 0);
   const text = Number.isInteger(numeric) ? numeric.toLocaleString("zh-CN") : numeric.toFixed(2);
   return props.valueSuffix ? `${text}${props.valueSuffix}` : text;

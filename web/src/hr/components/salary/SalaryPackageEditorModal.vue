@@ -4,24 +4,25 @@
  * 生效日后当期发薪按新旧区间分段折算；生效日期早于当日被拒绝。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, DateInput, Input, Select } from "@/components";
 import {
+  Button,
+  DateInput,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
-import { adjustSalaryPackage } from "@/hr/api/salary";
 import { listSalaryItemOptions } from "@/hr/api/reference";
-import { SALARY_PACKAGE_REASON_LABELS, type SalaryPackageItemInput } from "@/hr/types/salary";
+import { adjustSalaryPackage } from "@/hr/api/salary";
 import type { SalaryItemOption, SalaryPackageRecord } from "@/hr/types/employee";
+import { SALARY_PACKAGE_REASON_LABELS, type SalaryPackageItemInput } from "@/hr/types/salary";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -49,28 +50,27 @@ const itemSelectOptions = computed(() =>
   itemOptions.value.map((option) => ({
     value: option.id,
     label: `${option.name}（${option.code}）`,
-  })),
+  }))
 );
 
-/** 新旧对比：同 item 的旧金额（无旧行 = 新增项） */
-function oldAmountOf(itemId: string): number | null {
-  return props.currentPackages.find((row) => row.item_id === itemId)?.amount ?? null;
-}
-
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  reason.value = "adjust";
-  const today = new Date();
-  effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  rows.value = props.currentPackages.map((row) => ({ item_id: row.item_id, amount: row.amount }));
-  try {
-    const res = await listSalaryItemOptions();
-    itemOptions.value = res.data ?? [];
-  } catch {
-    itemOptions.value = [];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    reason.value = "adjust";
+    const today = new Date();
+    effectiveFrom.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    rows.value = props.currentPackages.map((row) => ({ item_id: row.item_id, amount: row.amount }));
+    try {
+      const res = await listSalaryItemOptions();
+      itemOptions.value = res.data ?? [];
+    } catch {
+      itemOptions.value = [];
+    }
+  },
+  { immediate: true }
+);
 
 function addRow() {
   rows.value = [...rows.value, { item_id: "", amount: 0 }];
@@ -82,25 +82,25 @@ function removeRow(index: number) {
 
 async function handleSubmit() {
   if (!rows.value.length) {
-    notifyError(new Error("请至少保留一行薪酬项"));
+    notifyError("请至少保留一行薪酬项");
     return;
   }
   if (rows.value.some((row) => !row.item_id)) {
-    notifyError(new Error("存在未选择薪酬项的行"));
+    notifyError("存在未选择薪酬项的行");
     return;
   }
   if (rows.value.some((row) => !(row.amount > 0))) {
-    notifyError(new Error("薪酬项金额需大于 0"));
+    notifyError("薪酬项金额需大于 0");
     return;
   }
   if (!effectiveFrom.value) {
-    notifyError(new Error("请选择生效日期"));
+    notifyError("请选择生效日期");
     return;
   }
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   if (effectiveFrom.value < todayStr) {
-    notifyError(new Error("生效日期不能早于当日"));
+    notifyError("生效日期不能早于当日");
     return;
   }
   submitting.value = true;
@@ -114,7 +114,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪酬方案保存失败"));
+    notifyError(getErrorMessage(error, "薪酬方案保存失败"));
   } finally {
     submitting.value = false;
   }
@@ -158,7 +158,7 @@ async function handleSubmit() {
               :model-value="row.item_id"
                   :options="itemSelectOptions"
               :data-testid="`package-item-select-${index}`"
-              @update:model-value="(v: string) => (rows[index] = { ...row, item_id: v })"
+              @update:model-value="(v: string | number | null) => (rows[index] = { ...row, item_id: String(v ?? '') })"
             />
           </div>
           <Input
@@ -166,7 +166,7 @@ async function handleSubmit() {
             type="number"
             class="w-32"
             :data-testid="`package-amount-input-${index}`"
-            @update:model-value="(v: string) => (rows[index] = { ...row, amount: Number(v) || 0 })"
+            @update:model-value="(v: string | number) => (rows[index] = { ...row, amount: Number(v) || 0 })"
           />
           <Button variant="ghost" size="sm" :data-testid="`package-remove-row-${index}`" @click="removeRow(index)">
             删除

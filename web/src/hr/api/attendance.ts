@@ -14,7 +14,7 @@ import type {
 } from "@/hr/types/attendance";
 
 export function listAttendanceRecords(
-  query: AttendanceQuery,
+  query: AttendanceQuery
 ): Promise<ApiResponse<AttendanceRecord[]>> {
   return get<ApiResponse<AttendanceRecord[]>>("/hr/admin/v1/attendance/records", { params: query });
 }
@@ -33,14 +33,14 @@ export function getImportTemplate(): Promise<
   ApiResponse<{ filename: string; content_base64: string }>
 > {
   return get<ApiResponse<{ filename: string; content_base64: string }>>(
-    "/hr/admin/v1/attendance/import-template",
+    "/hr/admin/v1/attendance/import-template"
   );
 }
 
 /** Excel 导入（dry_run=true 预检不落库） */
 export function importAttendance(
   file: File,
-  dryRun: boolean,
+  dryRun: boolean
 ): Promise<ApiResponse<AttendanceImportResult>> {
   const form = new FormData();
   form.append("file", file);
@@ -62,7 +62,7 @@ export function getAiImportBatch(batchId: string): Promise<ApiResponse<Attendanc
 /** 确认导入（按勾选行落库，row_indexes 重复键多值） */
 export function confirmAiImportBatch(
   batchId: string,
-  rowIndexes: number[],
+  rowIndexes: number[]
 ): Promise<ApiResponse<AttendanceBatch>> {
   const form = new FormData();
   for (const index of rowIndexes) {
@@ -70,31 +70,29 @@ export function confirmAiImportBatch(
   }
   return post<ApiResponse<AttendanceBatch>>(
     `/hr/admin/v1/attendance/ai-imports/${batchId}/confirm`,
-    form,
+    form
   );
 }
 
 export function retryAiImportBatch(batchId: string): Promise<ApiResponse<AttendanceBatch>> {
-  return post<ApiResponse<AttendanceBatch>>(
-    `/hr/admin/v1/attendance/ai-imports/${batchId}/retry`,
-  );
+  return post<ApiResponse<AttendanceBatch>>(`/hr/admin/v1/attendance/ai-imports/${batchId}/retry`);
 }
 
 /** AI 导入批次列表（时间倒序，供导入弹窗回看历史批次） */
 export function listAiImportBatches(
-  params: { page?: number; page_size?: number } = {},
+  params: { page?: number; page_size?: number } = {}
 ): Promise<ApiResponse<{ total: number; items: AttendanceBatch[] }>> {
   return get<ApiResponse<{ total: number; items: AttendanceBatch[] }>>(
     "/hr/admin/v1/attendance/ai-batches",
-    { params },
+    { params }
   );
 }
 
 /** AI 批次失败行明细下载（xlsx，base64 内容，调用方转 Blob 下载） */
 export function exportAiBatchFailures(
-  batchId: string,
+  batchId: string
 ): Promise<ApiResponse<{ filename: string; content_base64: string }>> {
   return get<ApiResponse<{ filename: string; content_base64: string }>>(
-    `/hr/admin/v1/attendance/ai-batches/${batchId}/failures`,
+    `/hr/admin/v1/attendance/ai-batches/${batchId}/failures`
   );
 }

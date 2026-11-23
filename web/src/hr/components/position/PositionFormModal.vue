@@ -3,28 +3,24 @@
  * 岗位表单弹窗（创建/编辑）：编码租户唯一（409 冲突提示）、组织弱引用、职级/编制
  */
 import { computed, ref, watch } from "vue";
-
-import { Input, Select } from "@/components";
-import { Button } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  OrganizationSelect,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
-import { OrganizationSelect } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
 import { createPosition, updatePosition } from "@/hr/api/position";
-import {
-  POSITION_STATUS_LABELS,
-  type Position,
-  type PositionStatus,
-} from "@/hr/types/position";
+import { POSITION_STATUS_LABELS, type Position, type PositionStatus } from "@/hr/types/position";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -43,9 +39,9 @@ const jobLevel = ref("");
 const headcountInput = ref("");
 const status = ref<PositionStatus>("active");
 
-const statusOptions = (
-  Object.entries(POSITION_STATUS_LABELS) as [PositionStatus, string][]
-).map(([value, label]) => ({ value, label }));
+const statusOptions = (Object.entries(POSITION_STATUS_LABELS) as [PositionStatus, string][]).map(
+  ([value, label]) => ({ value, label })
+);
 
 const isEdit = computed(() => props.mode === "edit");
 
@@ -64,16 +60,16 @@ watch(open, (value) => {
 
 async function handleSubmit() {
   if (!code.value.trim()) {
-    notifyError(new Error("请填写岗位编码"));
+    notifyError("请填写岗位编码");
     return;
   }
   if (!name.value.trim()) {
-    notifyError(new Error("请填写岗位名称"));
+    notifyError("请填写岗位名称");
     return;
   }
   const headcount = headcountInput.value.trim() === "" ? undefined : Number(headcountInput.value);
   if (headcount !== undefined && (!Number.isInteger(headcount) || headcount < 0)) {
-    notifyError(new Error("编制数须为非负整数"));
+    notifyError("编制数须为非负整数");
     return;
   }
   submitting.value = true;
@@ -102,7 +98,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, isEdit.value ? "岗位更新失败" : "岗位创建失败"));
+    notifyError(getErrorMessage(error, isEdit.value ? "岗位更新失败" : "岗位创建失败"));
   } finally {
     submitting.value = false;
   }

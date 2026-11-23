@@ -3,9 +3,7 @@
  * 在岗员工抽屉：岗位摘要 + 在岗员工列表（后端默认排除已离职）+ 查看员工跳转
  */
 import { ref, watch } from "vue";
-
-import { Badge, Button } from "@/components";
-import { Table } from "@/components";
+import { Badge, Button, Table } from "@/components";
 import {
   Sheet,
   SheetContent,
@@ -37,7 +35,7 @@ const emit = defineEmits<{ viewEmployee: [employeeId: string] }>();
 
 const loading = ref(false);
 const employees = ref<Employee[]>([]);
-const orgTree = ref<OrgTreeNode[]>([]);
+ref<OrgTreeNode[]>([]);
 
 const columns = [
   { key: "employee_no", title: "工号", width: "110px" },
@@ -58,7 +56,7 @@ watch(open, async (value) => {
     const res = await listEmployees({ page: 1, page_size: 50, position_id: props.position.id });
     employees.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "在岗员工加载失败"));
+    notifyError(getErrorMessage(error, "在岗员工加载失败"));
   } finally {
     loading.value = false;
   }

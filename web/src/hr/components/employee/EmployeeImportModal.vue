@@ -4,18 +4,17 @@
  * 后端导入接口消费 JSON 行数据，文件解析在前端完成（当前支持 CSV）。
  */
 import { ref } from "vue";
-
-import { Button } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  FileDropzone,
 } from "@/components";
-import { FileDropzone } from "@/components";
-import { Badge } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -72,7 +71,7 @@ async function onFileSelect(files: File[]) {
     const text = await file.text();
     const table = parseCsv(text);
     if (!table.length) {
-      notifyError(new Error("文件为空"));
+      notifyError("文件为空");
       return;
     }
     const headers = table[0].map((header) => header.trim());
@@ -82,7 +81,7 @@ async function onFileSelect(files: File[]) {
         row[header] = cells[index] ?? "";
       });
       return {
-        name: row["姓名"]?.trim() ?? "",
+        name: row.姓名?.trim() ?? "",
         gender: pick(row, "性别"),
         birth_date: pick(row, "出生日期"),
         id_card: pick(row, "证件号"),
@@ -91,13 +90,13 @@ async function onFileSelect(files: File[]) {
         org_id: pick(row, "组织ID"),
         position_id: pick(row, "岗位ID"),
         job_level: pick(row, "职级"),
-        hire_date: row["入职日期"]?.trim() ?? "",
+        hire_date: row.入职日期?.trim() ?? "",
         status: (pick(row, "状态") as EmployeeImportRowPayload["status"]) ?? "pending",
       };
     });
     notifySuccess(`已解析 ${rows.value.length} 行数据`);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "文件解析失败"));
+    notifyError(getErrorMessage(error, "文件解析失败"));
   } finally {
     parsing.value = false;
   }
@@ -105,7 +104,7 @@ async function onFileSelect(files: File[]) {
 
 async function handleDryRun() {
   if (!rows.value.length) {
-    notifyError(new Error("请先上传并解析文件"));
+    notifyError("请先上传并解析文件");
     return;
   }
   importing.value = true;
@@ -113,7 +112,7 @@ async function handleDryRun() {
     const res = await importEmployees({ dry_run: true, rows: rows.value });
     result.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "预检失败"));
+    notifyError(getErrorMessage(error, "预检失败"));
   } finally {
     importing.value = false;
   }
@@ -129,7 +128,7 @@ async function handleImport() {
       emit("imported");
     }
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "导入失败"));
+    notifyError(getErrorMessage(error, "导入失败"));
   } finally {
     importing.value = false;
   }

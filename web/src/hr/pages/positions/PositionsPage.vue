@@ -7,37 +7,34 @@ import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import {
-  Badge,
-  Button,
-  DataTable,
-  Input,
-  Select,
-  useDataTable,
-} from "@/components";
+import { Badge, Button, DataTable, Input, Select, useDataTable } from "@/components";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
+import {
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 
 import { deletePosition, listPositions, updatePosition } from "@/hr/api/position";
 import { getOrgTree } from "@/hr/api/reference";
 import OrgNavTree from "@/hr/components/OrgNavTree.vue";
-import PositionFormModal from "@/hr/components/position/PositionFormModal.vue";
 import PositionEmployeesDrawer from "@/hr/components/position/PositionEmployeesDrawer.vue";
+import PositionFormModal from "@/hr/components/position/PositionFormModal.vue";
 import PositionRowActions from "@/hr/components/position/PositionRowActions.vue";
+import type { OrgTreeNode } from "@/hr/types/employee";
 import {
   POSITION_STATUS_LABELS,
   POSITION_STATUS_VARIANTS,
   type Position,
   type PositionStatus,
 } from "@/hr/types/position";
-import type { OrgTreeNode } from "@/hr/types/employee";
 
-const STATUS_OPTIONS = (
-  Object.entries(POSITION_STATUS_LABELS) as [PositionStatus, string][]
-).map(([value, label]) => ({ value, label }));
+const STATUS_OPTIONS = (Object.entries(POSITION_STATUS_LABELS) as [PositionStatus, string][]).map(
+  ([value, label]) => ({ value, label })
+);
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -84,7 +81,10 @@ const keyword = ref("");
 const jobLevelFilter = ref("");
 const statusFilter = ref("all");
 
-const statusSelectOptions = computed(() => [{ value: "all", label: "全部状态" }, ...STATUS_OPTIONS]);
+const statusSelectOptions = computed(() => [
+  { value: "all", label: "全部状态" },
+  ...STATUS_OPTIONS,
+]);
 
 function handleResetFilters() {
   keyword.value = "";
@@ -95,59 +95,64 @@ function handleResetFilters() {
 
 /* ── 列表 ── */
 
-const columns = computed<ColumnDef<Position>[]>(() => [
-  { accessorKey: "code", header: "岗位编码", size: 120 },
-  { accessorKey: "name", header: "岗位名称", size: 150 },
-  {
-    accessorKey: "org_id",
-    header: "所属组织",
-    size: 140,
-    cell: ({ row }) => h("span", {}, orgNameOf(row.original.org_id)),
-  },
-  {
-    accessorKey: "job_level",
-    header: "职级",
-    size: 80,
-    cell: ({ row }) => row.original.job_level ?? "--",
-  },
-  {
-    accessorKey: "headcount",
-    header: "编制数",
-    size: 90,
-    cell: ({ row }) => row.original.headcount ?? "不限",
-  },
-  {
-    accessorKey: "active_employee_count",
-    header: "编制 / 在岗",
-    size: 100,
-    cell: ({ row }) =>
-      `${row.original.headcount ?? "不限"} / ${row.original.active_employee_count}`,
-  },
-  {
-    accessorKey: "status",
-    header: "状态",
-    size: 90,
-    cell: ({ row }) =>
-      h(Badge, { variant: POSITION_STATUS_VARIANTS[row.original.status] }, () =>
-        POSITION_STATUS_LABELS[row.original.status] ?? row.original.status,
-      ),
-  },
-  {
-    id: "actions",
-    header: "操作",
-    size: 100,
-    cell: ({ row }) =>
-      h(PositionRowActions, {
-        position: row.original,
-        canWrite: canWrite.value,
-        canDelete: canDelete.value,
-        onEdit: (position: Position) => openFormModal("edit", position),
-        onEmployees: (position: Position) => openEmployeesDrawer(position),
-        onToggleStatus: (position: Position) => toggleStatus(position),
-        onRemove: (position: Position) => removePosition(position),
-      } as Record<string, unknown>),
-  },
-] as ColumnDef<Position>[]);
+const columns = computed<ColumnDef<Position>[]>(
+  () =>
+    [
+      { accessorKey: "code", header: "岗位编码", size: 120 },
+      { accessorKey: "name", header: "岗位名称", size: 150 },
+      {
+        accessorKey: "org_id",
+        header: "所属组织",
+        size: 140,
+        cell: ({ row }) => h("span", {}, orgNameOf(row.original.org_id)),
+      },
+      {
+        accessorKey: "job_level",
+        header: "职级",
+        size: 80,
+        cell: ({ row }) => row.original.job_level ?? "--",
+      },
+      {
+        accessorKey: "headcount",
+        header: "编制数",
+        size: 90,
+        cell: ({ row }) => row.original.headcount ?? "不限",
+      },
+      {
+        accessorKey: "active_employee_count",
+        header: "编制 / 在岗",
+        size: 100,
+        cell: ({ row }) =>
+          `${row.original.headcount ?? "不限"} / ${row.original.active_employee_count}`,
+      },
+      {
+        accessorKey: "status",
+        header: "状态",
+        size: 90,
+        cell: ({ row }) =>
+          h(
+            Badge,
+            { variant: POSITION_STATUS_VARIANTS[row.original.status] },
+            () => POSITION_STATUS_LABELS[row.original.status] ?? row.original.status
+          ),
+      },
+      {
+        id: "actions",
+        header: "操作",
+        size: 100,
+        cell: ({ row }) =>
+          h(PositionRowActions, {
+            position: row.original,
+            canWrite: canWrite.value,
+            canDelete: canDelete.value,
+            onEdit: (position: Position) => openFormModal("edit", position),
+            onEmployees: (position: Position) => openEmployeesDrawer(position),
+            onToggleStatus: (position: Position) => toggleStatus(position),
+            onRemove: (position: Position) => removePosition(position),
+          }),
+      },
+    ] as ColumnDef<Position>[]
+);
 
 const dataTable = useDataTable<Position>({
   columns: columns.value,
@@ -195,7 +200,7 @@ async function toggleStatus(position: Position) {
   const verb = next === "disabled" ? "停用" : "启用";
   if (
     !(await confirmAction(
-      `确定${verb}岗位「${position.name}」？停用岗位不可被员工建档与招聘需求选中。`,
+      `确定${verb}岗位「${position.name}」？停用岗位不可被员工建档与招聘需求选中。`
     ))
   ) {
     return;
@@ -205,7 +210,7 @@ async function toggleStatus(position: Position) {
     notifySuccess(`岗位已${verb}`);
     dataTable.refresh();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, `岗位${verb}失败`));
+    notifyError(getErrorMessage(error, `岗位${verb}失败`));
   }
 }
 
@@ -217,7 +222,7 @@ async function removePosition(position: Position) {
     dataTable.refresh();
   } catch (error) {
     // 在岗员工 > 0 时后端拒绝删除，提示只可停用
-    notifyError(error, getErrorMessage(error, "删除失败：该岗位存在在岗员工，仅可停用"));
+    notifyError(getErrorMessage(error, "删除失败：该岗位存在在岗员工，仅可停用"));
   }
 }
 

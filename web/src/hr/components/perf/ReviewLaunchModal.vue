@@ -5,7 +5,19 @@
  */
 import { computed, ref, watch } from "vue";
 
-import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@/components";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -36,7 +48,7 @@ const searching = ref<"" | "reviewer" | "target">("");
 const submitting = ref(false);
 
 const canSubmit = computed(
-  () => cycleId.value !== ALL && reviewer.value && targets.value.length > 0,
+  () => cycleId.value !== ALL && reviewer.value && targets.value.length > 0
 );
 
 watch(open, async (value) => {
@@ -55,7 +67,7 @@ watch(open, async (value) => {
       label: cycle.name,
     }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "周期加载失败"));
+    notifyError(getErrorMessage(error, "周期加载失败"));
   }
 });
 
@@ -70,7 +82,7 @@ async function searchReviewer() {
       label: `${employee.name}（${employee.employee_no}）`,
     }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工检索失败"));
+    notifyError(getErrorMessage(error, "员工检索失败"));
   } finally {
     searching.value = "";
   }
@@ -87,7 +99,7 @@ async function searchTarget() {
       label: `${employee.name}（${employee.employee_no}）`,
     }));
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "员工检索失败"));
+    notifyError(getErrorMessage(error, "员工检索失败"));
   } finally {
     searching.value = "";
   }
@@ -107,15 +119,15 @@ function removeTarget(id: string) {
 
 async function handleSubmit() {
   if (cycleId.value === ALL) {
-    notifyError(new Error("请选择考核周期"), "请选择考核周期");
+    notifyError("请选择考核周期");
     return;
   }
   if (!reviewer.value) {
-    notifyError(new Error("请选择评估人"), "请选择评估人");
+    notifyError("请选择评估人");
     return;
   }
   if (targets.value.length === 0) {
-    notifyError(new Error("请添加被评人"), "请添加被评人");
+    notifyError("请添加被评人");
     return;
   }
   submitting.value = true;
@@ -132,7 +144,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "发起评估失败"));
+    notifyError(getErrorMessage(error, "发起评估失败"));
   } finally {
     submitting.value = false;
   }

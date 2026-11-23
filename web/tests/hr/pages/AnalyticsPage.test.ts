@@ -12,10 +12,22 @@ import { DateInput } from "@/components";
 import AnalyticsPage from "@/hr/pages/analytics/AnalyticsPage.vue";
 
 vi.mock("@unovis/vue", () => ({
-  VisXYContainer: { name: "VisXYContainer", props: ["data", "height", "margin", "padding"], template: "<div />" },
-  VisAxis: { name: "VisAxis", props: ["type", "x", "y", "tickFormat", "gridLine", "tickTextFitMode", "numTicks"], template: "<div />" },
+  VisXYContainer: {
+    name: "VisXYContainer",
+    props: ["data", "height", "margin", "padding"],
+    template: "<div />",
+  },
+  VisAxis: {
+    name: "VisAxis",
+    props: ["type", "x", "y", "tickFormat", "gridLine", "tickTextFitMode", "numTicks"],
+    template: "<div />",
+  },
   VisLine: { name: "VisLine", props: ["x", "y", "color", "lineWidth"], template: "<div />" },
-  VisCrosshair: { name: "VisCrosshair", props: ["template", "color", "x", "y", "hideWhenFarFromPointer"], template: "<div />" },
+  VisCrosshair: {
+    name: "VisCrosshair",
+    props: ["template", "color", "x", "y", "hideWhenFarFromPointer"],
+    template: "<div />",
+  },
   VisTooltip: { name: "VisTooltip", props: ["horizontalShift"], template: "<div />" },
 }));
 
@@ -228,17 +240,21 @@ describe("AnalyticsPage", () => {
     expect(params.org_id).toBeUndefined();
     expect(apiMocks.getReportTurnover).toHaveBeenCalledWith(params);
 
-    const cards = document.querySelector('[data-testid="report-personnel-cards"]')?.textContent ?? "";
+    const cards =
+      document.querySelector('[data-testid="report-personnel-cards"]')?.textContent ?? "";
     expect(cards).toContain("120");
     expect(cards).toContain("3.5%");
 
     // 一级行：总部 = 10+30+5 = 45
-    const orgRow = document.querySelector('[data-testid="report-org-row-org-1"]')?.textContent ?? "";
+    const orgRow =
+      document.querySelector('[data-testid="report-org-row-org-1"]')?.textContent ?? "";
     expect(orgRow).toContain("总部");
     expect(orgRow).toContain("45");
     // 子组织行未展开不出现
     expect(document.querySelector('[data-testid="report-org-row-org-11"]')).toBeNull();
-    expect(document.querySelector('[data-testid="report-org-row-__none__"]')?.textContent).toContain("2");
+    expect(
+      document.querySelector('[data-testid="report-org-row-__none__"]')?.textContent
+    ).toContain("2");
 
     const chart = wrapper.findComponent({ name: "TrendLineChart" });
     expect(chart.exists()).toBe(true);
@@ -249,7 +265,8 @@ describe("AnalyticsPage", () => {
     mountPage();
     await flushPromises();
 
-    const headRef = document.querySelector('[data-testid="report-metric-ref-headcount"]')?.textContent ?? "";
+    const headRef =
+      document.querySelector('[data-testid="report-metric-ref-headcount"]')?.textContent ?? "";
     expect(headRef).toContain("口径 · 编制缺口");
     expect(headRef).toContain("在编人数与编制数的差额，随人事总览实时计算");
     expect(headRef).toContain("治理目录");
@@ -257,7 +274,8 @@ describe("AnalyticsPage", () => {
     switchTab("report-tab-performance");
     await flushPromises();
 
-    const perfRef = document.querySelector('[data-testid="report-metric-ref-perf"]')?.textContent ?? "";
+    const perfRef =
+      document.querySelector('[data-testid="report-metric-ref-perf"]')?.textContent ?? "";
     expect(perfRef).toContain("口径 · 绩效评级分布");
     expect(perfRef).toContain("closed 周期最终评级的人数分布");
     expect(perfRef).toContain("内置口径");
@@ -288,8 +306,12 @@ describe("AnalyticsPage", () => {
     clickButton("report-org-toggle-org-1");
     await flushPromises();
 
-    expect(document.querySelector('[data-testid="report-org-row-org-11"]')?.textContent).toContain("30");
-    expect(document.querySelector('[data-testid="report-org-row-org-12"]')?.textContent).toContain("5");
+    expect(document.querySelector('[data-testid="report-org-row-org-11"]')?.textContent).toContain(
+      "30"
+    );
+    expect(document.querySelector('[data-testid="report-org-row-org-12"]')?.textContent).toContain(
+      "5"
+    );
 
     clickButton("report-org-toggle-org-1");
     await flushPromises();
@@ -305,9 +327,16 @@ describe("AnalyticsPage", () => {
     await flushPromises();
 
     expect(apiMocks.getReportOverview).toHaveBeenCalledTimes(2);
-    expect(apiMocks.getReportOverview).toHaveBeenLastCalledWith(expect.objectContaining({ org_id: "org-1" }));
-    expect(apiMocks.getReportTurnover).toHaveBeenLastCalledWith(expect.objectContaining({ org_id: "org-1" }));
-    expect(apiMocks.getReportAttritionRisk).toHaveBeenLastCalledWith({ org_id: "org-1", limit: 20 });
+    expect(apiMocks.getReportOverview).toHaveBeenLastCalledWith(
+      expect.objectContaining({ org_id: "org-1" })
+    );
+    expect(apiMocks.getReportTurnover).toHaveBeenLastCalledWith(
+      expect.objectContaining({ org_id: "org-1" })
+    );
+    expect(apiMocks.getReportAttritionRisk).toHaveBeenLastCalledWith({
+      org_id: "org-1",
+      limit: 20,
+    });
     const chip = document.querySelector('[data-testid="report-drill-chip"]');
     expect(chip?.textContent).toContain("总部");
 
@@ -446,9 +475,12 @@ describe("AnalyticsPage", () => {
 
     expect(apiMocks.exportReport).toHaveBeenCalledTimes(1);
     expect(apiMocks.exportReport).toHaveBeenCalledWith(
-      expect.objectContaining({ domain: "overview", org_id: undefined }),
+      expect.objectContaining({ domain: "overview", org_id: undefined })
     );
-    expect(downloadMocks.downloadBase64File).toHaveBeenCalledWith("报表导出-overview-2026.xlsx", "AAAA");
+    expect(downloadMocks.downloadBase64File).toHaveBeenCalledWith(
+      "报表导出-overview-2026.xlsx",
+      "AAAA"
+    );
   });
 
   it("报表导出按钮随 hr:report:export 权限显隐", async () => {

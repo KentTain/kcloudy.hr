@@ -9,7 +9,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SelfServicePage from "@/hr/pages/self-service/SelfServicePage.vue";
 import type { Employee } from "@/hr/types/employee";
-import type { ChangeRequestSummary, MyProfileData, PaySlipDetail, PaySlipSummary } from "@/hr/types/selfService";
+import type {
+  ChangeRequestSummary,
+  MyProfileData,
+  PaySlipDetail,
+  PaySlipSummary,
+} from "@/hr/types/selfService";
 
 const apiMocks = vi.hoisted(() => ({
   getMyProfile: vi.fn(),
@@ -72,7 +77,13 @@ const EMPLOYEE: Employee = {
 };
 
 const PROFILE: MyProfileData = {
-  profile: { ...EMPLOYEE, birth_date: "1995-01-01", id_card_masked: "110***", bank_card_masked: "622***" },
+  profile: {
+    ...EMPLOYEE,
+    birth_date: "1995-01-01",
+    id_card_masked: "110***",
+    bank_card_masked: "622***",
+    bank_name: null,
+  },
   attributes: [
     {
       definition_id: "def-1",
@@ -117,7 +128,14 @@ const PAY_SLIP_DETAIL: PaySlipDetail = {
 
 const TEAM: Employee[] = [
   EMPLOYEE,
-  { ...EMPLOYEE, id: "emp-2", employee_no: "EMP002", name: "王五", org_id: "org-12", status: "probation" },
+  {
+    ...EMPLOYEE,
+    id: "emp-2",
+    employee_no: "EMP002",
+    name: "王五",
+    org_id: "org-12",
+    status: "probation",
+  },
 ];
 
 const ORG_TREE = [
@@ -255,8 +273,14 @@ beforeEach(() => {
     data: { id: "goal-1", progress: 90, actual_value: "9/10" },
   });
   apiMocks.listMyChangeRequests.mockResolvedValue({ code: 200, data: CHANGE_REQUESTS });
-  apiMocks.submitChangeRequest.mockResolvedValue({ code: 200, data: { id: "ar-1", status: "pending" } });
-  apiMocks.cancelChangeRequest.mockResolvedValue({ code: 200, data: { id: "ar-1", status: "cancelled" } });
+  apiMocks.submitChangeRequest.mockResolvedValue({
+    code: 200,
+    data: { id: "ar-1", status: "pending" },
+  });
+  apiMocks.cancelChangeRequest.mockResolvedValue({
+    code: 200,
+    data: { id: "ar-1", status: "cancelled" },
+  });
 });
 
 afterEach(() => {
@@ -268,7 +292,9 @@ describe("SelfServicePage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(document.querySelector('[data-testid="self-profile-name"]')?.textContent).toContain("张三");
+    expect(document.querySelector('[data-testid="self-profile-name"]')?.textContent).toContain(
+      "张三"
+    );
     const base = document.querySelector('[data-testid="self-base-info"]')?.textContent ?? "";
     expect(base).toContain("2024-03-01");
     expect(base).toContain("P5");
@@ -286,7 +312,9 @@ describe("SelfServicePage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(document.querySelector('[data-testid="self-profile-missing"]')?.textContent).toContain("尚未关联员工档案");
+    expect(document.querySelector('[data-testid="self-profile-missing"]')?.textContent).toContain(
+      "尚未关联员工档案"
+    );
     expect(document.querySelector('[data-testid="self-tab-team"]')).toBeNull();
     wrapper.unmount();
   });
@@ -341,12 +369,14 @@ describe("SelfServicePage", () => {
     await flushPromises();
 
     expect(apiMocks.getMyGoals).toHaveBeenCalledTimes(1);
-    const active = document.querySelector('[data-testid="self-goal-cycle-cyc-1"]')?.textContent ?? "";
+    const active =
+      document.querySelector('[data-testid="self-goal-cycle-cyc-1"]')?.textContent ?? "";
     expect(active).toContain("2026-H1");
     expect(active).toContain("交付达成");
     expect(document.querySelector('[data-testid="self-goal-save-goal-1"]')).not.toBeNull();
 
-    const closed = document.querySelector('[data-testid="self-goal-cycle-cyc-0"]')?.textContent ?? "";
+    const closed =
+      document.querySelector('[data-testid="self-goal-cycle-cyc-0"]')?.textContent ?? "";
     expect(closed).toContain("质量提升");
     expect(document.querySelector('[data-testid="self-goal-save-goal-0"]')).toBeNull();
 
@@ -427,7 +457,8 @@ describe("SelfServicePage", () => {
     await flushPromises();
 
     expect(apiMocks.listMyChangeRequests).toHaveBeenCalledWith({ page: 1, page_size: 50 });
-    const table = document.querySelector('[data-testid="self-my-requests-table"]')?.textContent ?? "";
+    const table =
+      document.querySelector('[data-testid="self-my-requests-table"]')?.textContent ?? "";
     expect(table).toContain("更新家庭住址");
     expect(table).toContain("待审批");
     expect(document.querySelector('[data-testid="self-request-cancel-ar-1"]')).not.toBeNull();

@@ -4,17 +4,17 @@
  * 已绑定薪酬项的类别删除由后端拒绝。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input } from "@/components";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
 } from "@/components";
-import { Badge } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -32,21 +32,25 @@ const submitting = ref(false);
 const editing = ref<string[]>([]);
 const newCategory = ref("");
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  editing.value = [...props.categories];
-  newCategory.value = "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    editing.value = [...props.categories];
+    newCategory.value = "";
+  },
+  { immediate: true }
+);
 
 function addCategory() {
   const value = newCategory.value.trim();
   if (!value) {
-    notifyError(new Error("请输入类别编码"));
+    notifyError("请输入类别编码");
     return;
   }
   if (editing.value.includes(value)) {
-    notifyError(new Error(`类别「${value}」已存在`));
+    notifyError(`类别「${value}」已存在`);
     return;
   }
   editing.value = [...editing.value, value];
@@ -65,7 +69,7 @@ async function handleSave() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "类别字典保存失败（已绑定薪酬项的类别不可删除）"));
+    notifyError(getErrorMessage(error, "类别字典保存失败（已绑定薪酬项的类别不可删除）"));
   } finally {
     submitting.value = false;
   }

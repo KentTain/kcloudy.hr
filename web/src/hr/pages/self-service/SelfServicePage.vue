@@ -40,9 +40,9 @@ import {
   updateMyGoalProgress,
 } from "@/hr/api/selfService";
 import {
+  type AttributeValueItem,
   EMPLOYEE_STATUS_LABELS,
   EMPLOYEE_STATUS_VARIANTS,
-  type AttributeValueItem,
   type OrgTreeNode,
 } from "@/hr/types/employee";
 import {
@@ -121,8 +121,11 @@ const baseInfoItems = computed(() => {
 const attributeItems = computed(() =>
   attributes.value.map((item) => ({
     label: item.name,
-    value: item.value === null || item.value === undefined || item.value === "" ? "--" : String(item.value),
-  })),
+    value:
+      item.value === null || item.value === undefined || item.value === ""
+        ? "--"
+        : String(item.value),
+  }))
 );
 
 /* ── 档案变更申请（self_editable 属性，走统一审批流） ── */
@@ -134,13 +137,14 @@ const changeDraft = ref<Record<string, string>>({});
 const changeSubmitting = ref(false);
 
 const selfEditableAttributes = computed(() =>
-  attributes.value.filter((item) => item.ext_data?.self_editable === true),
+  attributes.value.filter((item) => item.ext_data?.self_editable === true)
 );
 
 function openChangeModal() {
   const draft: Record<string, string> = {};
   selfEditableAttributes.value.forEach((item) => {
-    draft[item.definition_id] = item.value === null || item.value === undefined ? "" : String(item.value);
+    draft[item.definition_id] =
+      item.value === null || item.value === undefined ? "" : String(item.value);
   });
   changeDraft.value = draft;
   changeTitle.value = "";
@@ -153,7 +157,10 @@ async function handleSubmitChange() {
       const original = item.value === null || item.value === undefined ? "" : String(item.value);
       return (changeDraft.value[item.definition_id] ?? "") !== original;
     })
-    .map((item) => ({ definition_id: item.definition_id, new_value: changeDraft.value[item.definition_id] ?? null }));
+    .map((item) => ({
+      definition_id: item.definition_id,
+      new_value: changeDraft.value[item.definition_id] ?? null,
+    }));
   if (!changeTitle.value.trim()) {
     notifyError("请填写申请标题");
     return;
@@ -184,7 +191,10 @@ const REQUEST_STATUS_LABELS: Record<ChangeRequestSummary["status"], string> = {
   cancelled: "已撤销",
 };
 
-const REQUEST_STATUS_VARIANTS: Record<ChangeRequestSummary["status"], "default" | "success" | "destructive" | "secondary"> = {
+const REQUEST_STATUS_VARIANTS: Record<
+  ChangeRequestSummary["status"],
+  "default" | "success" | "destructive" | "secondary"
+> = {
   pending: "default",
   approved: "success",
   rejected: "destructive",
@@ -253,11 +263,14 @@ async function loadMyGoals() {
     const edits: Record<string, { progress: string; actual_value: string }> = {};
     myGoals.value
       .filter((group) => group.cycle_status === "active")
-      .forEach((group) =>
+      .forEach((group) => {
         group.goals.forEach((goal) => {
-          edits[goal.id] = { progress: String(goal.progress), actual_value: goal.actual_value ?? "" };
-        }),
-      );
+          edits[goal.id] = {
+            progress: String(goal.progress),
+            actual_value: goal.actual_value ?? "",
+          };
+        });
+      });
     goalEdits.value = edits;
   } catch (error) {
     notifyError(getErrorMessage(error, "目标加载失败"));
@@ -325,12 +338,20 @@ const teamColumns: ColumnDef<TeamEmployee>[] = [
     header: "部门",
     cell: ({ row }) => orgNameOf(row.original.org_id),
   },
-  { accessorKey: "job_level", header: "职级", cell: ({ getValue }) => (getValue() as string | null) ?? "--" },
+  {
+    accessorKey: "job_level",
+    header: "职级",
+    cell: ({ getValue }) => (getValue() as string | null) ?? "--",
+  },
   {
     accessorKey: "status",
     header: "状态",
     cell: ({ row }) =>
-      h(Badge, { variant: EMPLOYEE_STATUS_VARIANTS[row.original.status] }, () => EMPLOYEE_STATUS_LABELS[row.original.status]),
+      h(
+        Badge,
+        { variant: EMPLOYEE_STATUS_VARIANTS[row.original.status] },
+        () => EMPLOYEE_STATUS_LABELS[row.original.status]
+      ),
   },
   { accessorKey: "hire_date", header: "入职日期" },
 ];
@@ -404,12 +425,12 @@ function switchTab(value: string | number) {
                 {{ EMPLOYEE_STATUS_LABELS[profile.status] }}
               </Badge>
             </div>
-            <DescriptionList class="mt-3" :items="profileHeader" :columns="4" />
+            <DescriptionList class="mt-3" :items="profileHeader" :columns="(4 as 1 | 2 | 3)" />
           </div>
 
           <div class="bg-card ring-foreground/10 rounded-xl p-4 ring-1 shadow-sm" data-testid="self-base-info">
             <p class="mb-3 font-medium">基础信息</p>
-            <DescriptionList :items="baseInfoItems" :columns="4" />
+            <DescriptionList :items="baseInfoItems" :columns="(4 as 1 | 2 | 3)" />
           </div>
 
           <div class="bg-card ring-foreground/10 rounded-xl p-4 ring-1 shadow-sm" data-testid="self-attributes">

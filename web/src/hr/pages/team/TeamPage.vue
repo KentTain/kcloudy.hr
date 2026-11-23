@@ -22,6 +22,7 @@ import {
 } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
+import type { UserInfo } from "@/framework/stores/user";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -38,6 +39,7 @@ import {
   INTERVIEW_FORM_LABELS,
   INTERVIEW_RESULT_LABELS,
   INTERVIEW_RESULT_VARIANTS,
+  type InterviewForm,
   REQUISITION_PRIORITY_LABELS,
   REQUISITION_PRIORITY_VARIANTS,
   REQUISITION_STATUS_LABELS,
@@ -48,11 +50,19 @@ import type { TeamInterviewItem, TeamReviewItem } from "@/hr/types/selfService";
 
 type TabKey = "requisitions" | "interviews" | "reviews";
 
+/** /users/me 返回的 organizations 摘要（框架 UserInfo 暂未声明该字段，此处按响应契约局部收窄） */
+interface UserOrgSummary {
+  is_leader: boolean;
+}
+
 const userStore = useUserStore();
 // 团队工作台仅组织负责人可用（/users/me organizations.is_leader）
-const isLeader = computed(() =>
-  (userStore.userInfo?.organizations ?? []).some((org) => org.is_leader)
-);
+const isLeader = computed(() => {
+  const orgs =
+    (userStore.userInfo as (UserInfo & { organizations?: UserOrgSummary[] }) | null)
+      ?.organizations ?? [];
+  return orgs.some((org) => org.is_leader);
+});
 
 const activeTab = ref<TabKey>("requisitions");
 const orgTree = ref<OrgTreeNode[]>([]);
@@ -262,7 +272,7 @@ function switchTab(value: string | number) {
                     <td class="px-4 py-2">{{ interview.candidate_name }}</td>
                     <td class="px-4 py-2">{{ interview.requisition_title }}</td>
                     <td class="px-4 py-2">第 {{ interview.round }} 轮</td>
-                    <td class="px-4 py-2">{{ INTERVIEW_FORM_LABELS[interview.interview_form] ?? interview.interview_form }}</td>
+                    <td class="px-4 py-2">{{ INTERVIEW_FORM_LABELS[interview.interview_form as InterviewForm] ?? interview.interview_form }}</td>
                     <td class="px-4 py-2">{{ interview.scheduled_at }}</td>
                     <td class="px-4 py-2">
                       <Badge :variant="INTERVIEW_RESULT_VARIANTS[interview.result] ?? 'secondary'">

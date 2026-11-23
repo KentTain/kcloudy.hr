@@ -74,10 +74,9 @@ function mountPage() {
 }
 
 function findButton(text: string): HTMLButtonElement | undefined {
-  return document
-    .querySelectorAll("button")
-    .values()
-    .find((el) => el.textContent?.trim() === text) as HTMLButtonElement | undefined;
+  return [...document.querySelectorAll("button")].find((el) => el.textContent?.trim() === text) as
+    | HTMLButtonElement
+    | undefined;
 }
 
 /** DialogContent 经 Teleport 渲染到 body，按钮点击走 document 查询 */
@@ -98,7 +97,13 @@ function setInputValue(selector: string, value: string) {
 beforeEach(() => {
   vi.resetAllMocks();
   permState.granted = new Set(["hr:salary_band:read", "hr:salary_band:write"]);
-  apiMocks.listSalaryBands.mockResolvedValue({ code: 200, data: BANDS, total: 3, page: 1, page_size: 20 });
+  apiMocks.listSalaryBands.mockResolvedValue({
+    code: 200,
+    data: BANDS,
+    total: 3,
+    page: 1,
+    page_size: 20,
+  });
   apiMocks.createSalaryBand.mockResolvedValue({ code: 200, data: BANDS[0] });
   apiMocks.updateSalaryBand.mockResolvedValue({ code: 200, data: BANDS[1] });
   apiMocks.deleteSalaryBand.mockResolvedValue({ code: 200, data: null });
@@ -135,7 +140,8 @@ describe("SalaryBandsPage", () => {
     await flushPromises();
 
     const jobLevelHost = document.querySelector('[data-testid="band-job-level-input"]');
-    const jobLevelInput = (jobLevelHost?.querySelector("input") ?? jobLevelHost) as HTMLInputElement | null;
+    const jobLevelInput = (jobLevelHost?.querySelector("input") ??
+      jobLevelHost) as HTMLInputElement | null;
     expect(jobLevelInput?.value).toBe("P5");
     expect(jobLevelInput?.disabled).toBe(false);
 
@@ -162,7 +168,8 @@ describe("SalaryBandsPage", () => {
     await flushPromises();
 
     const jobLevelHost = document.querySelector('[data-testid="band-job-level-input"]');
-    const jobLevelInput = (jobLevelHost?.querySelector("input") ?? jobLevelHost) as HTMLInputElement | null;
+    const jobLevelInput = (jobLevelHost?.querySelector("input") ??
+      jobLevelHost) as HTMLInputElement | null;
     expect(jobLevelInput?.disabled).toBe(true);
 
     setInputValue('[data-testid="band-mid-input"]', "42000");
@@ -192,7 +199,7 @@ describe("SalaryBandsPage", () => {
 
     expect(apiMocks.createSalaryBand).not.toHaveBeenCalled();
     const { notifyError } = await import("@/framework/utils/feedback");
-    expect(notifyError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("下限") }));
+    expect(notifyError).toHaveBeenCalledWith(expect.stringContaining("下限"));
   });
 
   it("未生效版本删除走确认，历史版本无删除入口；写权限隐藏维护入口", async () => {

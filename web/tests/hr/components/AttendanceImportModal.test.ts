@@ -76,7 +76,9 @@ function mountModal(open = true): VueWrapper {
 }
 
 function selectFile(file: File) {
-  const input = document.querySelector<HTMLInputElement>('input[data-testid="attendance-import-file"]');
+  const input = document.querySelector<HTMLInputElement>(
+    'input[data-testid="attendance-import-file"]'
+  );
   if (!input) throw new Error("file input not found");
   Object.defineProperty(input, "files", { value: [file], configurable: true });
   input.dispatchEvent(new Event("change"));
@@ -114,12 +116,15 @@ describe("AttendanceImportModal", () => {
     const form = apiMocks.importAttendance.mock.calls[0][1] as boolean;
     expect(form).toBe(true);
 
-    const table = document.querySelector('[data-testid="attendance-preview-table"]')?.textContent ?? "";
+    const table =
+      document.querySelector('[data-testid="attendance-preview-table"]')?.textContent ?? "";
     expect(table).toContain("EMP001");
     expect(table).toContain("可导入");
     expect(table).toContain("员工不存在");
 
-    const confirmBtn = document.querySelector<HTMLButtonElement>('[data-testid="attendance-import-confirm"]');
+    const confirmBtn = document.querySelector<HTMLButtonElement>(
+      '[data-testid="attendance-import-confirm"]'
+    );
     expect(confirmBtn?.disabled).toBe(true);
     expect(confirmBtn?.textContent).toContain("修正后重传");
     wrapper.unmount();
@@ -156,7 +161,9 @@ describe("AttendanceImportModal", () => {
     clickButton("attendance-import-preview");
     await flushPromises();
 
-    const confirmBtn = document.querySelector<HTMLButtonElement>('[data-testid="attendance-import-confirm"]');
+    const confirmBtn = document.querySelector<HTMLButtonElement>(
+      '[data-testid="attendance-import-confirm"]'
+    );
     expect(confirmBtn?.disabled).toBe(false);
     clickButton("attendance-import-confirm");
     await flushPromises();
@@ -164,7 +171,8 @@ describe("AttendanceImportModal", () => {
     expect(apiMocks.importAttendance).toHaveBeenCalledTimes(2);
     expect(apiMocks.importAttendance.mock.calls[1][1]).toBe(false);
 
-    const result = document.querySelector('[data-testid="attendance-import-result"]')?.textContent ?? "";
+    const result =
+      document.querySelector('[data-testid="attendance-import-result"]')?.textContent ?? "";
     expect(result).toContain("1");
     expect(result).toContain("2");
     expect(wrapper.emitted("saved")).toHaveLength(1);

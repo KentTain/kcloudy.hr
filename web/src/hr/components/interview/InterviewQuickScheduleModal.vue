@@ -4,30 +4,30 @@
  * 提交创建面试记录；首轮（初筛通过）自动流转申请至面试中。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, Input, Select } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  PeopleSelectDialog,
+  Select,
 } from "@/components";
-import { Label } from "@/components";
-import { PeopleSelectDialog } from "@/components";
 
 import type { UserItem } from "@/components/common/feedback/people-select/types";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
-
-import { createInterview } from "@/hr/api/interview";
 import { listCandidateCards } from "@/hr/api/candidate";
+import { createInterview } from "@/hr/api/interview";
 import { listRequisitions, updateApplicationStage } from "@/hr/api/recruiting";
 import {
   APPLICATION_STAGE_LABELS,
-  INTERVIEW_FORM_OPTIONS,
   type Application,
+  INTERVIEW_FORM_OPTIONS,
   type InterviewForm,
 } from "@/hr/types/recruiting";
 
@@ -56,33 +56,37 @@ const requisitionOptions = ref<{ value: string; label: string }[]>([]);
 const applicationOptions = ref<{ value: string; label: string }[]>([]);
 const loadedApplications = ref<Application[]>([]);
 
-const pickedApplication = computed(() =>
-  loadedApplications.value.find((item) => item.id === applicationId.value) ?? null,
+const pickedApplication = computed(
+  () => loadedApplications.value.find((item) => item.id === applicationId.value) ?? null
 );
 
-watch(open, async (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  requisitionId.value = "__none__";
-  applicationId.value = "__none__";
-  interviewerId.value = "";
-  interviewerName.value = "";
-  interviewForm.value = "onsite";
-  scheduledAt.value = props.presetDate ? `${props.presetDate}T09:00` : "";
-  applicationOptions.value = [];
-  loadedApplications.value = [];
-  try {
-    const res = await listRequisitions({ page: 1, page_size: 100 });
-    requisitionOptions.value = [
-      { value: "__none__", label: "请选择需求" },
-      ...(res.data ?? [])
-        .filter((item) => item.status !== "closed")
-        .map((item) => ({ value: item.id, label: `${item.title}（${item.req_no}）` })),
-    ];
-  } catch {
-    requisitionOptions.value = [{ value: "__none__", label: "请选择需求" }];
-  }
-}, { immediate: true });
+watch(
+  open,
+  async (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    requisitionId.value = "__none__";
+    applicationId.value = "__none__";
+    interviewerId.value = "";
+    interviewerName.value = "";
+    interviewForm.value = "onsite";
+    scheduledAt.value = props.presetDate ? `${props.presetDate}T09:00` : "";
+    applicationOptions.value = [];
+    loadedApplications.value = [];
+    try {
+      const res = await listRequisitions({ page: 1, page_size: 100 });
+      requisitionOptions.value = [
+        { value: "__none__", label: "请选择需求" },
+        ...(res.data ?? [])
+          .filter((item) => item.status !== "closed")
+          .map((item) => ({ value: item.id, label: `${item.title}（${item.req_no}）` })),
+      ];
+    } catch {
+      requisitionOptions.value = [{ value: "__none__", label: "请选择需求" }];
+    }
+  },
+  { immediate: true }
+);
 
 async function handleRequisitionChange() {
   applicationId.value = "__none__";
@@ -90,8 +94,14 @@ async function handleRequisitionChange() {
   loadedApplications.value = [];
   if (requisitionId.value === "__none__") return;
   try {
-    const res = await listCandidateCards({ requisition_id: requisitionId.value, page: 1, page_size: 100 });
-    loadedApplications.value = (res.data ?? []).filter((item) => SCHEDULABLE_STAGES.has(item.stage));
+    const res = await listCandidateCards({
+      requisition_id: requisitionId.value,
+      page: 1,
+      page_size: 100,
+    });
+    loadedApplications.value = (res.data ?? []).filter((item) =>
+      SCHEDULABLE_STAGES.has(item.stage)
+    );
     applicationOptions.value = [
       { value: "__none__", label: "请选择候选人" },
       ...loadedApplications.value.map((item) => ({
@@ -100,7 +110,7 @@ async function handleRequisitionChange() {
       })),
     ];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "候选人加载失败"));
+    notifyError(getErrorMessage(error, "候选人加载失败"));
   }
 }
 
@@ -121,7 +131,7 @@ async function handleSubmit() {
   if (!application) return;
   const error = validate();
   if (error) {
-    notifyError(new Error(error));
+    notifyError(error);
     return;
   }
   submitting.value = true;
@@ -139,7 +149,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "安排面试失败"));
+    notifyError(getErrorMessage(error, "安排面试失败"));
   } finally {
     submitting.value = false;
   }

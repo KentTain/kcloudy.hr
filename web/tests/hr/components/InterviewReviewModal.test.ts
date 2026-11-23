@@ -83,7 +83,9 @@ describe("InterviewReviewModal", () => {
     clickButton("interview-review-ai-summary");
     await flushPromises();
     expect(apiMocks.submitInterviewSummary).toHaveBeenCalledWith("itv-1");
-    expect(document.querySelector('[data-testid="interview-review-summary-pending"]')).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="interview-review-summary-pending"]')
+    ).not.toBeNull();
 
     await vi.advanceTimersByTimeAsync(2000);
     await flushPromises();
@@ -93,7 +95,7 @@ describe("InterviewReviewModal", () => {
     await flushPromises();
     expect(apiMocks.getInterviewDetail).toHaveBeenCalledTimes(2);
     expect(
-      document.querySelector('[data-testid="interview-review-summary-text"]')?.textContent,
+      document.querySelector('[data-testid="interview-review-summary-text"]')?.textContent
     ).toContain("纪要：表达清晰");
     expect(document.querySelector('[data-testid="interview-review-summary-pending"]')).toBeNull();
     wrapper.unmount();
@@ -119,7 +121,7 @@ describe("InterviewReviewModal", () => {
 
     expect(apiMocks.submitInterviewSummary).toHaveBeenCalledTimes(1);
     expect(
-      document.querySelector('[data-testid="interview-review-summary-text"]')?.textContent,
+      document.querySelector('[data-testid="interview-review-summary-text"]')?.textContent
     ).toContain("纪要已回写");
     wrapper.unmount();
   });
@@ -142,7 +144,7 @@ describe("InterviewReviewModal", () => {
     (items[0] as HTMLElement).click();
     await flushPromises();
     const textarea = document.querySelector<HTMLTextAreaElement>(
-      'textarea[data-testid="interview-review-feedback-input"]',
+      'textarea[data-testid="interview-review-feedback-input"]'
     );
     expect(textarea?.value).toBe("简历中的缓存方案请展开讲讲");
     wrapper.unmount();
@@ -159,7 +161,7 @@ describe("InterviewReviewModal", () => {
 
     expect(document.querySelector('[data-testid="interview-review-questions-list"]')).toBeNull();
     const textarea = document.querySelector<HTMLTextAreaElement>(
-      'textarea[data-testid="interview-review-feedback-input"]',
+      'textarea[data-testid="interview-review-feedback-input"]'
     );
     expect(textarea).not.toBeNull();
     wrapper.unmount();

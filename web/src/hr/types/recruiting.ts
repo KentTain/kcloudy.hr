@@ -5,6 +5,9 @@
 
 import type { BadgeVariants } from "@/components/ui/badge";
 
+/** 徽标 variant 联合类型（VariantProps 含 null/undefined 外壳，取其 variant 字段） */
+type BadgeVariant = NonNullable<BadgeVariants["variant"]>;
+
 /* ── 招聘需求 ── */
 
 export type RequisitionStatus = "draft" | "recruiting" | "partial" | "filled" | "closed";
@@ -17,7 +20,7 @@ export const REQUISITION_STATUS_LABELS: Record<RequisitionStatus, string> = {
   closed: "已关闭",
 };
 
-export const REQUISITION_STATUS_VARIANTS: Record<RequisitionStatus, BadgeVariants> = {
+export const REQUISITION_STATUS_VARIANTS: Record<RequisitionStatus, BadgeVariant> = {
   draft: "outline",
   recruiting: "default",
   partial: "secondary",
@@ -34,7 +37,7 @@ export const REQUISITION_PRIORITY_LABELS: Record<RequisitionPriority, string> = 
   urgent: "紧急",
 };
 
-export const REQUISITION_PRIORITY_VARIANTS: Record<RequisitionPriority, BadgeVariants> = {
+export const REQUISITION_PRIORITY_VARIANTS: Record<RequisitionPriority, BadgeVariant> = {
   low: "outline",
   medium: "secondary",
   high: "default",
@@ -70,6 +73,7 @@ export interface ChannelCard {
 
 export interface RequisitionPosting {
   id: string;
+  requisition_id: string;
   channel: string;
   status: string;
   external_post_id: string | null;
@@ -83,7 +87,10 @@ export const POSTING_STATUS_LABELS: Record<string, string> = {
   failed: "发布失败",
 };
 
-export const POSTING_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+export const POSTING_STATUS_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   publishing: "secondary",
   published: "default",
   offline: "outline",
@@ -203,7 +210,7 @@ export const STAGE_TRANSITIONS: Record<ApplicationStage, ApplicationStage[]> = {
   withdrawn: [],
 };
 
-export const APPLICATION_STAGE_VARIANTS: Record<ApplicationStage, BadgeVariants> = {
+export const APPLICATION_STAGE_VARIANTS: Record<ApplicationStage, BadgeVariant> = {
   pending_screening: "outline",
   screening_passed: "outline",
   interviewing: "default",
@@ -223,7 +230,12 @@ export interface Application {
   requisition_id: string;
   requisition_title: string | null;
   stage: ApplicationStage;
-  stage_history: { stage: string; operator_id: string | null; operated_at: string; remark: string | null }[];
+  stage_history: {
+    stage: string;
+    operator_id: string | null;
+    operated_at: string;
+    remark: string | null;
+  }[];
   match_score: number | null;
   apply_time: string;
   employee_id: string | null;
@@ -238,7 +250,7 @@ export const CANDIDATE_CHANNEL_LABELS: Record<string, string> = {
 };
 
 export const CANDIDATE_CHANNEL_OPTIONS = Object.entries(CANDIDATE_CHANNEL_LABELS).map(
-  ([value, label]) => ({ value, label }),
+  ([value, label]) => ({ value, label })
 );
 
 export interface Candidate {
@@ -286,7 +298,7 @@ export const INTERVIEW_FORM_LABELS: Record<InterviewForm, string> = {
 };
 
 export const INTERVIEW_FORM_OPTIONS = Object.entries(INTERVIEW_FORM_LABELS).map(
-  ([value, label]) => ({ value, label }),
+  ([value, label]) => ({ value, label })
 );
 
 export interface InterviewCreatePayload {
@@ -334,7 +346,10 @@ export const INTERVIEW_RESULT_LABELS: Record<string, string> = {
   fail: "未通过",
 };
 
-export const INTERVIEW_RESULT_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+export const INTERVIEW_RESULT_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   pending: "secondary",
   pass: "default",
   fail: "destructive",
@@ -376,4 +391,3 @@ export interface MergeSuggestion {
   email: string | null;
   matched_by: "phone" | "email";
 }
-

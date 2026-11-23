@@ -7,7 +7,7 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 
-import { Badge, Button, DataTable, Input, Select, useDataTable } from "@/components";
+import { Badge, Button, DataTable, Select, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 
 import {
@@ -17,11 +17,7 @@ import {
   notifySuccess,
 } from "@/framework/utils/feedback";
 
-import {
-  cancelMyLeaveRequest,
-  listMyLeaveBalances,
-  listMyLeaveRequests,
-} from "@/hr/api/leave";
+import { cancelMyLeaveRequest, listMyLeaveBalances, listMyLeaveRequests } from "@/hr/api/leave";
 import LeaveApplyModal from "@/hr/components/leave/LeaveApplyModal.vue";
 import {
   LEAVE_REQUEST_STATUS_LABELS,
@@ -44,7 +40,7 @@ async function loadBalances() {
     const res = await listMyLeaveBalances();
     balances.value = res.data ?? [];
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "假期余额加载失败"));
+    notifyError(getErrorMessage(error, "假期余额加载失败"));
   } finally {
     balancesLoading.value = false;
   }
@@ -61,28 +57,29 @@ const applyTypes = computed<LeaveType[]>(() =>
     quota_rule: "manual",
     default_quota: null,
     status: "enabled",
-  })),
+  }))
 );
 
 const balanceCards = computed(() =>
   balances.value.map((b) => ({
     id: b.id,
     name: b.leave_type_name ?? "--",
-    unit: b.unit ? LEAVE_UNIT_LABELS[b.unit] ?? "" : "",
+    unit: b.unit ? (LEAVE_UNIT_LABELS[b.unit] ?? "") : "",
     total: b.total_quota,
     used: b.used,
     frozen: b.frozen,
     balance: b.balance,
-  })),
+  }))
 );
 
 /* ── 我的请假单 ── */
 
 const statusFilter = ref<LeaveRequestStatus | "__all__">("__all__");
 
-const statusOptions = (
-  ["pending", "approved", "rejected", "cancelled"] as const
-).map((value) => ({ value, label: LEAVE_REQUEST_STATUS_LABELS[value] }));
+const statusOptions = (["pending", "approved", "rejected", "cancelled"] as const).map((value) => ({
+  value,
+  label: LEAVE_REQUEST_STATUS_LABELS[value],
+}));
 const statusFilterOptions = [{ value: "__all__", label: "全部状态" }, ...statusOptions];
 
 const columns = ref<ColumnDef<LeaveRequest>[]>([
@@ -119,7 +116,7 @@ const columns = ref<ColumnDef<LeaveRequest>[]>([
       h(
         Badge,
         { variant: LEAVE_REQUEST_STATUS_VARIANTS[row.original.status] },
-        () => LEAVE_REQUEST_STATUS_LABELS[row.original.status],
+        () => LEAVE_REQUEST_STATUS_LABELS[row.original.status]
       ),
   },
   {
@@ -138,8 +135,13 @@ const columns = ref<ColumnDef<LeaveRequest>[]>([
       }
       return h(
         Button,
-        { variant: "ghost", size: "sm", "data-testid": `my-leave-cancel-${item.id}`, onClick: () => cancelRequest(item) },
-        () => "撤销",
+        {
+          variant: "ghost",
+          size: "sm",
+          "data-testid": `my-leave-cancel-${item.id}`,
+          onClick: () => cancelRequest(item),
+        },
+        () => "撤销"
       );
     },
   },
@@ -177,7 +179,7 @@ async function cancelRequest(item: LeaveRequest) {
     dataTable.refresh();
     void loadBalances();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "撤销失败"));
+    notifyError(getErrorMessage(error, "撤销失败"));
   }
 }
 

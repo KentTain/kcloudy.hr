@@ -60,7 +60,7 @@ const REQUISITION: Requisition = {
   salary_min: 15000,
   salary_max: 25000,
   priority: "high",
-  status: "open",
+  status: "recruiting",
   jd: null,
   filled_count: 1,
   postings: [],

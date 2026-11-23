@@ -120,7 +120,12 @@ beforeEach(() => {
   });
   apiMocks.confirmAiImportBatch.mockResolvedValue({
     code: 200,
-    data: makeBatch({ status: "completed", new_count: 1, overwrite_count: 1, row_results: PARSED_ROWS }),
+    data: makeBatch({
+      status: "completed",
+      new_count: 1,
+      overwrite_count: 1,
+      row_results: PARSED_ROWS,
+    }),
   });
 });
 
@@ -143,12 +148,17 @@ describe("AttendanceAiImportModal", () => {
     // 轮询首轮即返回 parsed，直接进入预览
     expect(document.querySelector('[data-testid="attendance-ai-preview-table"]')).toBeTruthy();
 
-    const table = document.querySelector('[data-testid="attendance-ai-preview-table"]')?.textContent ?? "";
+    const table =
+      document.querySelector('[data-testid="attendance-ai-preview-table"]')?.textContent ?? "";
     expect(table).toContain("EMP001");
     expect(table).toContain("未匹配员工");
 
-    const check2 = document.querySelector<HTMLInputElement>('[data-testid="attendance-ai-row-check-2"]');
-    const check4 = document.querySelector<HTMLInputElement>('[data-testid="attendance-ai-row-check-4"]');
+    const check2 = document.querySelector<HTMLInputElement>(
+      '[data-testid="attendance-ai-row-check-2"]'
+    );
+    const check4 = document.querySelector<HTMLInputElement>(
+      '[data-testid="attendance-ai-row-check-4"]'
+    );
     expect(check2?.checked).toBe(true);
     expect(check4?.checked).toBe(false);
     expect(check4?.disabled).toBe(true);
@@ -164,7 +174,9 @@ describe("AttendanceAiImportModal", () => {
     clickButton("attendance-ai-upload");
     await flushPromises();
 
-    const check3 = document.querySelector<HTMLInputElement>('[data-testid="attendance-ai-row-check-3"]');
+    const check3 = document.querySelector<HTMLInputElement>(
+      '[data-testid="attendance-ai-row-check-3"]'
+    );
     check3?.click();
     await flushPromises();
 
@@ -174,7 +186,8 @@ describe("AttendanceAiImportModal", () => {
     expect(apiMocks.confirmAiImportBatch).toHaveBeenCalledTimes(1);
     expect(apiMocks.confirmAiImportBatch).toHaveBeenCalledWith("batch-ai-1", [2]);
 
-    const result = document.querySelector('[data-testid="attendance-ai-result"]')?.textContent ?? "";
+    const result =
+      document.querySelector('[data-testid="attendance-ai-result"]')?.textContent ?? "";
     expect(result).toContain("导入完成");
     expect(wrapper.emitted("saved")).toHaveLength(1);
     wrapper.unmount();
@@ -185,7 +198,10 @@ describe("AttendanceAiImportModal", () => {
       code: 200,
       data: makeBatch({ status: "failed" }),
     });
-    apiMocks.retryAiImportBatch.mockResolvedValue({ code: 200, data: makeBatch({ status: "parsing" }) });
+    apiMocks.retryAiImportBatch.mockResolvedValue({
+      code: 200,
+      data: makeBatch({ status: "parsing" }),
+    });
 
     const wrapper = mountModal();
     await flushPromises();
@@ -211,7 +227,13 @@ describe("AttendanceAiImportModal", () => {
       data: {
         total: 2,
         items: [
-          makeBatch({ id: "batch-old-1", status: "completed", new_count: 5, fail_count: 2, created_at: "2026-10-17T09:00:00" }),
+          makeBatch({
+            id: "batch-old-1",
+            status: "completed",
+            new_count: 5,
+            fail_count: 2,
+            created_at: "2026-10-17T09:00:00",
+          }),
           makeBatch({ id: "batch-old-2", status: "parsed", new_count: 0, fail_count: 0 }),
         ],
       },
@@ -234,7 +256,9 @@ describe("AttendanceAiImportModal", () => {
     const history = document.querySelector('[data-testid="attendance-ai-history"]');
     expect(history).not.toBeNull();
     expect(history?.textContent).toContain("失败 2");
-    expect(document.querySelector('[data-testid="attendance-ai-failures-batch-old-1"]')).toBeTruthy();
+    expect(
+      document.querySelector('[data-testid="attendance-ai-failures-batch-old-1"]')
+    ).toBeTruthy();
     expect(document.querySelector('[data-testid="attendance-ai-failures-batch-old-2"]')).toBeNull();
 
     clickButton("attendance-ai-failures-batch-old-1");

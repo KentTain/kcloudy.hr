@@ -3,9 +3,10 @@
  * 审批请求详情弹窗：摘要 + 变更明细（profile_change）+ 审批流水留痕，只读。
  */
 import { computed, ref, watch } from "vue";
-
-import { Badge, Button } from "@/components";
 import {
+  Badge,
+  Button,
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -13,11 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components";
-import { DescriptionList } from "@/components";
 
 import { getErrorMessage, notifyError } from "@/framework/utils/feedback";
 
 import { getApprovalRequest } from "@/hr/api/approval";
+import { listFieldDefinitions } from "@/hr/api/field";
 import {
   APPROVAL_ACTION_LABELS,
   APPROVAL_BIZ_TYPE_LABELS,
@@ -27,7 +28,6 @@ import {
   type ProfileChangeEntry,
 } from "@/hr/types/approval";
 import type { FieldDefinition } from "@/hr/types/employee";
-import { listFieldDefinitions } from "@/hr/api/field";
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -76,7 +76,7 @@ watch(
       const res = await getApprovalRequest(id);
       detail.value = res.data ?? null;
     } catch (error) {
-      notifyError(error, getErrorMessage(error, "审批请求详情加载失败"));
+      notifyError(getErrorMessage(error, "审批请求详情加载失败"));
     }
     if (changes.value.length > 0 && definitions.value.length === 0) {
       try {
@@ -87,7 +87,7 @@ watch(
       }
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 </script>
 

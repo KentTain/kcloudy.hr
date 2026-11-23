@@ -4,15 +4,18 @@
  * 时长系统按类型单位计算（只读回显），事由必填。提交后进入待审批并冻结额度。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button, Input, Label, Select, Textarea } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Textarea,
 } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -36,10 +39,15 @@ const endTime = ref("");
 const reason = ref("");
 
 const typeOptions = computed(() =>
-  props.leaveTypes.map((t) => ({ value: t.id, label: `${t.name}（${t.unit === "day" ? "按天" : "按小时"}）` })),
+  props.leaveTypes.map((t) => ({
+    value: t.id,
+    label: `${t.name}（${t.unit === "day" ? "按天" : "按小时"}）`,
+  }))
 );
 
-const selectedType = computed(() => props.leaveTypes.find((t) => t.id === leaveTypeId.value) ?? null);
+const selectedType = computed(
+  () => props.leaveTypes.find((t) => t.id === leaveTypeId.value) ?? null
+);
 
 const duration = computed(() => {
   const t = selectedType.value;
@@ -62,19 +70,19 @@ watch(open, (value) => {
 
 async function handleSubmit() {
   if (!leaveTypeId.value) {
-    notifyError(new Error("请选择假期类型"));
+    notifyError("请选择假期类型");
     return;
   }
   if (!startTime.value || !endTime.value) {
-    notifyError(new Error("请填写请假起止时间"));
+    notifyError("请填写请假起止时间");
     return;
   }
   if (duration.value == null || duration.value <= 0) {
-    notifyError(new Error("结束时间须不早于开始时间"));
+    notifyError("结束时间须不早于开始时间");
     return;
   }
   if (!reason.value.trim()) {
-    notifyError(new Error("请填写请假事由"));
+    notifyError("请填写请假事由");
     return;
   }
   submitting.value = true;
@@ -89,7 +97,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "请假申请提交失败"));
+    notifyError(getErrorMessage(error, "请假申请提交失败"));
   } finally {
     submitting.value = false;
   }

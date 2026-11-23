@@ -118,7 +118,7 @@ const DETAIL = {
   org_id: "org-1",
   position_id: "pos-1",
   job_level: "P5",
-  status: "probation",
+  status: "probation" as const,
   hire_date: "2025-01-01",
   regular_date: null,
   offboard_date: null,
@@ -135,7 +135,15 @@ const EMPLOYEES: Employee[] = [
 ];
 
 const CHANGES = [
-  { id: "ch-1", employee_id: "emp-1", change_type: "hire", before_data: null, after_data: { org_id: "org-1" }, effective_date: "2025-01-01", operator_id: null },
+  {
+    id: "ch-1",
+    employee_id: "emp-1",
+    change_type: "hire",
+    before_data: null,
+    after_data: { org_id: "org-1" },
+    effective_date: "2025-01-01",
+    operator_id: null,
+  },
 ];
 
 function mountDrawer(granted: string[]) {
@@ -155,7 +163,12 @@ function mountDrawer(granted: string[]) {
   return { wrapper, onSwitch };
 }
 
-const BASE_PERMS = ["hr:employee:read", "hr:employee:write", "hr:contract:read", "hr:attachment:read"];
+const BASE_PERMS = [
+  "hr:employee:read",
+  "hr:employee:write",
+  "hr:contract:read",
+  "hr:attachment:read",
+];
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -201,7 +214,9 @@ describe("EmployeeDetailDrawer", () => {
     await flushPromises();
 
     expect(apiMocks.listEmployeeChanges).toHaveBeenCalledWith("emp-1", { page: 1, page_size: 50 });
-    expect(document.querySelector('[data-testid="drawer-timeline"]')?.textContent).toContain("入职");
+    expect(document.querySelector('[data-testid="drawer-timeline"]')?.textContent).toContain(
+      "入职"
+    );
   });
 
   it("无薪酬权限时薪酬 Tab 隐藏，有权限时懒加载定薪数据", async () => {
@@ -235,7 +250,9 @@ describe("EmployeeDetailDrawer", () => {
     const index = document.querySelector('[data-testid="employee-switch-index"]');
     expect(index?.textContent?.replace(/\s/g, "")).toBe("1/2");
 
-    const next = document.querySelector('[data-testid="employee-switch-next"]') as HTMLButtonElement;
+    const next = document.querySelector(
+      '[data-testid="employee-switch-next"]'
+    ) as HTMLButtonElement;
     next.click();
     await flushPromises();
 

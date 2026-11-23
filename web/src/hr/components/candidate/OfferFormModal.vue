@@ -4,17 +4,17 @@
  * （发送后申请自动流转至已发 Offer）。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -33,19 +33,23 @@ const submitting = ref(false);
 const baseMonthly = ref("");
 const validUntil = ref("");
 
-watch(open, (value) => {
-  if (!value) return;
-  // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
-  baseMonthly.value = "";
-  validUntil.value = "";
-}, { immediate: true });
+watch(
+  open,
+  (value) => {
+    if (!value) return;
+    // immediate：以 open=true 初始挂载（如测试或直开场景）也完成回填
+    baseMonthly.value = "";
+    validUntil.value = "";
+  },
+  { immediate: true }
+);
 
 async function handleSubmit() {
   const application = props.application;
   if (!application) return;
   const amount = Number(baseMonthly.value);
   if (!Number.isFinite(amount) || amount <= 0) {
-    notifyError(new Error("请填写有效的月薪数额"));
+    notifyError("请填写有效的月薪数额");
     return;
   }
   submitting.value = true;
@@ -55,12 +59,12 @@ async function handleSubmit() {
       salary_snapshot: { base_monthly: amount },
       valid_until: validUntil.value || undefined,
     });
-    await sendOffer(created.data.id);
+    await sendOffer(created.data!.id);
     notifySuccess("Offer 已发送，申请进入已发 Offer");
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "Offer 发送失败"));
+    notifyError(getErrorMessage(error, "Offer 发送失败"));
   } finally {
     submitting.value = false;
   }

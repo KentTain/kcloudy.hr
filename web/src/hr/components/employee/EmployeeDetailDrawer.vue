@@ -6,28 +6,27 @@
  */
 import { MoreHorizontalIcon } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-
 import {
   Badge,
-  buildSettingFormSpec,
   Button,
-  DescriptionList,
+  buildSettingFormSpec,
   type DescriptionItem,
-  FileDropzone,
-  type DynamicFormField,
-  type DynamicFormDataType,
-} from "@/components";
-import {
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  type DynamicFormDataType,
+  type DynamicFormField,
+  FileDropzone,
+  Label,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@/components";
-import { Label } from "@/components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { JsonRender } from "@/components/json-render";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,20 +34,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-
-import { confirmAction, getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 import { useUserStore } from "@/framework/stores";
-
 import {
-  deleteEmployee,
-  getEmployeeAttributes,
-  getEmployeeDetail,
-  getSensitiveView,
-  listEmployeeChanges,
-  openAccount,
-  saveEmployeeAttributes,
-} from "@/hr/api/employee";
+  confirmAction,
+  getErrorMessage,
+  notifyError,
+  notifySuccess,
+} from "@/framework/utils/feedback";
 import {
   deleteAttachment,
   deleteContract,
@@ -58,41 +52,58 @@ import {
   terminateContract,
   uploadEmployeeAttachment,
 } from "@/hr/api/contract";
+import {
+  deleteEmployee,
+  getEmployeeAttributes,
+  getEmployeeDetail,
+  getSensitiveView,
+  listEmployeeChanges,
+  openAccount,
+  saveEmployeeAttributes,
+} from "@/hr/api/employee";
 import { listFieldGroups } from "@/hr/api/field";
-import { getOrgTree, getPositionOptions, getBandComparison, listEmployeeSalaryPackages } from "@/hr/api/reference";
+import {
+  getBandComparison,
+  getOrgTree,
+  getPositionOptions,
+  listEmployeeSalaryPackages,
+} from "@/hr/api/reference";
 import EmployeeChangeModal from "@/hr/components/employee/EmployeeChangeModal.vue";
 import EmployeeContractModal from "@/hr/components/employee/EmployeeContractModal.vue";
 import EmployeeFormModal from "@/hr/components/employee/EmployeeFormModal.vue";
 import EmployeeSwitchBar from "@/hr/components/employee/EmployeeSwitchBar.vue";
 import FieldDefinitionManager from "@/hr/components/employee/FieldDefinitionManager.vue";
 import {
+  type AccountOpenResult,
   ATTACHMENT_DOC_TYPES,
   ATTRIBUTE_DATA_TYPE_LABELS,
-  CHANGE_TYPE_LABELS,
-  CONTRACT_STATUS_LABELS,
-  EMPLOYEE_STATUS_LABELS,
-  EMPLOYEE_STATUS_VARIANTS,
-  SALARY_REASON_LABELS,
-  contractTypeLabel,
-  isActiveEmployee,
-  type AccountOpenResult,
   type Attachment,
   type AttributeValueItem,
   type BandComparison,
+  CHANGE_TYPE_LABELS,
   type ChangeRecord,
   type ChangeType,
+  CONTRACT_STATUS_LABELS,
   type Contract,
+  contractTypeLabel,
+  EMPLOYEE_STATUS_LABELS,
+  EMPLOYEE_STATUS_VARIANTS,
   type Employee,
   type EmployeeDetail,
   type FieldGroup,
-  type SensitiveView,
+  isActiveEmployee,
+  SALARY_REASON_LABELS,
   type SalaryPackageRecord,
+  type SensitiveView,
 } from "@/hr/types/employee";
 
 /** 后端预置属性组（TenantInitializer seed 同源；custom/自建组进「扩展属性」Tab） */
 const PRESET_GROUP_CODES = ["basic", "education", "contacts", "work", "custom"];
 
-const BAND_POSITION_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const BAND_POSITION_META: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
   below: { label: "低于带宽", variant: "secondary" },
   within: { label: "带宽内", variant: "default" },
   above: { label: "高于带宽", variant: "destructive" },
@@ -170,9 +181,11 @@ const tabs = computed(() => [
   { value: "custom", label: "扩展属性" },
 ]);
 
-const orgLabel = computed(() => (detail.value?.org_id ? orgNameMap.value[detail.value.org_id] ?? "--" : "--"));
+const orgLabel = computed(() =>
+  detail.value?.org_id ? (orgNameMap.value[detail.value.org_id] ?? "--") : "--"
+);
 const positionLabel = computed(() =>
-  detail.value?.position_id ? positionNameMap.value[detail.value.position_id] ?? "--" : "--",
+  detail.value?.position_id ? (positionNameMap.value[detail.value.position_id] ?? "--") : "--"
 );
 
 function groupCodeOf(groupId: string): string {
@@ -186,7 +199,7 @@ watch(
   ([openVal]) => {
     if (openVal && props.employeeId) void initLoad();
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 watch(activeTab, (tab) => {
@@ -214,7 +227,7 @@ async function initLoad() {
     detail.value = res.data ?? null;
   } catch (error) {
     if (s !== seq) return;
-    notifyError(error, getErrorMessage(error, "员工详情加载失败"));
+    notifyError(getErrorMessage(error, "员工详情加载失败"));
   } finally {
     if (s === seq) loading.value = false;
   }
@@ -308,7 +321,7 @@ async function loadTab(tab: string) {
       }
     }
   } catch (error) {
-    if (s === seq) notifyError(error, getErrorMessage(error, "数据加载失败"));
+    if (s === seq) notifyError(getErrorMessage(error, "数据加载失败"));
   }
 }
 
@@ -389,7 +402,10 @@ function displayValue(item: AttributeValueItem): string {
 
 function jsonRecords(item: AttributeValueItem): Record<string, unknown>[] | null {
   if (item.data_type !== "json" || item.value == null || !Array.isArray(item.value)) return null;
-  return item.value.filter((entry) => entry && typeof entry === "object") as Record<string, unknown>[];
+  return item.value.filter((entry) => entry && typeof entry === "object") as Record<
+    string,
+    unknown
+  >[];
 }
 
 function jsonScalar(item: AttributeValueItem): string | null {
@@ -406,7 +422,7 @@ async function showSensitive() {
     sensitive.value = res.data ?? null;
     notifySuccess("已查看明文（操作已记录审计）");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "明文查看失败"));
+    notifyError(getErrorMessage(error, "明文查看失败"));
   }
 }
 
@@ -423,7 +439,7 @@ async function openAccountFor() {
     const res = await openAccount(props.employeeId);
     accountResult.value = res.data ?? null;
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "账号开通失败"));
+    notifyError(getErrorMessage(error, "账号开通失败"));
   }
 }
 
@@ -436,7 +452,7 @@ async function deleteEmployeeFor() {
     open.value = false;
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -444,11 +460,11 @@ async function copyAccountResult() {
   if (!accountResult.value) return;
   try {
     await navigator.clipboard.writeText(
-      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`,
+      `账号：${accountResult.value.username}\n初始密码：${accountResult.value.initial_password}`
     );
     notifySuccess("已复制账号与初始密码");
   } catch {
-    notifyError(new Error("复制失败，请手动复制"));
+    notifyError("复制失败，请手动复制");
   }
 }
 
@@ -462,7 +478,7 @@ async function terminateContractFor(contract: Contract) {
     await reload();
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "终止失败"));
+    notifyError(getErrorMessage(error, "终止失败"));
   }
 }
 
@@ -473,7 +489,7 @@ async function removeContract(contract: Contract) {
     notifySuccess("合同已删除");
     await reload();
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -493,7 +509,7 @@ async function uploadAttachment(docType: string, files: File[]) {
     loadedTabs.value.delete("attachments");
     await loadTab("attachments");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "附件上传失败"));
+    notifyError(getErrorMessage(error, "附件上传失败"));
   } finally {
     uploadingDocType.value = "";
   }
@@ -504,7 +520,7 @@ async function downloadAttachment(attachment: Attachment) {
     const res = await getAttachmentDownloadUrl(attachment.id);
     if (res.data?.url) window.open(res.data.url, "_blank");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "下载链接获取失败"));
+    notifyError(getErrorMessage(error, "下载链接获取失败"));
   }
 }
 
@@ -515,7 +531,7 @@ async function removeAttachment(attachment: Attachment) {
     notifySuccess("附件已删除");
     attachments.value = attachments.value.filter((item) => item.id !== attachment.id);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "删除失败"));
+    notifyError(getErrorMessage(error, "删除失败"));
   }
 }
 
@@ -558,7 +574,7 @@ async function saveCustomAttributes() {
     await loadTab("custom");
     emit("refresh");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   }
 }
 </script>
@@ -851,7 +867,7 @@ async function saveCustomAttributes() {
                     </div>
                     <div v-if="canContractWrite" class="flex items-center gap-1">
                       <Button
-                        v-if="contract.status === 'active' && isActiveEmployee(detail?.status)"
+                        v-if="contract.status === 'active' && isActiveEmployee(detail?.status ?? '')"
                         variant="ghost"
                         size="sm"
                         @click="renewFrom = contract; contractModalOpen = true"

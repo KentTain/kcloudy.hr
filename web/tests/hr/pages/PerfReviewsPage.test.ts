@@ -124,11 +124,7 @@ function mountPage() {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  permState.granted = new Set([
-    "hr:perf_review:read",
-    "hr:perf_review:write",
-    "hr:perf:calibrate",
-  ]);
+  permState.granted = new Set(["hr:perf_review:read", "hr:perf_review:write", "hr:perf:calibrate"]);
   apiMocks.listPerfCycles.mockResolvedValue({
     code: 200,
     data: [

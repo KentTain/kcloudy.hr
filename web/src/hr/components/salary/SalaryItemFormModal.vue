@@ -4,17 +4,19 @@
  * 编码创建后不可修改（发薪明细按 code 关联历史数据），编辑态置灰。
  */
 import { ref, watch } from "vue";
-
-import { Button, Input, Select, Switch } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Label,
+  Select,
+  Switch,
 } from "@/components";
-import { Label } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -68,7 +70,7 @@ watch(
       sort.value = 0;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 function buildExtData(): SalaryItemExtData {
@@ -82,7 +84,7 @@ function buildExtData(): SalaryItemExtData {
 
 async function handleSubmit() {
   if (!name.value.trim()) {
-    notifyError(new Error("请填写薪酬项名称"));
+    notifyError("请填写薪酬项名称");
     return;
   }
   submitting.value = true;
@@ -97,7 +99,7 @@ async function handleSubmit() {
       notifySuccess("薪酬项已更新");
     } else {
       if (!code.value.trim()) {
-        notifyError(new Error("请填写薪酬项编码"));
+        notifyError("请填写薪酬项编码");
         submitting.value = false;
         return;
       }
@@ -113,7 +115,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "薪酬项保存失败"));
+    notifyError(getErrorMessage(error, "薪酬项保存失败"));
   } finally {
     submitting.value = false;
   }
@@ -174,7 +176,7 @@ async function handleSubmit() {
               :model-value="String(sort)"
               type="number"
               data-testid="salary-item-sort-input"
-              @update:model-value="(v: string) => (sort = Number(v) || 0)"
+              @update:model-value="(v: string | number) => (sort = Number(v) || 0)"
             />
           </div>
         </div>

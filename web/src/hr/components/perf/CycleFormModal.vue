@@ -4,7 +4,18 @@
  */
 import { ref, watch } from "vue";
 
-import { Button, DateInput, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label } from "@/components";
+import {
+  Button,
+  DateInput,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+} from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -43,7 +54,7 @@ function validate(): string | null {
 async function handleSubmit() {
   const message = validate();
   if (message) {
-    notifyError(new Error(message), message);
+    notifyError(message);
     return;
   }
   submitting.value = true;
@@ -66,7 +77,7 @@ async function handleSubmit() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "保存失败"));
+    notifyError(getErrorMessage(error, "保存失败"));
   } finally {
     submitting.value = false;
   }

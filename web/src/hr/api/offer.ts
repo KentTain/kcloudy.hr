@@ -42,10 +42,10 @@ export interface OfferOnboardPayload {
 /** 入职转化建档（员工自动取号 + hire 流水；需求 filled_count 联动） */
 export function onboardOffer(
   offerId: string,
-  payload: OfferOnboardPayload = {},
+  payload: OfferOnboardPayload = {}
 ): Promise<ApiResponse<{ employee_id: string; employee_no: string }>> {
   return post<ApiResponse<{ employee_id: string; employee_no: string }>>(
     `/hr/admin/v1/offers/${offerId}/onboard`,
-    payload,
+    payload
   );
 }

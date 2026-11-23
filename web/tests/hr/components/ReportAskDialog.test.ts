@@ -46,7 +46,7 @@ function clickButton(testid: string) {
   if (el instanceof HTMLElement) el.click();
 }
 
-async function typeQuestion(wrapper: VueWrapper, text: string) {
+async function typeQuestion(text: string) {
   // Dialog 内容 teleport 到 body：用 document 查询；common Input 的
   // data-testid 落根 div，原生 input 在内层；输值后 flush 解除按钮禁用
   const input = document.querySelector<HTMLInputElement>('[data-testid="report-ask-input"] input');
@@ -70,17 +70,19 @@ describe("ReportAskDialog", () => {
     const wrapper = mountDialog();
     await flushPromises();
 
-    await typeQuestion(wrapper, "最近 3 个月离职率如何");
+    await typeQuestion("最近 3 个月离职率如何");
     clickButton("report-ask-submit");
     await flushPromises();
 
     expect(apiMocks.askReport).toHaveBeenCalledWith("最近 3 个月离职率如何");
     expect(document.querySelector('[data-testid="report-ask-answer"]')?.textContent).toContain(
-      "近月离职率 1.0%",
+      "近月离职率 1.0%"
     );
-    expect(document.querySelector('[data-testid="report-ask-metric"]')?.textContent).toContain("离职率");
+    expect(document.querySelector('[data-testid="report-ask-metric"]')?.textContent).toContain(
+      "离职率"
+    );
     expect(document.querySelector('[data-testid="report-ask-ref"]')?.textContent).toContain(
-      "当月离职人数",
+      "当月离职人数"
     );
     wrapper.unmount();
   });
@@ -90,13 +92,13 @@ describe("ReportAskDialog", () => {
     const wrapper = mountDialog();
     await flushPromises();
 
-    await typeQuestion(wrapper, "每个人的工资是多少");
+    await typeQuestion("每个人的工资是多少");
     clickButton("report-ask-submit");
     await flushPromises();
 
-    expect(
-      document.querySelector('[data-testid="report-ask-error"]')?.textContent,
-    ).toContain("问数失败");
+    expect(document.querySelector('[data-testid="report-ask-error"]')?.textContent).toContain(
+      "问数失败"
+    );
     expect(document.querySelector('[data-testid="report-ask-result"]')).toBeNull();
     wrapper.unmount();
   });

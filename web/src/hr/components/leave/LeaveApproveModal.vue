@@ -4,17 +4,19 @@
  * 驳回时审批意见必填（驳回原因回写审批记录）。
  */
 import { computed, ref, watch } from "vue";
-
-import { Badge, Button, Label, Textarea } from "@/components";
 import {
+  Badge,
+  Button,
+  DescriptionList,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Label,
+  Textarea,
 } from "@/components";
-import { DescriptionList } from "@/components";
 
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
 
@@ -40,7 +42,10 @@ const items = computed(() => {
   const req = props.request;
   if (!req) return [];
   return [
-    { label: "员工", value: req.employee_name ? `${req.employee_name}（${req.employee_no ?? "—"}）` : "—" },
+    {
+      label: "员工",
+      value: req.employee_name ? `${req.employee_name}（${req.employee_no ?? "—"}）` : "—",
+    },
     { label: "假期类型", value: req.leave_type_name ?? "—" },
     {
       label: "起止",
@@ -48,7 +53,7 @@ const items = computed(() => {
     },
     {
       label: "时长",
-      value: `${req.duration}${req.unit ? LEAVE_UNIT_LABELS[req.unit] ?? "" : ""}`,
+      value: `${req.duration}${req.unit ? (LEAVE_UNIT_LABELS[req.unit] ?? "") : ""}`,
     },
     { label: "事由", value: req.reason || "—" },
     { label: "当前状态", value: LEAVE_REQUEST_STATUS_LABELS[req.status] },
@@ -69,7 +74,7 @@ async function handleApprove() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "审批操作失败"));
+    notifyError(getErrorMessage(error, "审批操作失败"));
   } finally {
     submitting.value = false;
   }
@@ -78,7 +83,7 @@ async function handleApprove() {
 async function handleReject() {
   if (!props.request) return;
   if (!comment.value.trim()) {
-    notifyError(new Error("驳回时必须填写审批意见"));
+    notifyError("驳回时必须填写审批意见");
     return;
   }
   submitting.value = true;
@@ -88,7 +93,7 @@ async function handleReject() {
     open.value = false;
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "审批操作失败"));
+    notifyError(getErrorMessage(error, "审批操作失败"));
   } finally {
     submitting.value = false;
   }

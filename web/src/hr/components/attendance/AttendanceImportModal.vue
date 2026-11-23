@@ -4,9 +4,8 @@
  * （同员工同日覆盖更新）→ 批次反馈。预检失败行不落库，修正后重传。
  */
 import { computed, ref, watch } from "vue";
-
-import { Button } from "@/components";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -40,7 +39,7 @@ watch(
   () => props.open,
   (open) => {
     if (open) resetState();
-  },
+  }
 );
 
 function resetState() {
@@ -66,7 +65,7 @@ async function downloadTemplate() {
     const res = await getImportTemplate();
     const data = res.data;
     if (!data?.content_base64) {
-      notifyError(new Error("模板下载失败"));
+      notifyError("模板下载失败");
       return;
     }
     const binary = atob(data.content_base64);
@@ -82,13 +81,13 @@ async function downloadTemplate() {
     link.click();
     URL.revokeObjectURL(url);
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "模板下载失败"));
+    notifyError(getErrorMessage(error, "模板下载失败"));
   }
 }
 
 async function startPreview() {
   if (!selectedFile.value) {
-    notifyError(new Error("请先选择考勤文件"));
+    notifyError("请先选择考勤文件");
     return;
   }
   submitting.value = true;
@@ -97,7 +96,7 @@ async function startPreview() {
     previewResult.value = res.data ?? null;
     step.value = "preview";
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "预检失败，请检查文件格式"));
+    notifyError(getErrorMessage(error, "预检失败，请检查文件格式"));
   } finally {
     submitting.value = false;
   }
@@ -110,10 +109,12 @@ async function confirmImport() {
     const res = await importAttendance(selectedFile.value, false);
     commitResult.value = res.data ?? null;
     step.value = "result";
-    notifySuccess(`导入完成：新增 ${commitResult.value?.new_count ?? 0} 条，覆盖 ${commitResult.value?.overwrite_count ?? 0} 条`);
+    notifySuccess(
+      `导入完成：新增 ${commitResult.value?.new_count ?? 0} 条，覆盖 ${commitResult.value?.overwrite_count ?? 0} 条`
+    );
     emit("saved");
   } catch (error) {
-    notifyError(error, getErrorMessage(error, "导入失败"));
+    notifyError(getErrorMessage(error, "导入失败"));
   } finally {
     submitting.value = false;
   }
