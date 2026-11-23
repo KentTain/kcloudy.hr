@@ -19,7 +19,7 @@ def _default_ai_inner_base() -> str:
     try:
         from framework.configs import get_settings
 
-        url = get_settings().ai_inner_url
+        url = get_settings().inner_api.ai_url
         if url:
             return str(url).rstrip("/")
     except Exception:
