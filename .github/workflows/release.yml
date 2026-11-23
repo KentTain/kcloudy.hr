@@ -2,6 +2,9 @@
 #
 # 范围：ai-backend-api-hr 全合一镜像构建推送 + master 滚动（hr-api 单容器双端口 8090/8091）。
 # 主仓 platform 侧（worker02/worker01）另线独立承载，两线无依赖冲突。
+# 闭包口径（2026-11-23 收口）：BUILD_MODULES=hr,tenant,iam——hr 进程内仅依赖
+# tenant/iam，AI 经 AI_INNER_URL inner HTTP（publish node-hr 编排注入）、考勤解析
+# 自持 openpyxl，与主仓 compose hr 三锚逐字对齐（镜像体积 1.51GB→瘦身主因即此）。
 # 镜像命名规范见主仓 docker/AGENTS.md「镜像命名规范」节：tag={技术栈}-YYYYMMDD.运行号
 #（hr 属后端线，python- 前缀）；GitHub Release tag 保持 vYYYYMMDD.运行号。
 #
@@ -90,8 +93,7 @@ jobs:
           docker build \
             --file "${MAIN_REPO_DIR}/server/python/Dockerfile" \
             --target production-hr-web \
-            --build-arg BUILD_MODULES=hr,tenant,iam,ai,document,hermes,ontology,workflow,metadata_ingestion \
-            --build-arg EXTRA_GROUPS=ai-knowledge \
+            --build-arg BUILD_MODULES=hr,tenant,iam \
             -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" \
             "${MAIN_REPO_DIR}"
           docker push "${IMAGE}:${TAG}"
