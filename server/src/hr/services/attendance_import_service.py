@@ -534,8 +534,16 @@ class AttendanceImportService:
                 {"role": "user", "content": _LLM_PARSE_PROMPT + table_text},
             ],
         )
+        # 剥 markdown 围栏与前后杂文（模型指令遵循不稳：严格 JSON 提示仍可能输出
+        # 围栏、说明文字或尾部附加对象）；raw_decode 从首个 { 解析容忍尾杂文
+        payload_text = content.strip()
+        if payload_text.startswith("```"):
+            payload_text = payload_text.split("```")[1].removeprefix("json").strip()
+        start = payload_text.find("{")
+        if start >= 0:
+            payload_text = payload_text[start:]
         try:
-            payload = json.loads(content)
+            payload, _ = json.JSONDecoder().raw_decode(payload_text)
         except json.JSONDecodeError as exc:
             raise BadRequestError(f"AI 解析结果非 JSON: {exc}") from exc
         field_mapping = payload.get("field_mapping") or {}

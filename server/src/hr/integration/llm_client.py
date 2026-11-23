@@ -1,14 +1,13 @@
 """ai 通道 LLM 客户端（hr → ai inner 零依赖消费）
 
 经通用 LLM API `/ai/inner/v1/llm/chat/completions` 调租户平台模型
-（model=逻辑名 default，服务端经平台设置槽位路由）。基地址解析对齐
-hermes ai_inner_client 先例：环境变量 AI_INNER_BASE > 本体 server.port 推导。
-AI 失败不阻断业务主流程——异常透传由调用方决定降级姿势。
+（model=逻辑名 default，服务端经平台设置槽位路由）。基地址解析走 framework
+统一模块 inner 地址注册表：`ai_inner_url` 配置 > 自身端口回退（单体形态下
+ai 模块进程内自持该端点）。AI 失败不阻断业务主流程——异常透传由调用方决定降级姿势。
 """
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
@@ -17,9 +16,14 @@ _TIMEOUT_SECONDS = 90.0
 
 
 def _default_ai_inner_base() -> str:
-    env_base = os.getenv("AI_INNER_BASE")
-    if env_base:
-        return env_base.rstrip("/")
+    try:
+        from framework.configs import get_settings
+
+        url = getattr(get_settings(), "ai_inner_url", None)
+        if url:
+            return str(url).rstrip("/")
+    except Exception:
+        pass
     try:
         from framework.configs import get_settings
 
@@ -40,7 +44,7 @@ async def llm_chat(
     HTTP/包络/模型路由失败均抛异常（httpx.HTTPError / RuntimeError）。
     """
     base = _default_ai_inner_base()
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    async with httpx.AsyncClient(base_url=base, timeout=timeout) as client:
         response = await client.post(
             "/ai/inner/v1/llm/chat/completions",
             headers={"X-Tenant-Id": tenant_id, "Content-Type": "application/json"},
