@@ -132,6 +132,9 @@ class HrModule:
         from hr.controllers.admin.requisition_controller import (
             router as admin_requisition_router,
         )
+        from hr.controllers.admin.requisition_bundle_controller import (
+            router as admin_requisition_bundle_router,
+        )
         from hr.controllers.admin.salary_band_controller import (
             router as admin_salary_band_router,
         )
@@ -176,6 +179,7 @@ class HrModule:
             (admin_interview_router, "/hr/admin/v1", ["Admin - Interview"]),
             (admin_offer_router, "/hr/admin/v1", ["Admin - Offer"]),
             (admin_requisition_router, "/hr/admin/v1", ["Admin - Requisition"]),
+            (admin_requisition_bundle_router, "/hr/admin/v1", ["Admin - RequisitionBundle"]),
             (admin_salary_item_router, "/hr/admin/v1", ["Admin - SalaryItem"]),
             (admin_salary_band_router, "/hr/admin/v1", ["Admin - SalaryBand"]),
             (admin_salary_package_router, "/hr/admin/v1", ["Admin - SalaryPackage"]),
@@ -361,6 +365,16 @@ class HrModule:
                     parent_code="hr.recruiting",
                     sort_order=4,
                     permission_codes=["hr:channel:read"],
+                ),
+                MenuDef(
+                    clients="vue",
+                    code="hr.requisition-bundles",
+                    name="招聘聚合测试",
+                    path="/hr/requisition-bundles",
+                    icon="Layers",
+                    parent_code="hr.recruiting",
+                    sort_order=5,
+                    permission_codes=["hr:requisition:read"],
                 ),
                 # ── 薪酬管理 ──
                 MenuDef(

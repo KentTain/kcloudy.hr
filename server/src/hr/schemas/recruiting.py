@@ -1,4 +1,4 @@
-"""招聘域 Schema（需求/发布/候选人/投递/面试/Offer）"""
+"""招聘域 Schema（需求/发布/候选人/投递/面试/Offer/聚合单）"""
 
 from __future__ import annotations
 
@@ -214,3 +214,107 @@ class OfferOnboardCreate(BaseModel):
 
     hire_date: date | None = None
     position_id: str | None = None
+
+
+# --------------------------------------------------------------------- 招聘聚合单（流程测试载体）
+
+
+class BundleOfferInput(BaseModel):
+    """聚合行内 Offer 孙对象（类型化定薪快照，落库进 salary_snapshot）"""
+
+    monthly_salary: float
+    sign_on_bonus: float | None = None
+    year_end_bonus: float | None = None
+    valid_until: datetime | None = None
+
+
+class BundleApplicationInput(BaseModel):
+    """聚合明细行（内嵌候选人字段；application_id 仅编辑行匹配用，创建时忽略）"""
+
+    application_id: str | None = None
+    candidate_name: str
+    candidate_phone: str | None = None
+    candidate_email: str | None = None
+    candidate_source_channel: str = "manual"
+    match_score: float | None = None
+    offer: BundleOfferInput | None = None
+
+
+class RequisitionBundleCreate(BaseModel):
+    """聚合单创建：父=需求字段，applications=子明细，行内 offer=孙对象（1:1）"""
+
+    title: str
+    org_id: str
+    position_id: str | None = None
+    headcount: int
+    job_level: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
+    priority: str = "medium"
+    jd: str | None = None
+    applications: list[BundleApplicationInput] = []
+
+
+class RequisitionBundleUpdate(BaseModel):
+    """聚合单编辑：父字段全可选；明细按行 upsert（带 id 更新/不带新建/缺失删除）"""
+
+    title: str | None = None
+    org_id: str | None = None
+    position_id: str | None = None
+    headcount: int | None = None
+    job_level: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
+    priority: str | None = None
+    jd: str | None = None
+    applications: list[BundleApplicationInput] = []
+
+
+class BundleOfferResponse(BaseModel):
+    offer_id: str
+    monthly_salary: float
+    sign_on_bonus: float | None = None
+    year_end_bonus: float | None = None
+    valid_until: datetime | None = None
+    status: str
+
+
+class BundleApplicationResponse(BaseModel):
+    application_id: str
+    candidate_id: str
+    candidate_name: str
+    candidate_phone: str | None = None
+    candidate_email: str | None = None
+    candidate_source_channel: str | None = None
+    stage: str
+    match_score: float | None = None
+    apply_time: datetime
+    offer: BundleOfferResponse | None = None
+
+
+class RequisitionBundleDetailResponse(BaseModel):
+    id: str
+    req_no: str
+    title: str
+    org_id: str
+    position_id: str | None = None
+    headcount: int
+    job_level: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
+    priority: str
+    status: str
+    jd: str | None = None
+    applications: list[BundleApplicationResponse] = []
+
+
+class RequisitionBundleListItem(BaseModel):
+    id: str
+    req_no: str
+    title: str
+    org_id: str
+    headcount: int
+    priority: str
+    status: str
+    application_count: int
+    offer_count: int
