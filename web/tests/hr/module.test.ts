@@ -37,7 +37,7 @@ describe("hr 模块路由", () => {
     }
   });
 
-  it("路由路径与后端菜单 20 叶一致", () => {
+  it("路由路径与后端菜单 21 叶一致", () => {
     // module.py 菜单叶 path（组节点 path 空串不入列）
     const expected = [
       // 员工中心
@@ -52,6 +52,7 @@ describe("hr 模块路由", () => {
       "/hr/candidates",
       "/hr/interviews",
       "/hr/channels",
+      "/hr/requisition-bundles",
       // 薪酬管理
       "/hr/salary-items",
       "/hr/salary-bands",
@@ -88,6 +89,7 @@ describe("hr 模块路由", () => {
       candidates: ["hr:candidate:read"],
       interviews: ["hr:interview:read"],
       channels: ["hr:channel:read"],
+      "requisition-bundles": ["hr:requisition:read"],
       "salary-items": ["hr:salary_item:read"],
       "salary-bands": ["hr:salary_band:read"],
       "salary-packages": ["hr:salary_package:read"],

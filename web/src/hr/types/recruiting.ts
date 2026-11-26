@@ -391,3 +391,92 @@ export interface MergeSuggestion {
   email: string | null;
   matched_by: "phone" | "email";
 }
+
+/* ── 招聘聚合单（流程测试载体） ── */
+
+/** 行内 Offer 孙对象（类型化定薪快照） */
+export interface BundleOfferInput {
+  monthly_salary: number;
+  sign_on_bonus?: number | null;
+  year_end_bonus?: number | null;
+  valid_until?: string | null;
+}
+
+/** 聚合明细行（内嵌候选人字段；application_id 仅编辑行匹配用） */
+export interface BundleApplicationInput {
+  application_id?: string | null;
+  candidate_name: string;
+  candidate_phone?: string | null;
+  candidate_email?: string | null;
+  candidate_source_channel?: string;
+  match_score?: number | null;
+  offer?: BundleOfferInput | null;
+}
+
+/** 聚合单创建/编辑载荷（父=需求字段，applications=子明细，行内 offer=孙对象） */
+export interface RequisitionBundlePayload {
+  title: string;
+  org_id: string;
+  position_id?: string | null;
+  headcount: number;
+  job_level?: string | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  priority?: RequisitionPriority;
+  jd?: string | null;
+  applications: BundleApplicationInput[];
+}
+
+/** 行内 Offer 孙对象（详情形态） */
+export interface RequisitionBundleOffer {
+  offer_id: string;
+  monthly_salary: number;
+  sign_on_bonus: number | null;
+  year_end_bonus: number | null;
+  valid_until: string | null;
+  status: string;
+}
+
+/** 聚合明细行（详情形态） */
+export interface RequisitionBundleApplication {
+  application_id: string;
+  candidate_id: string;
+  candidate_name: string;
+  candidate_phone: string | null;
+  candidate_email: string | null;
+  candidate_source_channel: string | null;
+  stage: ApplicationStage;
+  match_score: number | null;
+  apply_time: string;
+  offer: RequisitionBundleOffer | null;
+}
+
+/** 聚合单详情（父字段 + 申请明细 + 行内 Offer） */
+export interface RequisitionBundleDetail {
+  id: string;
+  req_no: string;
+  title: string;
+  org_id: string;
+  position_id: string | null;
+  headcount: number;
+  job_level: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  priority: RequisitionPriority;
+  status: RequisitionStatus;
+  jd: string | null;
+  applications: RequisitionBundleApplication[];
+}
+
+/** 聚合单列表项（需求行 + 申请数/Offer 数统计） */
+export interface RequisitionBundleListItem {
+  id: string;
+  req_no: string;
+  title: string;
+  org_id: string;
+  headcount: number;
+  priority: RequisitionPriority;
+  status: RequisitionStatus;
+  application_count: number;
+  offer_count: number;
+}

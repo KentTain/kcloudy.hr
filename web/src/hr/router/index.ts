@@ -119,6 +119,17 @@ export const hrRoutes: RouteRecordRaw[] = [
           permissions: ["hr:channel:read"],
         },
       },
+      {
+        path: "requisition-bundles",
+        name: "HrRequisitionBundles",
+        component: () => import("@/hr/pages/requisition-bundles/RequisitionBundlesPage.vue"),
+        meta: {
+          title: "招聘聚合测试",
+          icon: "layers",
+          requiresAuth: true,
+          permissions: ["hr:requisition:read"],
+        },
+      },
       // ── 薪酬管理 ──
       {
         path: "salary-items",

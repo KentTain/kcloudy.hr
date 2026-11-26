@@ -22,6 +22,6 @@ describe("hr 编译冒烟", () => {
 
   it("模块入口与路由表可加载", async () => {
     const { hrRoutes } = await import("@/hr/router");
-    expect(hrRoutes[0].children?.length).toBe(20);
+    expect(hrRoutes[0].children?.length).toBe(21);
   });
 });
