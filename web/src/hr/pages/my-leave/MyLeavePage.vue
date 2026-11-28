@@ -7,7 +7,7 @@
 import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, h, onMounted, ref } from "vue";
 
-import { Badge, Button, DataTable, Select, useDataTable } from "@/components";
+import { Badge, Button, DataTable, Select, StatCard, type StatCardAccent, useDataTable } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 
 import {
@@ -60,8 +60,11 @@ const applyTypes = computed<LeaveType[]>(() =>
   }))
 );
 
+/** 余额卡统一色板循环（StatCard 六色板） */
+const BALANCE_ACCENTS: StatCardAccent[] = ["purple", "orange", "teal", "pink", "blue", "green"];
+
 const balanceCards = computed(() =>
-  balances.value.map((b) => ({
+  balances.value.map((b, index) => ({
     id: b.id,
     name: b.leave_type_name ?? "--",
     unit: b.unit ? (LEAVE_UNIT_LABELS[b.unit] ?? "") : "",
@@ -69,6 +72,7 @@ const balanceCards = computed(() =>
     used: b.used,
     frozen: b.frozen,
     balance: b.balance,
+    accent: BALANCE_ACCENTS[index % BALANCE_ACCENTS.length] ?? "purple",
   }))
 );
 
@@ -205,20 +209,16 @@ onMounted(() => {
     <div class="flex h-full min-h-0 flex-col gap-4">
       <!-- 余额卡区 -->
       <div class="grid shrink-0 grid-cols-2 gap-4 md:grid-cols-4" data-testid="my-leave-balance-cards">
-        <div
+        <StatCard
           v-for="card in balanceCards"
           :key="card.id"
-          class="bg-card ring-foreground/10 rounded-xl p-4 text-sm ring-1 shadow-sm"
+          :label="card.name"
+          :value="card.balance"
+          :unit="card.unit"
+          :description="`总额度 ${card.total}${card.unit} · 已用 ${card.used}${card.unit} · 冻结 ${card.frozen}${card.unit}`"
+          :accent="card.accent"
           :data-testid="`my-leave-balance-${card.id}`"
-        >
-          <p class="text-xs font-medium">{{ card.name }}</p>
-          <p class="mt-1 text-2xl font-semibold">
-            {{ card.balance }}<span class="text-muted-foreground ml-1 text-xs">{{ card.unit }}</span>
-          </p>
-          <p class="text-muted-foreground mt-1 text-xs">
-            总额度 {{ card.total }}{{ card.unit }} · 已用 {{ card.used }}{{ card.unit }} · 冻结 {{ card.frozen }}{{ card.unit }}
-          </p>
-        </div>
+        />
         <div v-if="!balanceCards.length && !balancesLoading" class="bg-card ring-foreground/10 rounded-xl p-4 text-sm ring-1 shadow-sm">
           <p class="text-muted-foreground text-xs">暂无假期余额数据</p>
         </div>

@@ -14,6 +14,8 @@ import {
   Input,
   OrganizationSelect,
   Select,
+  StatCard,
+  type StatCardAccent,
   useDataTable,
 } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
@@ -73,17 +75,18 @@ function orgNameOf(orgId: string | null): string {
   return findOrgNode(orgTree.value, orgId)?.name ?? orgId;
 }
 
-const statCards = computed(() => {
+const statCards = computed<{ accent: StatCardAccent; key: string; label: string; value: number | string }[]>(() => {
   const cards = stats.value?.cards;
   return [
-    { key: "attendance", label: "出勤人次", value: cards?.attendance_count ?? 0 },
-    { key: "late", label: "迟到人次", value: cards?.late_count ?? 0 },
-    { key: "early-leave", label: "早退人次", value: cards?.early_leave_count ?? 0 },
-    { key: "absent", label: "缺勤人次", value: cards?.absent_count ?? 0 },
+    { key: "attendance", label: "出勤人次", value: cards?.attendance_count ?? 0, accent: "purple" },
+    { key: "late", label: "迟到人次", value: cards?.late_count ?? 0, accent: "orange" },
+    { key: "early-leave", label: "早退人次", value: cards?.early_leave_count ?? 0, accent: "teal" },
+    { key: "absent", label: "缺勤人次", value: cards?.absent_count ?? 0, accent: "pink" },
     {
       key: "rate",
       label: "出勤率",
       value: cards?.attendance_rate == null ? "—" : `${cards.attendance_rate.toFixed(2)}%`,
+      accent: "blue",
     },
   ];
 });
@@ -269,15 +272,14 @@ const orgStats = computed<AttendanceOrgStat[]>(() => stats.value?.org_slices ?? 
       <!-- 考勤总览区 -->
       <div class="flex shrink-0 flex-col gap-3" data-testid="attendance-overview">
         <div class="grid shrink-0 grid-cols-2 gap-4 md:grid-cols-5" data-testid="attendance-stat-cards">
-          <div
+          <StatCard
             v-for="card in statCards"
             :key="card.key"
-            class="bg-card ring-foreground/10 rounded-xl p-4 text-sm ring-1 shadow-sm"
+            :label="card.label"
+            :value="card.value"
+            :accent="card.accent"
             :data-testid="`stat-card-${card.key}`"
-          >
-            <p class="text-muted-foreground text-xs">{{ card.label }}</p>
-            <p class="mt-1 text-2xl font-semibold">{{ card.value }}</p>
-          </div>
+          />
         </div>
 
         <!-- 部门统计表 -->

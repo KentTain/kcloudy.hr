@@ -18,6 +18,8 @@ import {
   Input,
   Label,
   Select,
+  StatCard,
+  type StatCardAccent,
   useDataTable,
 } from "@/components";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -66,14 +68,15 @@ const canManageFields = computed(() => userStore.hasPermission("hr:field_definit
 
 const stats = ref<EmployeeStats | null>(null);
 
-const statCards = computed(() => [
-  { key: "active", label: "在编人数", value: stats.value?.active_count ?? 0 },
-  { key: "probation", label: "试用期人数", value: stats.value?.probation_count ?? 0 },
-  { key: "month_hired", label: "本月新入职", value: stats.value?.month_hired_count ?? 0 },
+const statCards = computed<{ accent: StatCardAccent; key: string; label: string; value: number | string }[]>(() => [
+  { key: "active", label: "在编人数", value: stats.value?.active_count ?? 0, accent: "purple" },
+  { key: "probation", label: "试用期人数", value: stats.value?.probation_count ?? 0, accent: "orange" },
+  { key: "month_hired", label: "本月新入职", value: stats.value?.month_hired_count ?? 0, accent: "teal" },
   {
     key: "turnover",
     label: "离职率",
     value: `${((stats.value?.turnover_rate ?? 0) * 100).toFixed(1)}%`,
+    accent: "pink",
   },
 ]);
 
@@ -352,15 +355,14 @@ onMounted(() => {
     <div class="flex h-full min-h-0 flex-col gap-4">
       <!-- 统计卡 -->
       <div class="grid shrink-0 grid-cols-2 gap-4 lg:grid-cols-4" data-testid="employee-stat-cards">
-        <div
+        <StatCard
           v-for="card in statCards"
           :key="card.key"
-          class="bg-card ring-foreground/10 rounded-xl p-4 text-sm ring-1 shadow-sm"
+          :label="card.label"
+          :value="card.value"
+          :accent="card.accent"
           :data-testid="`stat-card-${card.key}`"
-        >
-          <p class="text-muted-foreground text-xs">{{ card.label }}</p>
-          <p class="mt-1 text-2xl font-semibold">{{ card.value }}</p>
-        </div>
+        />
       </div>
 
       <!-- 左树 + 右表 -->

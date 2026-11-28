@@ -7,7 +7,7 @@
  */
 import { computed, ref, watch } from "vue";
 
-import { Badge, Button, DateInput, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
+import { Badge, Button, DateInput, StatCard, type StatCardAccent, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import AppPage from "@/framework/layouts/components/AppPage.vue";
 import { useUserStore } from "@/framework/stores";
 import { getErrorMessage, notifyError, notifySuccess } from "@/framework/utils/feedback";
@@ -180,14 +180,15 @@ watch(
 
 /* ── 人事域派生 ── */
 
-const statCards = computed(() => [
-  { key: "active", label: "在编人数", value: overview.value?.cards.active_count ?? 0 },
-  { key: "probation", label: "试用期人数", value: overview.value?.cards.probation_count ?? 0 },
-  { key: "month_hired", label: "本月新入职", value: overview.value?.cards.month_hired_count ?? 0 },
+const statCards = computed<{ accent: StatCardAccent; key: string; label: string; value: number | string }[]>(() => [
+  { key: "active", label: "在编人数", value: overview.value?.cards.active_count ?? 0, accent: "purple" },
+  { key: "probation", label: "试用期人数", value: overview.value?.cards.probation_count ?? 0, accent: "orange" },
+  { key: "month_hired", label: "本月新入职", value: overview.value?.cards.month_hired_count ?? 0, accent: "teal" },
   {
     key: "turnover",
     label: "离职率（近12月）",
     value: `${((overview.value?.cards.turnover_rate ?? 0) * 100).toFixed(1)}%`,
+    accent: "pink",
   },
 ]);
 
@@ -471,15 +472,14 @@ const perfDistRows = computed(() => {
           <!-- 人事域 -->
           <TabsContent v-else-if="activeDomain === 'personnel'" value="personnel" class="flex flex-col gap-4">
           <div class="grid shrink-0 grid-cols-2 gap-4 lg:grid-cols-4" data-testid="report-personnel-cards">
-            <div
+            <StatCard
               v-for="card in statCards"
               :key="card.key"
-              class="bg-card ring-foreground/10 rounded-xl p-4 ring-1 shadow-sm"
+              :label="card.label"
+              :value="card.value"
+              :accent="card.accent"
               :data-testid="`report-card-${card.key}`"
-            >
-              <p class="text-muted-foreground text-xs">{{ card.label }}</p>
-              <p class="mt-1 text-2xl font-semibold">{{ card.value }}</p>
-            </div>
+            />
           </div>
 
           <p
